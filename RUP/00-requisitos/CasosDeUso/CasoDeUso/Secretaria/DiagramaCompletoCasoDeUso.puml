@@ -1,0 +1,59 @@
+@startuml DiagramaDeCasosDeUsoSecretaria
+left to right direction
+skinparam packageStyle rectangle
+
+actor SecretariaAcademica
+
+
+
+    '=========================
+    ' MÓDULO LISTAS
+    '=========================
+    package "Listas de alumnos" {
+        usecase "importarListasAlumnos()" as ListasImportarListas
+        usecase "consultarListaAlumnos()" as ListasConsultarLista
+    }
+
+    '=========================
+    ' MÓDULO ALUMNOS
+    '=========================
+    package "Alumnos" {
+        usecase "importarAlumnos()"      as AlumnosImportar
+        usecase "verDetalleAlumno()"     as AlumnosVerDetalle
+    }
+
+    '=========================
+    ' MÓDULO MATRÍCULAS
+    '=========================
+    package "Matrículas" {
+        usecase "importarMatriculas()"   as MatriculasImportar
+        usecase "consultarDetalleMatricula()"  as MatriculasVerDetalle
+    }
+
+    '=========================
+    ' MÓDULO DISPENSAS
+    '=========================
+    package "Dispensas" {
+        usecase "crearSolicitudDispensa()"        as DispensasCrear
+        usecase "consultarSolicitudDispensa()"    as DispensasConsultar
+        usecase "editarSolicitudDispensa()"       as DispensasEditar
+        usecase "guardarSolicitudDispensa()"      as DispensasGuardar
+        usecase "cerrarSolicitudDispensa()"       as DispensasCerrar
+    }
+
+    SecretariaAcademica --> ListasImportarListas
+    SecretariaAcademica --> ListasConsultarLista
+
+    SecretariaAcademica --> AlumnosImportar
+    SecretariaAcademica --> AlumnosVerDetalle
+
+    SecretariaAcademica --> MatriculasImportar
+    SecretariaAcademica --> MatriculasVerDetalle
+
+    SecretariaAcademica --> DispensasCrear
+    SecretariaAcademica --> DispensasConsultar
+    SecretariaAcademica --> DispensasEditar
+    SecretariaAcademica --> DispensasGuardar
+    SecretariaAcademica --> DispensasCerrar
+
+@enduml

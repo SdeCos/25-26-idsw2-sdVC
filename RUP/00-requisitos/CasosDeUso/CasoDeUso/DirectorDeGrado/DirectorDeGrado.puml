@@ -1,0 +1,22 @@
+@startuml DiagramaDeCasosDeUsoDirectorDeGrado
+left to right direction
+skinparam packageStyle rectangle
+
+actor Profesor
+actor DirectorDeGrado
+
+' Herencia: DirectorDeGrado es un tipo de Profesor
+Profesor <|-- DirectorDeGrado
+
+
+    package "Dispensas" {
+        usecase "consultarSolicitudesDispensa()" as ConsultarSolicitudesDispensa
+        usecase "editarSolicitudDispensa()"     as EditarSolicitudDispensa
+        usecase "guardarSolicitudDispensa()"    as GuardarSolicitudDispensa
+    }
+
+    DirectorDeGrado --> ConsultarSolicitudesDispensa
+    DirectorDeGrado --> EditarSolicitudDispensa
+    DirectorDeGrado --> GuardarSolicitudDispensa
+
+@enduml

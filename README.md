@@ -8,12 +8,12 @@ El sistema surge del proyecto de requisitado desarrollado en [IDSW1](https://git
 
 ## Estado
 
-| Artefacto      | Estado       |
-| -------------- | ------------ |
-| Requisitado    | ⏳ Pendiente |
-| Análisis       | ⏳ Pendiente |
-| Diseño         | ⏳ Pendiente |
-| Implementación | ⏳ Pendiente |
+| Artefacto                         | Estado     |
+| --------------------------------- | ---------- |
+| [Requisitado](RUP/00-requisitos/) | ✅ Migrado |
+| Análisis                          | ⏳ 0/24    |
+| Diseño                            | ⏳ 0/24    |
+| Implementación                    | ⏳ 0/24    |
 
 ## Estructura del repositorio
 
