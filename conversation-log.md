@@ -83,3 +83,57 @@
 **Resultado:** Insertada `### Sesión 2026-05-22` al inicio del log (antes de `[11:48]`) y `### Sesión 2026-05-23` antes de `[10:03]`. Eliminada la cabecera duplicada que estaba justo antes de `[10:46]`.
 
 **Decisión:** Aceptado. La cabecera marca el principio del día, no el momento en que se configuró la regla.
+
+---
+
+### Sesión 2026-05-25
+
+## [09:45] Arranque de análisis y exploración de iniciarSesion()
+
+**Prompt:** Empezar la fase de análisis basándose en el temario (`../idsw2`) y usando `../pySigHor` como guía. Añadir esos dos contextos a CLAUDE.md para no comentarlo cada sesión. Primera aproximación a `iniciarSesion()`.
+
+**Resultado:** CLAUDE.md ampliado con sección "Contextos externos de referencia" (idsw2 y pySigHor). Detectados dos gaps al revisar el material: (1) `iniciarSesion()` aparece como transición en el diagrama de contexto pero no tiene detallado migrado del SDR; (2) el modelo del dominio no incluye una clase `Usuario`. Propuesta inicial: análisis MVC siguiendo el patrón de pySigHor (LoginView, IniciarSesionController, UsuarioRepository, Usuario, Sesion).
+
+**Decisión:** Antes de tirar PUML/README se planteó la duda metodológica de fondo (siguiente entrada).
+
+---
+
+## [09:50] Decisión: ¿se crea iniciarSesion/cerrarSesion en el requisitado o se asume?
+
+**Prompt:** ¿Qué es más correcto: crear el actor Usuario en el requisitado con los dos CUs de sesión, o mantener el requisitado tal cual y empezar el análisis directamente en SISTEMA_DISPONIBLE?
+
+**Resultado:** Voto inicial mío por mantener el requisitado intacto y asumir la autenticación (coherencia con la migración espejo, denominador 24 ya excluye sesión, foco del análisis en las ramas con valor de dominio).
+
+**Decisión:** Rechazado. El usuario opta por completar el requisitado: añadir el actor `Usuario` y los CUs `iniciarSesion()`/`cerrarSesion()`. Razón aportada: la diferencia es pequeña (1 actor, 2 CUs genéricos) y prima la corrección y completitud sobre la fidelidad al espejo.
+
+---
+
+## [09:55] Configuración del trabajo: jerarquía, prototipo y denominador
+
+**Prompt:** Tres preguntas previas (jerarquía de Usuario en Actores.puml; prototipo de login sí/no; los 2 CUs nuevos cuentan en el denominador).
+
+**Resultado:** Confirmadas tres decisiones:
+- `Usuario` como **superclase de los 5 actores** (Alumno, Profesor, Secretaria heredan de Usuario; resto de la jerarquía existente intacta).
+- **Sí** crear prototipo SALT simple del login.
+- **Sí** subir el denominador a **26** (cobertura total de transiciones del diagrama de contexto).
+
+**Decisión:** Aceptadas las tres. Defaults asumidos sin preguntar: nuevas carpetas `Usuario/` bajo `CasoDeUso/`, `DetalladoCasosDeUso/` y `Prototipos/`; arreglo masivo de links rotos `/documents/...` → `/RUP/00-requisitos/...` en todos los README del requisitado; conservar el estilo de navbar/badges del SDR.
+
+---
+
+## [10:00] Implementación: actor Usuario, 2 CUs, prototipo SALT y arreglo de links
+
+**Prompt:** Ejecuta el plan; el repo tiene `plantuml` disponible para generar SVGs.
+
+**Resultado:** Cambios aplicados:
+- `Actores.puml` ampliado con `Usuario` como superclase (note: "origen común de actores autenticables").
+- Nueva carpeta `CasoDeUso/Usuario/` con `Usuario.puml` (actor → 2 CUs en package "Sesión") y SVG renombrado para seguir convención del SDR (`Usuario.svg`).
+- Nueva carpeta `DetalladoCasosDeUso/Usuario/` con `iniciarSesion.puml` (estados internos + choice point credenciales válidas/no válidas, basado en el patrón de pySigHor), `cerrarSesion.puml` (transiciones por acción del usuario y por inactividad) y `README.md` con la misma estructura que el de Administrador.
+- Nueva carpeta `Prototipos/Usuario/` con `iniciarSesion.puml` (SALT wireframe: campos usuario/contraseña, botones, mensaje de error).
+- Todos los SVG generados con `plantuml -tsvg`.
+- `DetalladoCasosDeUso/README.md` y `Prototipos/README.md`: añadida sección `Usuario` (primera, antes de Alumno).
+- Reescritura global en 13 README del requisitado: `/documents/` → `/RUP/00-requisitos/` y `PRIORIZACION_CASOS_DE_USO.md` → `PriorizaciónCasosDeUso.md`. Verificación: 0 ocurrencias residuales.
+- README raíz: fracciones `0/24` → `0/26` (3 ocurrencias).
+- CLAUDE.md: sección "Medida de progreso" actualizada (denominador 26, breakdown con Usuario(2)).
+
+**Decisión:** Fuera de scope (pre-existente del SDR, no roto por migración): `ModeloDelDominio/README.MD` referencia diagramas de estado inexistentes (DirectorGrado, ListaAlumno, SesionDeClase). No se tocan — son aspiracionales del SDR original.

@@ -1,0 +1,15 @@
+@startsalt
+{+
+  <b>Centro de Gestión Universitaria — Iniciar sesión</b>
+  ..
+  Usuario     | "                              "
+  Contraseña  | "******                        "
+  ..
+  {/ <b>Recordarme</b> | ¿Olvidó su contraseña? }
+  ..
+  [        Iniciar sesión        ] | [   Cancelar   ]
+  ..
+  <i>Si las credenciales no son válidas, se muestra un mensaje</i>
+  <i>y se vuelve al formulario de acceso.</i>
+}
+@endsalt

@@ -3,17 +3,29 @@ title Actores del sistema (jerarquía)
 
 top to bottom direction
 
+actor Usuario
 actor Alumno
 actor Profesor
 actor DirectorDeGrado as Director
 actor SecretariaAcademica as Secretaria
 actor Administrador as Admin
 
+' Origen común para autenticación
+Usuario <|-- Alumno
+Usuario <|-- Profesor
+Usuario <|-- Secretaria
+
 ' Jerarquía de capacidades
 Profesor  <|-- Director
 Director  <|-- Admin
 Secretaria <|-- Admin
 Alumno    <|-- Admin
+
+note right of Usuario
+  Usuario:
+  Origen común de actores autenticables.
+  Inicia y cierra sesión en el sistema.
+end note
 
 note right of Alumno
   Alumno:

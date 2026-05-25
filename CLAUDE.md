@@ -17,9 +17,16 @@ Por indicación del profesor (siguiendo la convención de SigHor), cada discipli
 
 El código va en `/src`. Las carpetas root `/modelosUML`, `/images`, `/documents` son scaffolding inicial **pendiente de decidir** (eliminar o repurposar para artefactos globales).
 
+## Contextos externos de referencia
+
+Dos repos hermanos viven al lado de este y se usan como referencia recurrente; no hace falta que el usuario los mencione al inicio de cada sesión:
+
+- `../idsw2/` — temario de la asignatura IDSW2 (en `temario/`: introducción, diseño, diseño modular, diseño OO). Es la fuente conceptual para análisis y diseño.
+- `../pySigHor/` — proyecto guía con la misma metodología RUP que aplicamos aquí. Es la plantilla de referencia para la estructura y forma de los artefactos de cada disciplina (especialmente `RUP/01-analisis/casos-uso/` y `RUP/02-diseño/`).
+
 ## Medida de progreso
 
-El denominador para las fracciones del README es **24 CUs** — los casos de uso con detalle migrados del SDR, distribuidos en 5 roles: Administrador (3), Profesor (8), Alumno (3), DirectorDeGrado (2), Secretaria (8).
+El denominador para las fracciones del README es **26 CUs** — los 24 casos de uso con detalle migrados del SDR más 2 añadidos en este repo para cerrar el actor `Usuario` (iniciarSesion, cerrarSesion). Distribución por rol: Usuario (2), Administrador (3), Profesor (8), Alumno (3), DirectorDeGrado (2), Secretaria (8).
 
 ## Idioma
 

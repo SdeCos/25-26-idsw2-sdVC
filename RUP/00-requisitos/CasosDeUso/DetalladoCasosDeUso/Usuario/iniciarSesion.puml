@@ -1,0 +1,62 @@
+@startuml iniciarSesion
+title Iniciar Sesión
+
+' --- CONFIGURACIÓN DE ESTILO ---
+skinparam nodesep 100
+skinparam ranksep 100
+skinparam linetype ortho
+skinparam Padding 10
+
+' Definición de Estados Macro
+state SESION_CERRADA
+state SISTEMA_DISPONIBLE
+
+[*] -[#green]-> SESION_CERRADA
+
+' Comportamiento interno: autenticación
+state SESION_CERRADA {
+    state SolicitandoAcceso          as "Solicitando acceso"
+    state ProporcionandoCredenciales as "Proporcionando credenciales"
+    state c <<choice>>
+
+    [*] -[#green]-> SolicitandoAcceso
+    note on link
+        <b>Usuario solicita</b> acceder al sistema.
+        <b>Sistema permite</b> abrir el formulario
+        de inicio de sesión.
+    end note
+
+    SolicitandoAcceso -[#green]-> ProporcionandoCredenciales
+    note on link
+        <b>Sistema permite</b> introducir:
+        • usuario
+        • contraseña
+    end note
+
+    ProporcionandoCredenciales -[#green]-> c
+    note on link
+        <b>Usuario solicita</b> validar
+        las credenciales introducidas.
+    end note
+
+    c -[#red]-> SolicitandoAcceso
+    note on link
+        credenciales no válidas
+    end note
+
+    c -[#green]-> [*]
+    note on link
+        credenciales válidas
+    end note
+}
+
+' Transición al estado destino tras autenticación correcta
+SESION_CERRADA -[#green]---> SISTEMA_DISPONIBLE : iniciarSesion()
+note left on link
+    <b>Sistema permite</b> el acceso autenticado.
+    El actor se resuelve al rol correspondiente
+    (Alumno, Profesor, Secretaría, Director o Admin).
+end note
+
+SISTEMA_DISPONIBLE -[#blue]-> [*]
+@enduml

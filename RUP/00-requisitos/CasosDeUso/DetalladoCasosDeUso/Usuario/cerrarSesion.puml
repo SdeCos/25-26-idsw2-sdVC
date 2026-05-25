@@ -1,0 +1,31 @@
+@startuml cerrarSesion
+title Cerrar Sesión
+
+' --- CONFIGURACIÓN DE ESTILO ---
+skinparam nodesep 100
+skinparam ranksep 100
+skinparam linetype ortho
+skinparam Padding 10
+
+state SISTEMA_DISPONIBLE
+state SESION_CERRADA
+
+[*] -[#green]-> SISTEMA_DISPONIBLE
+
+' Salida explícita por acción del usuario
+SISTEMA_DISPONIBLE -[#green]---> SESION_CERRADA : cerrarSesion()
+note left on link
+    <b>Usuario solicita</b> cerrar la sesión.
+    <b>Sistema permite</b> finalizar el estado
+    autenticado y descartar el contexto.
+end note
+
+' Salida implícita por inactividad
+SISTEMA_DISPONIBLE -[#red]---> SESION_CERRADA : sesionInactiva()
+note right on link
+    <b>Sistema</b> detecta inactividad prolongada
+    y cierra automáticamente la sesión.
+end note
+
+SESION_CERRADA -[#blue]-> [*]
+@enduml

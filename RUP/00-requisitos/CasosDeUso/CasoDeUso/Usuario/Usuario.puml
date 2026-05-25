@@ -1,0 +1,31 @@
+@startuml CasosDeUsoUsuario
+Title Casos de uso del Usuario
+left to right direction
+skinparam packageStyle rectangle
+
+actor Usuario
+actor Alumno
+actor Profesor
+actor SecretariaAcademica
+actor DirectorDeGrado
+actor Administrador
+
+' Todo actor autenticable es un Usuario
+Usuario <|-- Alumno
+Usuario <|-- Profesor
+Usuario <|-- SecretariaAcademica
+
+' Resto de la jerarquía de capacidades (referencia)
+Profesor <|-- DirectorDeGrado
+DirectorDeGrado <|-- Administrador
+SecretariaAcademica <|-- Administrador
+Alumno <|-- Administrador
+
+package "Sesión" {
+    usecase "iniciarSesion()" as IniciarSesion
+    usecase "cerrarSesion()"  as CerrarSesion
+}
+
+Usuario --> IniciarSesion
+Usuario --> CerrarSesion
+@enduml
