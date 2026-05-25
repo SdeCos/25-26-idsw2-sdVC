@@ -137,3 +137,74 @@
 - CLAUDE.md: sección "Medida de progreso" actualizada (denominador 26, breakdown con Usuario(2)).
 
 **Decisión:** Fuera de scope (pre-existente del SDR, no roto por migración): `ModeloDelDominio/README.MD` referencia diagramas de estado inexistentes (DirectorGrado, ListaAlumno, SesionDeClase). No se tocan — son aspiracionales del SDR original.
+
+---
+
+## [10:20] Modelo elegido para Usuario en el análisis: herencia polimórfica
+
+**Prompt:** Cuando un usuario inicia sesión, debe detectarse su tipo concreto (Alumno, Profesor, …) y aplicársele permisos/comportamientos por tipo. Sesión gestionada por el Controller, no por el Usuario.
+
+**Resultado:** Modelo confirmado para el análisis: `Usuario` como clase abstracta, con subclases concretas (Alumno, Profesor, Secretaria, Director, Administrador) en 1:1 con la jerarquía de `Actores.puml`. El polimorfismo entra en `UsuarioRepository.validarCredenciales(...) : Usuario` — devuelve un Usuario tipado, la instancia real es el subtipo. Permisos/comportamientos viajan con el tipo, no con un atributo `rol`. `Sesion` la crea el Controller (decisión 2a).
+
+**Decisión:** Rechazadas (1a) atributo rol y (1b) `Usuario` con asociación a `Rol`; aceptada herencia polimórfica directa (la jerarquía de actores se materializa como jerarquía de clases). Es lo más alineado con el espíritu OO del temario IDSW2 (composición/herencia, Liskov, SOLID).
+
+---
+
+## [10:26] Implementación del análisis de iniciarSesion()
+
+**Prompt:** Procede a crear los 5 archivos.
+
+**Resultado:** Estructura nueva `RUP/01-analisis/`:
+- `README.md` — presentación de la disciplina (metodología MVC, colores de estereotipos, heurísticas).
+- `casos-uso/README.md` — índice de los 26 CUs con estado (1 ✅ / 25 ⏳).
+- `casos-uso/iniciarSesion/colaboracion.puml` — diagrama de colaboración con 5 clases (LoginView, IniciarSesionController, UsuarioRepository, Usuario, Sesion) + colaboración `:Sistema Disponible`. Nota explícita sobre el polimorfismo del retorno de `validarCredenciales()`.
+- `casos-uso/iniciarSesion/colaboracion.svg` — generado con `plantuml -tsvg` y renombrado de `iniciarSesion-analisis.svg` a `colaboracion.svg`.
+- `casos-uso/iniciarSesion/README.md` — análisis completo: tablas por estereotipo, flujo principal y alternativo, sección de polimorfismo/herencia con la jerarquía visualizada, trazabilidad con cada artefacto del requisitado, principios aplicados y decisiones abiertas para 02-diseño.
+
+Actualizaciones colaterales:
+- README raíz: fracción `Análisis 0/26 → 1/26` y la celda pasa a ser enlace a `RUP/01-analisis/`.
+
+**Decisión:** Aceptado el modelo de herencia polimórfica como base. Sin trazabilidad directa al modelo del dominio para `Usuario`/`Sesion` — explícitamente listado como deuda a reconciliar en 02-diseño (¿se promueve `Usuario` a clase de dominio o se queda como concepto de análisis/infraestructura?).
+
+---
+
+## [10:35] Pulido del análisis: formato pySigHor y eliminación de la nota
+
+**Prompt:** Quita la nota del PUML (innecesaria, sustituida por la tabla). Pon debajo del diagrama una tabla "Disciplina/Enfoque" como pySigHor en lugar de los badges Ver_PUML/Ver_SVG. Reescribe el README al formato pySigHor.
+
+**Resultado:** Tres cambios:
+- `colaboracion.puml`: eliminada la nota sobre polimorfismo. SVG regenerado.
+- `README.md` reestructurado al formato pySigHor: navbar superior con badges de disciplinas RUP; secciones en minúscula (información del artefacto, propósito, diagrama de colaboración, clases de análisis identificadas con subsecciones model/view/controller/colaboraciones, mensajes de colaboración, enlaces de dependencia, polimorfismo y herencia, trazabilidad con artefactos previos, principios de análisis aplicados, características del análisis, conexión con disciplinas rup, referencias). Diagrama embedido con tabla de caption "Disciplina: Análisis RUP / Enfoque: Diagramas de colaboración MVC".
+- Conservada la sección "polimorfismo y herencia" (específica de este proyecto, no presente en pySigHor) — es donde vive la decisión OO clave del análisis.
+
+**Decisión:** Aceptado el formato pySigHor como plantilla canónica para los próximos análisis de CU en `RUP/01-analisis/casos-uso/`.
+
+---
+
+## [10:50] Eliminación de `sesionInactiva()` del requisitado
+
+**Prompt:** Eliminar por completo `sesionInactiva()` (cierre automático por inactividad), incluso del requisitado. No es esencial, añade complejidad y la sesión debería cerrarse solo cuando el usuario lo pida.
+
+**Resultado:** Cambios en el requisitado:
+- `DiagramaDeContexto.puml`: la línea `SISTEMA_DISPONIBLE --> SESION_CERRADA : cerrarSesion() / sesionInactiva()` pasa a `... : cerrarSesion()`.
+- `DetalladoCasosDeUso/Usuario/cerrarSesion.puml`: eliminada la transición roja `SISTEMA_DISPONIBLE -[#red]---> SESION_CERRADA : sesionInactiva()` y su nota.
+- Ambos SVGs regenerados. Verificación: 0 ocurrencias de `sesionInactiva` en el repo.
+
+**Decisión:** Aceptado por las razones aportadas: (1) `sesionInactiva()` lo dispararía un "Sistema" como actor implícito que no existe en `Actores.puml`; (2) es una decisión de seguridad/configuración (cuántos minutos, cómo notificar), no un CU del negocio; (3) YAGNI — no hay requisito que lo pida. Si en algún momento se decide implementar timeout, vivirá en `02-diseño` o `03-desarrollo`, no como CU.
+
+---
+
+## [10:55] Análisis de `cerrarSesion()`
+
+**Prompt:** Procede con el análisis de cerrarSesion para completar el actor Usuario.
+
+**Resultado:** Creados `RUP/01-analisis/casos-uso/cerrarSesion/{colaboracion.puml, colaboracion.svg, README.md}`. Características:
+- 3 clases de análisis: `CerrarSesionView`, `CerrarSesionController`, `Sesion` (reutilizada de iniciarSesion).
+- 2 colaboraciones: `:Sistema Disponible` (origen) y `:Sesión Cerrada` (destino).
+- 4 mensajes, flujo único (sin alternativo tras la eliminación de `sesionInactiva()`).
+- **Sin `SesionRepository`**: por consistencia con `iniciarSesion()`, donde `Sesion` se autogestiona. pySigHor lo introduce, nosotros no.
+- Sección "diferencias con `iniciarSesion()`" para hacer explícita la asimetría (validación, choice point, polimorfismo solo aplican a init).
+
+Índices actualizados: `casos-uso/README.md` 1/26 → 2/26 y `cerrarSesion ⏳ → ✅`; README raíz 1/26 → 2/26.
+
+**Decisión:** Actor `Usuario` queda completamente analizado (2/2 CUs). Próximo paso: arrancar análisis del actor `Administrador` (3 CUs: crearUsuario, consultarUsuario, editarUsuario), donde aparecerán los primeros patrones CRUD del proyecto.

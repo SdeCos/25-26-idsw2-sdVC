@@ -1,0 +1,27 @@
+@startuml iniciarSesion-analisis
+skinparam linetype polyline
+
+actor Usuario as ActorUsuario
+
+package iniciarSesion as "iniciarSesion()" {
+    rectangle #629EF9 LoginView
+    rectangle #b5bd68 IniciarSesionController
+    rectangle #F2AC4E UsuarioRepository
+    rectangle #F2AC4E Usuario
+    rectangle #F2AC4E Sesion
+}
+rectangle #CDEBA5 ":Sistema Disponible" as SistemaDisponible
+
+ActorUsuario -r-> LoginView                   : iniciarSesion(usuario, contraseña)
+
+LoginView -d-> IniciarSesionController        : autenticar(usuario, contraseña) : Sesion
+
+IniciarSesionController --> UsuarioRepository : validarCredenciales(usuario, contraseña) : Usuario
+
+UsuarioRepository -- Usuario
+
+IniciarSesionController --> Sesion            : crearSesion(usuario) : Sesion
+
+LoginView -r-> SistemaDisponible              : sistemaDisponible(usuario)
+
+@enduml

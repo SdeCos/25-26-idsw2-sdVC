@@ -6,7 +6,7 @@ skinparam linetype polyline
 [*] --> SESION_CERRADA
 
 SESION_CERRADA --> SISTEMA_DISPONIBLE : iniciarSesion()
-SISTEMA_DISPONIBLE --> SESION_CERRADA : cerrarSesion() / sesionInactiva()
+SISTEMA_DISPONIBLE --> SESION_CERRADA : cerrarSesion()
 
 '==========================================
 '  MÓDULO LISTAS DE ALUMNOS (solo importar + consulta)
