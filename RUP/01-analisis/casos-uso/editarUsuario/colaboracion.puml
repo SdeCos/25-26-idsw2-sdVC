@@ -1,0 +1,29 @@
+@startuml editarUsuario-analisis
+skinparam linetype polyline
+
+rectangle #CDEBA5 ":Usuarios Abierto" as UsuariosAbierto
+rectangle #CDEBA5 ":Collaboration ConsultarUsuario" as ConsultarUsuario
+rectangle #CDEBA5 ":Collaboration CrearUsuario" as CrearUsuario
+
+package editarUsuario as "editarUsuario()" {
+    rectangle #629EF9 EditarUsuarioView
+    rectangle #b5bd68 UsuarioController
+    rectangle #F2AC4E UsuarioRepository
+    rectangle #F2AC4E Usuario
+}
+
+UsuariosAbierto --> EditarUsuarioView         : editarUsuario(usuarioId)
+ConsultarUsuario --> EditarUsuarioView        : editarUsuario(usuarioId)
+CrearUsuario --> EditarUsuarioView            : editarUsuario(usuarioNuevo)
+
+EditarUsuarioView -d-> UsuarioController      : cargarUsuarioParaEdicion(usuarioId) : Usuario
+
+UsuarioController --> UsuarioRepository       : obtenerPorId(usuarioId) : Usuario
+
+EditarUsuarioView --> UsuarioController       : modificarCampos(usuarioId, cambios) : boolean
+
+UsuarioController --> UsuarioRepository       : actualizar(usuario) : boolean
+
+UsuarioRepository -- Usuario
+
+@enduml

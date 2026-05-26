@@ -1,0 +1,28 @@
+@startuml crearUsuario-analisis
+skinparam linetype polyline
+
+rectangle #CDEBA5 ":Usuarios Abierto" as UsuariosAbierto
+rectangle #CDEBA5 ":Collaboration EditarUsuario" as EditarUsuario
+
+package crearUsuario as "crearUsuario()" {
+    rectangle #629EF9 CrearUsuarioView
+    rectangle #b5bd68 UsuarioController
+    rectangle #F2AC4E UsuarioRepository
+    rectangle #F2AC4E Usuario
+}
+
+UsuariosAbierto -r-> CrearUsuarioView         : crearUsuario()
+
+CrearUsuarioView -d-> UsuarioController       : validarUnicidad(login) : boolean
+
+UsuarioController --> UsuarioRepository       : existeLogin(login) : boolean
+
+CrearUsuarioView --> UsuarioController        : crearUsuario(tipo, login, contraseña) : Usuario
+
+UsuarioController --> UsuarioRepository       : crear(tipo, login, contraseña) : Usuario
+
+UsuarioRepository -- Usuario
+
+CrearUsuarioView ..> EditarUsuario            : <<include>> editarUsuario(usuarioNuevo)
+
+@enduml

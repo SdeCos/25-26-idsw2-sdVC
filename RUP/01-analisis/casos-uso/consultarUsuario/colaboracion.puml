@@ -1,0 +1,24 @@
+@startuml consultarUsuario-analisis
+skinparam linetype polyline
+
+rectangle #CDEBA5 ":Usuarios Abierto" as UsuariosAbierto
+rectangle #CDEBA5 ":Collaboration EditarUsuario" as EditarUsuario
+
+package consultarUsuario as "consultarUsuario()" {
+    rectangle #629EF9 ConsultarUsuarioView
+    rectangle #b5bd68 UsuarioController
+    rectangle #F2AC4E UsuarioRepository
+    rectangle #F2AC4E Usuario
+}
+
+UsuariosAbierto -r-> ConsultarUsuarioView    : consultarUsuario(usuarioId)
+
+ConsultarUsuarioView -d-> UsuarioController  : cargarUsuario(usuarioId) : Usuario
+
+UsuarioController --> UsuarioRepository      : obtenerPorId(usuarioId) : Usuario
+
+UsuarioRepository -- Usuario
+
+ConsultarUsuarioView ..> EditarUsuario       : <<include>> editarUsuario(usuarioId)
+
+@enduml

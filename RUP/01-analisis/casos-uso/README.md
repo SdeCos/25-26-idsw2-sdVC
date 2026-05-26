@@ -8,9 +8,9 @@ Diagramas de colaboración MVC por caso de uso.
 |---|---|---|
 | [iniciarSesion()](iniciarSesion/README.md) | Usuario | ✅ |
 | [cerrarSesion()](cerrarSesion/README.md) | Usuario | ✅ |
-| crearUsuario() | Administrador | ⏳ |
-| consultarUsuario() | Administrador | ⏳ |
-| editarUsuario() | Administrador | ⏳ |
+| [crearUsuario()](crearUsuario/README.md) | Administrador | ✅ |
+| [consultarUsuario()](consultarUsuario/README.md) | Administrador | ✅ |
+| [editarUsuario()](editarUsuario/README.md) | Administrador | ✅ |
 | consultarListaAlumnos() | Profesor | ⏳ |
 | consultarDetalleAlumno() | Profesor | ⏳ |
 | crearSesionClase() | Profesor | ⏳ |
@@ -19,9 +19,9 @@ Diagramas de colaboración MVC por caso de uso.
 | cerrarSesionClase() | Profesor | ⏳ |
 | exportarHistorialAsistencias() | Profesor | ⏳ |
 | consultarSolicitudDispensa() | Profesor | ⏳ |
-| crearSolicitudDispensa() (Alumno) | Alumno | ⏳ |
-| editarSolicitudDispensa() (Alumno) | Alumno | ⏳ |
-| consultarSolicitudDispensa() (Alumno) | Alumno | ⏳ |
+| [crearSolicitudDispensa()](crearSolicitudDispensa/README.md) (Alumno) | Alumno | ✅ |
+| [editarSolicitudDispensa()](editarSolicitudDispensa/README.md) (Alumno) | Alumno | ✅ |
+| [consultarSolicitudDispensa()](consultarSolicitudDispensa/README.md) (Alumno) | Alumno | ✅ |
 | ConsultarSolicitudesDispensas() | DirectorDeGrado | ⏳ |
 | EditarSolicitud() | DirectorDeGrado | ⏳ |
 | consultarListaAlumnos() (Secretaria) | Secretaria | ⏳ |
@@ -33,4 +33,4 @@ Diagramas de colaboración MVC por caso de uso.
 | consultarSolicitudDispensa() (Secretaria) | Secretaria | ⏳ |
 | exportarDispensas() | Secretaria | ⏳ |
 
-**Progreso:** 2/26
+**Progreso:** 8/26
