@@ -1,0 +1,21 @@
+@startuml editarSolicitudDispensaDirector-analisis
+skinparam linetype polyline
+
+rectangle #CDEBA5 ":Collaboration ConsultarSolicitudesDispensas" as ConsultarSolicitudesDispensas
+
+package editarSolicitudDispensaDirector as "editarSolicitudDispensa() [Director]" {
+    rectangle #629EF9 EditarSolicitudDispensaDirectorView
+    rectangle #b5bd68 SolicitudDispensaController
+    rectangle #F2AC4E SolicitudDispensaRepository
+    rectangle #F2AC4E SolicitudDispensa
+}
+
+ConsultarSolicitudesDispensas --> EditarSolicitudDispensaDirectorView : editarSolicitudDispensa(solicitud)
+
+EditarSolicitudDispensaDirectorView --> SolicitudDispensaController : modificarVeredicto(solicitudId, estado, observaciones) : boolean
+
+SolicitudDispensaController --> SolicitudDispensaRepository : actualizar(solicitud) : boolean
+
+SolicitudDispensaRepository -- SolicitudDispensa
+
+@enduml

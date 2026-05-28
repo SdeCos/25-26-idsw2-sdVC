@@ -113,6 +113,7 @@
 **Prompt:** Tres preguntas previas (jerarquía de Usuario en Actores.puml; prototipo de login sí/no; los 2 CUs nuevos cuentan en el denominador).
 
 **Resultado:** Confirmadas tres decisiones:
+
 - `Usuario` como **superclase de los 5 actores** (Alumno, Profesor, Secretaria heredan de Usuario; resto de la jerarquía existente intacta).
 - **Sí** crear prototipo SALT simple del login.
 - **Sí** subir el denominador a **26** (cobertura total de transiciones del diagrama de contexto).
@@ -126,6 +127,7 @@
 **Prompt:** Ejecuta el plan; el repo tiene `plantuml` disponible para generar SVGs.
 
 **Resultado:** Cambios aplicados:
+
 - `Actores.puml` ampliado con `Usuario` como superclase (note: "origen común de actores autenticables").
 - Nueva carpeta `CasoDeUso/Usuario/` con `Usuario.puml` (actor → 2 CUs en package "Sesión") y SVG renombrado para seguir convención del SDR (`Usuario.svg`).
 - Nueva carpeta `DetalladoCasosDeUso/Usuario/` con `iniciarSesion.puml` (estados internos + choice point credenciales válidas/no válidas, basado en el patrón de pySigHor), `cerrarSesion.puml` (transiciones por acción del usuario y por inactividad) y `README.md` con la misma estructura que el de Administrador.
@@ -155,6 +157,7 @@
 **Prompt:** Procede a crear los 5 archivos.
 
 **Resultado:** Estructura nueva `RUP/01-analisis/`:
+
 - `README.md` — presentación de la disciplina (metodología MVC, colores de estereotipos, heurísticas).
 - `casos-uso/README.md` — índice de los 26 CUs con estado (1 ✅ / 25 ⏳).
 - `casos-uso/iniciarSesion/colaboracion.puml` — diagrama de colaboración con 5 clases (LoginView, IniciarSesionController, UsuarioRepository, Usuario, Sesion) + colaboración `:Sistema Disponible`. Nota explícita sobre el polimorfismo del retorno de `validarCredenciales()`.
@@ -162,6 +165,7 @@
 - `casos-uso/iniciarSesion/README.md` — análisis completo: tablas por estereotipo, flujo principal y alternativo, sección de polimorfismo/herencia con la jerarquía visualizada, trazabilidad con cada artefacto del requisitado, principios aplicados y decisiones abiertas para 02-diseño.
 
 Actualizaciones colaterales:
+
 - README raíz: fracción `Análisis 0/26 → 1/26` y la celda pasa a ser enlace a `RUP/01-analisis/`.
 
 **Decisión:** Aceptado el modelo de herencia polimórfica como base. Sin trazabilidad directa al modelo del dominio para `Usuario`/`Sesion` — explícitamente listado como deuda a reconciliar en 02-diseño (¿se promueve `Usuario` a clase de dominio o se queda como concepto de análisis/infraestructura?).
@@ -173,6 +177,7 @@ Actualizaciones colaterales:
 **Prompt:** Quita la nota del PUML (innecesaria, sustituida por la tabla). Pon debajo del diagrama una tabla "Disciplina/Enfoque" como pySigHor en lugar de los badges Ver_PUML/Ver_SVG. Reescribe el README al formato pySigHor.
 
 **Resultado:** Tres cambios:
+
 - `colaboracion.puml`: eliminada la nota sobre polimorfismo. SVG regenerado.
 - `README.md` reestructurado al formato pySigHor: navbar superior con badges de disciplinas RUP; secciones en minúscula (información del artefacto, propósito, diagrama de colaboración, clases de análisis identificadas con subsecciones model/view/controller/colaboraciones, mensajes de colaboración, enlaces de dependencia, polimorfismo y herencia, trazabilidad con artefactos previos, principios de análisis aplicados, características del análisis, conexión con disciplinas rup, referencias). Diagrama embedido con tabla de caption "Disciplina: Análisis RUP / Enfoque: Diagramas de colaboración MVC".
 - Conservada la sección "polimorfismo y herencia" (específica de este proyecto, no presente en pySigHor) — es donde vive la decisión OO clave del análisis.
@@ -186,6 +191,7 @@ Actualizaciones colaterales:
 **Prompt:** Eliminar por completo `sesionInactiva()` (cierre automático por inactividad), incluso del requisitado. No es esencial, añade complejidad y la sesión debería cerrarse solo cuando el usuario lo pida.
 
 **Resultado:** Cambios en el requisitado:
+
 - `DiagramaDeContexto.puml`: la línea `SISTEMA_DISPONIBLE --> SESION_CERRADA : cerrarSesion() / sesionInactiva()` pasa a `... : cerrarSesion()`.
 - `DetalladoCasosDeUso/Usuario/cerrarSesion.puml`: eliminada la transición roja `SISTEMA_DISPONIBLE -[#red]---> SESION_CERRADA : sesionInactiva()` y su nota.
 - Ambos SVGs regenerados. Verificación: 0 ocurrencias de `sesionInactiva` en el repo.
@@ -199,6 +205,7 @@ Actualizaciones colaterales:
 **Prompt:** Procede con el análisis de cerrarSesion para completar el actor Usuario.
 
 **Resultado:** Creados `RUP/01-analisis/casos-uso/cerrarSesion/{colaboracion.puml, colaboracion.svg, README.md}`. Características:
+
 - 3 clases de análisis: `CerrarSesionView`, `CerrarSesionController`, `Sesion` (reutilizada de iniciarSesion).
 - 2 colaboraciones: `:Sistema Disponible` (origen) y `:Sesión Cerrada` (destino).
 - 4 mensajes, flujo único (sin alternativo tras la eliminación de `sesionInactiva()`).
@@ -220,6 +227,7 @@ Actualizaciones colaterales:
 **Resultado:** Propuesta inicial con `UsuarioController` compartido entre los 3 CUs del Admin. Tres preguntas previas: controller compartido vs por CU, dónde vive el dispatch polimórfico al crear, y si se crea prototipo SALT (no existe en el requisitado). Tras corregir la asunción de que pySigHor usa "uno por CU" (en realidad usa **uno por entidad**: `ProfesorController` se reutiliza en `crearProfesor` y `editarProfesor`; `IniciarSesionController`/`CerrarSesionController` es una **divergencia nuestra** justificada porque Sesion no es una entidad CRUD), se acordó el patrón híbrido: **Controller por verbo** para sesión, **Controller por entidad** para CRUD de dominio.
 
 Archivos creados en `RUP/01-analisis/casos-uso/crearUsuario/`:
+
 - `colaboracion.puml` — 4 clases en el package (CrearUsuarioView, UsuarioController, UsuarioRepository, Usuario) + 2 colaboraciones (`:Usuarios Abierto` origen, `:Collaboration EditarUsuario` destino vía `<<include>>`). 6 mensajes: validar unicidad → consultar Repository → crear con tipo → persistir con dispatch polimórfico → include editarUsuario.
 - `colaboracion.svg` generado y renombrado.
 - `README.md` con secciones: clases por estereotipo, mensajes (principal + alternativos login-en-uso/cerrar-sin-guardar), polimorfismo y herencia (mensaje 5 como contraparte de escritura de `validarCredenciales`), **sección "asimetría en la elección de controlador"** justificando los dos patrones, trazabilidad y deudas para diseño.
@@ -227,6 +235,7 @@ Archivos creados en `RUP/01-analisis/casos-uso/crearUsuario/`:
 Índices actualizados: `casos-uso/README.md` 2/26 → 3/26; README raíz `Análisis 2/26 → 3/26`.
 
 **Decisión:**
+
 - **Controller por entidad** (`UsuarioController`) para los 3 CUs del CRUD, coherente con pySigHor. Asimetría con sesión documentada explícitamente en el README como decisión de diseño.
 - **Dispatch polimórfico en `UsuarioRepository.crear(tipo, …)`** (no en el Controller): consistente con `validarCredenciales()` que también devuelve subtipos resueltos en el Repository.
 - **Sin nuevo prototipo SALT**: la `CrearUsuarioView` se deriva del estado `FormularioRegistro` del detallado y se asume formulario mínimo (tipo + login + contraseña) que delega el resto a `editarUsuario()` vía `<<include>>`.
@@ -240,6 +249,7 @@ Archivos creados en `RUP/01-analisis/casos-uso/crearUsuario/`:
 **Resultado:** Creados `RUP/01-analisis/casos-uso/editarUsuario/{colaboracion.puml, colaboracion.svg, README.md}`. Patrón calcado de pySigHor `editarProfesor` / `editarAula`: **tres colaboraciones de origen** (`:Usuarios Abierto`, `:Collaboration ConsultarUsuario`, `:Collaboration CrearUsuario`) que convergen en una única `EditarUsuarioView`. 5 mensajes: cargar (mensajes 2-3 condicionales según el origen) → modificar → actualizar. Reutiliza `UsuarioController` y `UsuarioRepository` de [[crearUsuario]].
 
 Decisiones de modelado:
+
 - **Sin `<<include>> abrirUsuarios()` al final** (a diferencia de pySigHor `editarProfesor → <<include>> abrirProfesores`): no tenemos un CU `abrirUsuarios` analizado; la vuelta al listado es transición de estado del detallado, no inclusión de CU. Modelar un include a un CU inexistente sería deshonesto.
 - **Mensajes 2-3 documentados como condicionales en prosa**: cuando la entrada es desde `crearUsuario` con `usuarioNuevo`, la instancia ya está cargada y la `EditarUsuarioView` no necesita invocar `cargarUsuarioParaEdicion`. Se explica en el flujo alternativo "entrada desde crearUsuario", sin duplicar mensajes en el diagrama.
 - **Invariante de subtipo durante la edición**: el `tipo` del usuario no cambia (se fijó en el alta). El polimorfismo solo se usa para que la vista presente campos específicos del subtipo cargado. Esta invariante queda como deuda para diseño ("bloqueo del `tipo` post-alta").
@@ -261,6 +271,7 @@ Sección específica "múltiples puntos de entrada" con tabla de los tres oríge
 Sección distintiva: **"comparación con los otros CUs del bloque Administrador"** con tabla resumen del CRUD completo (operaciones, puntos de entrada, mensajes al Repository, polimorfismo, includes salientes). Hace explícito el cierre coherente del bloque: crear→editar (siempre), consultar→editar (opcional), editar como convergencia.
 
 Decisiones de modelado:
+
 - **`<<include>>` opcional documentado en prosa**, no como mensaje aparte: el diagrama muestra la dependencia; la opcionalidad vive en el flujo alternativo del README. Coherente con cómo se modeló `cerrarUsuario()` en los otros dos CUs.
 - **Sin transición `guardarUsuario()`** en el análisis (a diferencia de los otros dos): la consulta es read-only; la persistencia solo aparece si se entra a editar, y entonces vive en [[editarUsuario]].
 
@@ -305,6 +316,7 @@ Discrepancia detectada y NO arreglada: `Alumno.puml` usa "consultarEstadoDispens
 **Prompt:** Hacer los dos restantes del bloque Alumno.
 
 **Resultado:** Cuatro archivos creados:
+
 - `RUP/01-analisis/casos-uso/editarSolicitudDispensa/{colaboracion.puml, colaboracion.svg, README.md}` — 5 mensajes, 3 colaboraciones origen (calcado de [[editarUsuario]]).
 - `RUP/01-analisis/casos-uso/consultarSolicitudDispensa/{colaboracion.puml, colaboracion.svg, README.md}` — 4 mensajes, 1 colaboración origen (calcado de [[consultarUsuario]]).
 
@@ -321,3 +333,55 @@ Discrepancia detectada y NO arreglada: `Alumno.puml` usa "consultarEstadoDispens
 Índices actualizados: `casos-uso/README.md` 6/26 → 8/26 (dos en la misma sesión); README raíz `Análisis 6/26 → 8/26`.
 
 **Decisión:** Bloque Alumno completo (3/3 CUs). La regla de propiedad emerge como concepto transversal de análisis que se manejará en diseño (probablemente como middleware/decorador). Próximo bloque: **DirectorDeGrado** (2 CUs sobre `SolicitudDispensa`, sin restricción de propiedad — son el reverso del bloque Alumno).
+
+---
+
+### Sesión 2026-05-28
+
+## [09:04] Análisis de `consultarSolicitudesDispensas()` — apertura del bloque DirectorDeGrado
+
+**Prompt:** Empezar el último actor con pocos CdU, análisis de "ConsultarSolicitudAsistencia" de DirectorDeGrado (errata por `consultarSolicitudesDispensas`; el actor solo tiene 2 CUs sobre dispensas, no sobre asistencias).
+
+**Resultado:** Creados `RUP/01-analisis/casos-uso/consultarSolicitudesDispensas/{colaboracion.puml, colaboracion.svg, README.md}`. **Patrón master-detail** en un único CU: el alcance es más amplio que el de [[consultarSolicitudDispensa]] del Alumno (que era solo la ficha) — abarca **listado completo + apertura de detalle + transición opcional a edición**. 6 mensajes, 1 colaboración origen (`:Sistema Disponible`) y una destino opcional (`:Collaboration EditarSolicitudDispensa`).
+
+**Especificidades del bloque DirectorDeGrado (vs bloque Alumno):**
+
+1. **Sin filtro de propiedad — asimetría clave**: el Director ve **todas** las solicitudes vía `obtenerTodas()` sin parámetro `alumno`. Confirma la decisión de análisis ya intuida en el bloque Alumno: **la verificación de propiedad vive en el Controller, no en el Repository**, porque desde DirectorDeGrado el mismo Repository sirve sin esa restricción. Si viviera en el Repository, este CU no podría reutilizarlo.
+
+2. **Primera materialización del polimorfismo de Usuario más allá del login**: el comportamiento del `SolicitudDispensaController` debe ramificar según el subtipo de `Sesion.usuario` (Alumno filtra, Director no). Hasta ahora el subtipo de Usuario solo intervenía al construir la Sesion en [[iniciarSesion]]; aquí condiciona la operación de negocio. Tres caminos abiertos para diseño: ramificación explícita por subtipo, estrategia `PoliticaAcceso`, o métodos Controller distintos por rol.
+
+3. **Discrepancia de nombre triple** detectada y documentada: `DirectorDeGrado.puml` usa `consultarSolicitudesDispensa()` (singular `Dispensa`); el detallado, estado interno y prototipos usan `consultarSolicitudesDispensas()` (plural `Dispensas`). Adoptado el plural como canónico (mayoría de artefactos + semántica de "lista de" más coherente). Misma lógica que aplicó [[consultarSolicitudDispensa]] del Alumno frente a `Alumno.puml`. Deuda: renombrar en `DirectorDeGrado.puml`.
+
+4. **El detalle no es un `<<include>>` a otro CU**: el Director no tiene un CU separado `consultarSolicitudDispensa()`; el drill-down al detalle vive **dentro** de este mismo CU (mensajes 4-5). No se reutiliza el CU del Alumno porque tiene verificación de propiedad incompatible. Esto es una asimetría con el patrón pySigHor donde "abrir detalle" suele ser CU propio.
+
+Índices actualizados: `casos-uso/README.md` 8/26 → 9/26 y `ConsultarSolicitudesDispensas() → consultarSolicitudesDispensas() ✅`; README raíz `Análisis 8/26 → 9/26`.
+
+**Decisión:** El bloque DirectorDeGrado arranca con un CU de **mayor alcance** que sus homólogos del Alumno (master-detail en lugar de solo detalle). Patrón pySigHor de "consultar = solo ficha" no se aplica aquí porque el detallado del SDR explícitamente integra listado y detalle en un único flujo. Próximo paso: `editarSolicitudDispensa()` del Director (último CU del bloque, cerrando 10/26 con la entidad `SolicitudDispensa` analizada de extremo a extremo desde ambos roles).
+
+---
+
+## [09:11] Análisis de `editarSolicitudDispensa()` (Director) — cierre del bloque DirectorDeGrado y del ciclo de vida de la dispensa
+
+**Prompt:** Ahora `editarSolicitudDispensa` del Director.
+
+**Resultado:** Creados `RUP/01-analisis/casos-uso/editarSolicitudDispensaDirector/{colaboracion.puml, colaboracion.svg, README.md}` (folder con sufijo `Director` porque el CU comparte nombre canónico con el del Alumno pero la semántica es distinta).
+
+**Por qué análisis separado del Alumno (8 diferencias):** orígenes (3 vs 1), mensajes (5 vs 3), carga previa (condicional vs nunca — siempre llega pre-cargado desde el master-detail de [[consultarSolicitudesDispensas]]), método del Controller (`modificarCampos` vs `modificarVeredicto`), campos editables (motivo/adjuntos vs estado/observaciones), verificación de propiedad (sí vs no), side effects (ninguno vs `fechaResolucion`+`responsable`+notificación al alumno), vista (`EditarSolicitudDispensaView` vs `EditarSolicitudDispensaDirectorView`). Adicionalmente, el requisitado ya distingue dos detallados (`EditarSolicitudDispensa.puml` Alumno vs `EditarSolicitud.puml` Director).
+
+**Especificidades modeladas:**
+
+1. **CU más compacto del bloque dispensas** (3 mensajes): origen → View → Controller → Repository. Sin `cargarSolicitudParaEdicion` ni `obtenerPorId` porque el origen `:Collaboration ConsultarSolicitudesDispensas` ya entrega la `solicitud` cargada en su mensaje 5. Esto es fiel al detallado, que arranca de `SOLICITUD_DISPENSA_ABIERTA_INICIAL` (estado con la solicitud ya abierta).
+
+2. **Side effects en prosa, no como mensajes**: el detallado dice "Sistema actualiza, registra fecha y responsable, notifica al alumno". Decisiones de modelado:
+   - `fechaResolucion` y `responsable` (Director que decide, resuelto desde `Sesion.usuario`) los añade el Controller antes del `actualizar()` — implícito, no mensaje aparte. Analogía con `crearSolicitudDispensa` que resolvía `alumno` propietario desde `Sesion`.
+   - **Notificación al alumno declarada como deuda explícita para diseño** — no se introduce clase de notificación en análisis porque el detallado no especifica medio ni destinatario técnico. La decisión (evento de dominio + suscriptor / llamada directa / cola) pertenece a diseño.
+
+3. **Refuerza el polimorfismo del Controller por subtipo de `Sesion.usuario`** introducido en [[consultarSolicitudesDispensas]]: ahora son **dos métodos distintos del Controller** por rol (`modificarCampos` Alumno vs `modificarVeredicto` Director). Esto sugiere que de los tres caminos abiertos en el CU anterior, **"métodos específicos por rol"** es probablemente el más limpio (vs ramificación interna o estrategia inyectada). Quedó documentado como hipótesis hacia diseño.
+
+4. **`SolicitudDispensa` gana campos de negocio claros** (`estado`, `observaciones`, `fechaResolucion`, `responsable`) — hace más urgente la deuda de promoverla al modelo del dominio en 02-diseño.
+
+5. **Cierre del ciclo de vida de extremo a extremo**: con este CU, `SolicitudDispensa` queda analizada como primera entidad del proyecto modelada desde dos roles con responsabilidades complementarias (Alumno crea/edita motivos/consulta lo suyo; Director consulta todo/emite veredicto). Esto **valida retroactivamente** la decisión de centralizar la regla de propiedad en el Controller (vs Repository): el mismo Repository es usado por dos roles con políticas opuestas.
+
+Índices actualizados: `casos-uso/README.md` 9/26 → 10/26 y `EditarSolicitud() ⏳` → `editarSolicitudDispensa() (Director) ✅`; README raíz `Análisis 9/26 → 10/26`.
+
+**Decisión:** Bloque DirectorDeGrado completo (2/2 CUs). Los próximos bloques (Profesor 8, Secretaria 8) **reutilizarán SolicitudDispensa** en sus CUs de dispensa correspondientes (Profesor: consultar; Secretaria: crear/consultar/editar/exportar) — el patrón "métodos Controller distintos por rol" se irá afinando ahí. Próximo paso natural: **Profesor (8 CUs)**, donde aparecen los primeros CUs no-CRUD (`registrarTomaAsistencia`, `exportarHistorialAsistencias`) y la entidad `SesionDeClase`.

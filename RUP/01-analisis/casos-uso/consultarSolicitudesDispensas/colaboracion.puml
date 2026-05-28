@@ -1,0 +1,28 @@
+@startuml consultarSolicitudesDispensas-analisis
+skinparam linetype polyline
+
+rectangle #CDEBA5 ":Sistema Disponible" as SistemaDisponible
+rectangle #CDEBA5 ":Collaboration EditarSolicitudDispensa" as EditarSolicitudDispensa
+
+package consultarSolicitudesDispensas as "consultarSolicitudesDispensas()" {
+    rectangle #629EF9 ConsultarSolicitudesDispensasView
+    rectangle #b5bd68 SolicitudDispensaController
+    rectangle #F2AC4E SolicitudDispensaRepository
+    rectangle #F2AC4E SolicitudDispensa
+}
+
+SistemaDisponible -r-> ConsultarSolicitudesDispensasView         : consultarSolicitudesDispensas()
+
+ConsultarSolicitudesDispensasView -d-> SolicitudDispensaController : cargarSolicitudes() : List<SolicitudDispensa>
+
+SolicitudDispensaController --> SolicitudDispensaRepository       : obtenerTodas() : List<SolicitudDispensa>
+
+ConsultarSolicitudesDispensasView --> SolicitudDispensaController  : abrirDetalle(solicitudId) : SolicitudDispensa
+
+SolicitudDispensaController --> SolicitudDispensaRepository       : obtenerPorId(solicitudId) : SolicitudDispensa
+
+SolicitudDispensaRepository -- SolicitudDispensa
+
+ConsultarSolicitudesDispensasView ..> EditarSolicitudDispensa     : <<include>> editarSolicitudDispensa(solicitudId)
+
+@enduml

@@ -22,8 +22,8 @@ Diagramas de colaboración MVC por caso de uso.
 | [crearSolicitudDispensa()](crearSolicitudDispensa/README.md) (Alumno) | Alumno | ✅ |
 | [editarSolicitudDispensa()](editarSolicitudDispensa/README.md) (Alumno) | Alumno | ✅ |
 | [consultarSolicitudDispensa()](consultarSolicitudDispensa/README.md) (Alumno) | Alumno | ✅ |
-| ConsultarSolicitudesDispensas() | DirectorDeGrado | ⏳ |
-| EditarSolicitud() | DirectorDeGrado | ⏳ |
+| [consultarSolicitudesDispensas()](consultarSolicitudesDispensas/README.md) | DirectorDeGrado | ✅ |
+| [editarSolicitudDispensa()](editarSolicitudDispensaDirector/README.md) (Director) | DirectorDeGrado | ✅ |
 | consultarListaAlumnos() (Secretaria) | Secretaria | ⏳ |
 | consultarDetalleMatricula() | Secretaria | ⏳ |
 | importarListasAlumnos() | Secretaria | ⏳ |
@@ -33,4 +33,4 @@ Diagramas de colaboración MVC por caso de uso.
 | consultarSolicitudDispensa() (Secretaria) | Secretaria | ⏳ |
 | exportarDispensas() | Secretaria | ⏳ |
 
-**Progreso:** 8/26
+**Progreso:** 10/26
