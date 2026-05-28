@@ -1,0 +1,24 @@
+@startuml consultarSolicitudDispensaSecretaria-analisis
+skinparam linetype polyline
+
+rectangle #CDEBA5 ":Dispensas Abierto" as DispensasAbierto
+rectangle #CDEBA5 ":Collaboration EditarSolicitudDispensaSecretaria" as EditarSolicitudDispensaSecretaria
+
+package consultarSolicitudDispensaSecretaria as "consultarSolicitudDispensa() (Secretaria)" {
+    rectangle #629EF9 ConsultarSolicitudDispensaSecretariaView
+    rectangle #b5bd68 SolicitudDispensaController
+    rectangle #F2AC4E SolicitudDispensaRepository
+    rectangle #F2AC4E SolicitudDispensa
+}
+
+DispensasAbierto -r-> ConsultarSolicitudDispensaSecretariaView : consultarSolicitudDispensa(solicitudId)
+
+ConsultarSolicitudDispensaSecretariaView -d-> SolicitudDispensaController : cargarSolicitud(solicitudId) : SolicitudDispensa
+
+SolicitudDispensaController --> SolicitudDispensaRepository : obtenerPorId(solicitudId) : SolicitudDispensa
+
+SolicitudDispensaRepository -- SolicitudDispensa
+
+ConsultarSolicitudDispensaSecretariaView ..> EditarSolicitudDispensaSecretaria : <<include>> editarSolicitudDispensa(solicitudId)
+
+@enduml

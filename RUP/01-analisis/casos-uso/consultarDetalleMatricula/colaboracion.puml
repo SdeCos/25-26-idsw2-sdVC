@@ -1,0 +1,21 @@
+@startuml consultarDetalleMatricula-analisis
+skinparam linetype polyline
+
+rectangle #CDEBA5 ":Matriculas Abierto" as MatriculasAbierto
+
+package consultarDetalleMatricula as "consultarDetalleMatricula()" {
+    rectangle #629EF9 ConsultarDetalleMatriculaView
+    rectangle #b5bd68 MatriculaController
+    rectangle #F2AC4E MatriculaRepository
+    rectangle #F2AC4E Matricula
+}
+
+MatriculasAbierto -r-> ConsultarDetalleMatriculaView : consultarDetalleMatricula(matriculaId)
+
+ConsultarDetalleMatriculaView -d-> MatriculaController : cargarDetalle(matriculaId) : Matricula
+
+MatriculaController --> MatriculaRepository           : obtenerPorId(matriculaId) : Matricula
+
+MatriculaRepository -- Matricula
+
+@enduml

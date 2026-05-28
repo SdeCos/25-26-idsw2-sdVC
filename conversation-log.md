@@ -580,3 +580,144 @@ Bloque Profesor completo (8/8 CUs).
 - 1 CU de exportación con servicio dedicado
 
 `Asistencia` y `Alumno` (con datos académicos) son las dos entidades nuevas más críticas para promover al modelo del dominio en 02-diseño. Siguiente bloque natural: **Secretaria (8 CUs)** — donde aparecerán los dos CUs de **importación masiva** (primer cuello no-CRUD de carga) y los 4 CUs de dispensa desde el rol de soporte administrativo. Llegamos a 18/26 (69%) del análisis.
+
+---
+
+### Sesión 2026-05-28 (cont.)
+
+## [10:09] Análisis de `importarListasAlumnos()` e `importarMatriculas()` — apertura del bloque Secretaria con el patrón de carga masiva
+
+**Prompt:** Empezar bloque Secretaria por los dos de importar.
+
+**Resultado:** Cuatro archivos creados:
+- `RUP/01-analisis/casos-uso/importarMatriculas/{colaboracion.puml, colaboracion.svg, README.md}` — 4 mensajes, debut de la entidad `Matricula`.
+- `RUP/01-analisis/casos-uso/importarListasAlumnos/{colaboracion.puml, colaboracion.svg, README.md}` — 4 mensajes, reutiliza `AlumnoRepository` ya introducido por el Profesor.
+
+Renombrado en el índice: `importarMatricula() ⏳` → `importarMatriculas() ✅` (plural, matches actor + contenido del detallado + prototipos).
+
+**Discrepancias gordas detectadas en el SDR:**
+
+1. **`importarListasAlumnos.puml` tiene contenido equivocado**: su título es "Exportar listado de alumnos", su transición es `exportarListaAlumnos()` y sus sub-estados son de exportación. Es probable error de migración del SDR. Estrategia: modelar el CU **por analogía con `importarMatricula.puml`** (que sí está correcto). Documentación exhaustiva como discrepancia crítica en el README. Reparación del detallado registrada como deuda urgente.
+2. **`importarMatricula.puml` está mal nombrado** (singular) cuando el contenido y el actor usan plural. Renombrado en análisis a `importarMatriculas()`. Deuda menor de renombrado del .puml.
+3. **Actor `SecretariaAcademica`** en `DiagramaCompletoCasoDeUso.puml` vs `Secretaria` en el resto del proyecto. Análisis adopta `Secretaria` por consistencia.
+4. **Notas de los detallados de Secretaria dicen "Alumno solicita..."** (probable copia-pega del bloque Alumno). Deuda menor.
+5. **`exportarListadoAlumnosPorCurso.png`** existe como prototipo pero no hay CU correspondiente en el actor — sugiere que la exportación de listas existe pero está sin migrar. **No se modela** (fuera del denominador 26); registrado como deuda.
+
+**Patrón consolidado: "carga masiva = Controller + Servicio Validador + Repository"**
+
+Estructura **idéntica** en ambos CUs (4 mensajes): View → Controller → Validador → Repository. Es el patrón paralelo (inverso) de [[exportarHistorialAsistencias]] del Profesor (Repository → Servicio Generador → Archivo). Categoría operativa "I/O masiva" consolidada con dos casos ya implementados.
+
+**Servicios de aplicación introducidos:**
+- `ValidadorArchivoMatriculas` (nuevo, verde)
+- `ValidadorArchivoListasAlumnos` (nuevo, verde)
+
+Junto con `GeneradorArchivoAsistencias` ya tenemos **tres servicios** en el análisis — el patrón "Controller orquesta + Servicio especializa" (SRP del temario IDSW2) es ya el modus operandi para operaciones complejas. Deuda blanda: en revisión futura considerar color/anotación específica `<<service>>` para distinguirlos visualmente del Controller.
+
+**Hipótesis de diseño emergente:** la estructura paralela invita a un **`ImportadorMasivo<T>`** abstracto (Template Method) con `ValidadorArchivo<T>` + `Repository<T>` como dependencias. Generalización al 2 elementos → patrón claro. Registrado como deuda hacia 02-diseño.
+
+**Tipos opacos** `InformeImportacion` y `ResultadoValidacion`: value objects efímeros sin clase formal en el análisis. Consistencia con manejo previo de `cambios`, `datos`, `Archivo`. Reutilización confirma que son genéricos (`<T>`) en diseño.
+
+**Entidad `Matricula` debuta** con atributos identificados del prototipo: `numIdentidad`, `alumno`, `curso` (año académico), `grado`, `fechaImportacion`. Deuda urgente: promover al modelo del dominio + resolver política "alumno no existente" (tres opciones documentadas — regla de negocio crítica).
+
+**Dependencia funcional** detectada entre los dos CUs: `importarListasAlumnos` crea/actualiza `Alumno`s, `importarMatriculas` referencia a `Alumno` desde `Matricula` → **debe ejecutarse importarListasAlumnos antes**. Deuda: confirmar orden + política de integridad referencial.
+
+**Múltiples archivos por importación**: el prototipo muestra 3 archivos cargados simultáneamente. Modelado con `archivos` (plural) como parámetro; el Controller invoca **una sola vez** `validar` y `guardarLote` con resultados agregados — atomicidad transaccional y informe único.
+
+**Auto-poblado por Controller** reaplicado: `fechaImportacion = ahora`, `responsable = Sesion.usuario` (Secretaria). Patrón consolidado.
+
+Índices actualizados: `casos-uso/README.md` 18/26 → 20/26 (ambos ✅); README raíz `Análisis 18/26 → 20/26`. Renombrado `importarMatricula()` → `importarMatriculas()` (plural).
+
+**Decisión:** Apertura del bloque Secretaria con los dos CUs de carga masiva. Patrón de importación consolidado, deudas críticas registradas (especialmente la reparación del detallado de `importarListasAlumnos.puml`). Quedan 6 CUs en el bloque: `consultarListaAlumnos` (Secretaria), `consultarDetalleMatricula`, y los 4 de dispensa (crear/consultar/editar/exportar). Estimación: la mayoría serán **refrito** estructural de patrones ya analizados — especialmente los 4 de dispensa, que reutilizarán `SolicitudDispensaController` con cuarta política de acceso del rol Secretaria.
+
+---
+
+## [12:16] Análisis de `crearSolicitudDispensa()` (Secretaria) y `exportarDispensas()` — cuarta política sobre `SolicitudDispensa` y segundo CU de exportación
+
+**Prompt:** Terminar el análisis, empezar por crear y exportar dispensa (Secretaria).
+
+**Resultado:** Cuatro archivos creados:
+- `RUP/01-analisis/casos-uso/crearSolicitudDispensaSecretaria/{colaboracion.puml, colaboracion.svg, README.md}` — 5 mensajes, sufijo `Secretaria` para evitar colisión con [[crearSolicitudDispensa]] del Alumno.
+- `RUP/01-analisis/casos-uso/exportarDispensas/{colaboracion.puml, colaboracion.svg, README.md}` — 4 mensajes, debut del **tercer servicio de aplicación** del análisis (`GeneradorArchivoDispensas`).
+
+**Especificidades de `crearSolicitudDispensaSecretaria` — ruptura del patrón "propietario implícito":**
+
+1. **El `alumno` propietario es input EXPLÍCITO de la vista**, no resuelto desde `Sesion.usuario`. Es la primera ruptura del patrón "propietario implícito" del proyecto (consolidado desde [[crearSolicitudDispensa]] del Alumno, [[crearSesionClase]] del Profesor, [[importarMatriculas]]). Razón: la Secretaria opera **sobre un tercero**.
+
+2. **Dos relaciones distintas en la entidad** que antes eran la misma persona:
+   - `alumno` → titular de la dispensa (visible en la ficha) — input externo
+   - `responsable` → quién registró el alta (auditoría) — auto-poblado desde `Sesion.usuario` (la Secretaria)
+   
+   Cuando un Alumno crea su propia dispensa, ambos campos apuntan a la misma persona. Cuando la Secretaria la crea en su nombre, divergen. Deuda: confirmar si `responsable` se persiste explícitamente o vive en un log de auditoría externo.
+
+3. **Cuarta política del polimorfismo del Controller — cierre de la tetrada**: Alumno (propias) / Profesor (asignaturas impartidas, read-only) / Director (todas, edita veredicto) / **Secretaria (todas, opera en nombre de cualquier Alumno)**. Confirma que **"métodos específicos por rol"** (camino abierto en [[consultarSolicitudesDispensas]]) es el más limpio. Método del Controller deliberadamente nombrado `crearSolicitudDispensaEnNombreDe(...)` para distinguirlo semánticamente del `crearSolicitudDispensa(...)` original.
+
+4. **Mismo Repository sin cambios** (`crear(alumno, asignatura, periodo, horario)` idéntico al del bloque Alumno) — refuerza la decisión consolidada: el Repository es agnóstico al rol, las políticas viven en el Controller.
+
+5. **Vista distinta** (`CrearSolicitudDispensaSecretariaView`) por el selector de Alumno + validación de existencia contra `AlumnoRepository`.
+
+**Especificidades de `exportarDispensas`:**
+
+1. **Segundo CU de exportación del proyecto** (tras [[exportarHistorialAsistencias]] del Profesor) — **valida la hipótesis** anunciada en aquel análisis: el patrón "Controller orquesta + Servicio especializa" se generaliza a una segunda entidad sin abstracciones adicionales. Estructura idéntica: 4 mensajes, mismo flujo (vista → Controller → Repository → Servicio).
+
+2. **`GeneradorArchivoDispensas`** — tercer servicio de aplicación del análisis (tras `GeneradorArchivoAsistencias` y los dos `ValidadorArchivo*`). Con **cuatro CUs de I/O masiva** ya analizados (1 export Asistencia, 1 export Dispensa, 2 import), la abstracción `Generador<T>` / `ImportadorMasivo<T>` (Template Method + servicio inyectable) anunciada en [[importarMatriculas]] gana solidez como hipótesis hacia 02-diseño.
+
+3. **Quinta operación del `SolicitudDispensaController`** sumando 8 métodos en total entre los cuatro roles. Es la entidad **más operada** del proyecto. Deuda crítica para 02-diseño con la imagen completa ahora: (a) partir Controller por rol, (b) Strategy `PoliticaAcceso`, (c) Service de aplicación con métodos por intención.
+
+4. **`obtenerPorFiltros(filtros)` vs `obtenerTodas()`** modelados como métodos distintos del Repository por honestidad con el detallado (Director sin filtros, Secretaria con filtros explícitos). Deuda blanda: unificar como `obtener(filtros?)` en 02-diseño + refactor "Introduce Parameter Object" sobre `filtros` (curso + asignatura + nombre + identificador → `FiltrosDispensa`), análogo al `DatosSesionClase` de [[crearSesionClase]].
+
+5. **Discrepancia crítica en el actor**: `exportarDispensas()` **no aparece** en `DiagramaCompletoCasoDeUso.puml` de Secretaria (que solo lista crear/consultar/editar/guardar/cerrar). Existe detallado y prototipo, por lo que se modela y cuenta en el denominador 26. Deuda urgente registrada: añadir el CU al actor o registrar la decisión inversa.
+
+6. **Drill-down opcional a una solicitud específica** modelado como navegación en prosa (no `<<include>>`) — misma decisión consistente con todos los `consultar→editar` del proyecto.
+
+Índices actualizados: `casos-uso/README.md` 22/26 → 24/26 (ambos ✅); README raíz `Análisis 22/26 → 24/26`.
+
+**Decisión:** Cuatro roles ahora caracterizados sobre `SolicitudDispensa` con políticas opuestas/complementarias compartiendo el mismo Repository. La promoción de `SolicitudDispensa` al modelo del dominio es la deuda **máxima** del proyecto. Quedan 2 CUs del bloque Secretaria: `editarSolicitudDispensa()` y `consultarSolicitudDispensa()` — refritos estructurales del bloque Alumno con la cuarta política ya caracterizada.
+
+---
+
+## [12:22] Análisis de `editarSolicitudDispensa()` y `consultarSolicitudDispensa()` (Secretaria) — cierre del bloque y del análisis (26/26)
+
+**Prompt:** Hacer los 2 CUs faltantes para finalizar la sesión.
+
+**Resultado:** Cuatro archivos creados:
+- `RUP/01-analisis/casos-uso/editarSolicitudDispensaSecretaria/{colaboracion.puml, colaboracion.svg, README.md}` — 5 mensajes, 3 colaboraciones origen (calcado de [[editarSolicitudDispensa]] del Alumno).
+- `RUP/01-analisis/casos-uso/consultarSolicitudDispensaSecretaria/{colaboracion.puml, colaboracion.svg, README.md}` — 4 mensajes, 1 origen, `<<include>>` opcional a editar Secretaria.
+
+**Hallazgo más relevante: regla emergente sobre "métodos por rol"**
+
+Tras crear (`crearSolicitudDispensaEnNombreDe` con signatura distinta) y editar/consultar (`modificarCampos`/`cargarSolicitud` con misma signatura que el Alumno), emerge una regla clara:
+
+> El patrón "métodos específicos por rol" se aplica **solo cuando la signatura difiere**. Cuando solo la política varía con la misma signatura, un único método con dispatch interno por subtipo de `Sesion.usuario` es más limpio.
+
+Esto **refina la deuda hacia 02-diseño**: de las tres opciones abiertas para materializar el polimorfismo del Controller —((a) métodos por rol, (b) Strategy `PoliticaAcceso`, (c) Controllers especializados)—, la **(b) gana fuerza definitiva** porque la política es ortogonal al método y debería inyectarse, no acoplarse al nombre.
+
+**Especificidades de `editarSolicitudDispensaSecretaria`:**
+
+1. **Estructura idéntica al editar Alumno** (5 mensajes, 3 orígenes) — confirma la separación analítica "forma vs política". Es el caso de uso que más fielmente ilustra esa separación.
+2. **Mismo método `modificarCampos`** que el Alumno (vs `modificarVeredicto` del Director, que cambia campos distintos) — primera aplicación práctica de la regla emergente.
+3. **Invariante `alumno`** ratificado: ni el Alumno ni la Secretaria pueden transferir una solicitud a otro titular. Si se necesitara, sería CU separado (`reasignarSolicitudDispensa`), no edición.
+4. **Auditoría del editor** registrada como deuda (3 opciones: sobreescribir `responsable`, campo `ultimoEditor` separado, log de eventos externo).
+5. **Mensajes 2-3 condicionales en prosa** cuando la entrada es desde crear con `solicitudNueva` (misma decisión que el editar Alumno).
+
+**Especificidades de `consultarSolicitudDispensaSecretaria`:**
+
+1. **Cuarta y última política sobre operaciones de lectura** de `SolicitudDispensa`: Alumno (propiedad) / Profesor (asignaturas) / Director (sin restricción) / **Secretaria (sin restricción)**. Tetrada cerrada.
+2. **Vista enriquecida con datos del Alumno titular y metadatos de auditoría** — análoga a la del Profesor en [[consultarSolicitudDispensaProfesor]], pero por una razón distinta (la Secretaria no es la titular vs el Profesor no es el dueño).
+3. **Salida `Guardar/Cerrar solicitud()` del detallado interpretada como navegación** (no mensaje), pese a estar pintada en rojo en el detallado — color rojo del SDR parece error. Deuda menor.
+4. **Discrepancia menor**: el detallado dice "Usuario solicita" en lugar de "Secretaria solicita" — adoptado el rol concreto (coherente con la jerarquía polimórfica del Usuario).
+5. **Política de auditoría de accesos** registrada como deuda sensible por RGPD (la Secretaria consulta datos personales de terceros).
+
+**Cierre del análisis — lecciones consolidadas (insumo para 02-diseño)** documentadas en el README de `consultarSolicitudDispensaSecretaria`:
+
+1. MVC con Controller por entidad + Servicio por operación atómica (SRP).
+2. Repository agnóstico al rol; política en el Controller.
+3. "Métodos específicos por rol" solo cuando la signatura difiere; cuando solo la política varía, Strategy `PoliticaAcceso`.
+4. Patrón "Controller orquesta + Servicio especializa" en 4 CUs de I/O masiva — abstracción `Generador<T>` / `ImportadorMasivo<T>` viable.
+5. Propietario implícito desde `Sesion.usuario` salvo cuando un rol opera sobre terceros.
+6. Auto-poblado de auditoría por el Controller (fechas + responsables).
+7. Refactor "Introduce Parameter Object" aplicado donde el smell es claro; candidatos pendientes (`FiltrosDispensa`).
+8. Polimorfismo de Usuario materializa la jerarquía de actores como jerarquía de clases.
+
+Índices actualizados: `casos-uso/README.md` 24/26 → **26/26 ✅**; README raíz `Análisis 24/26 → 26/26 ✅`.
+
+**Decisión:** Análisis cerrado al 100%. La entidad `SolicitudDispensa` queda **completamente caracterizada** con 4 roles y 9 operaciones del Controller (`crearSolicitudDispensa`, `crearSolicitudDispensaEnNombreDe`, `modificarCampos`, `modificarVeredicto`, `cargarSolicitud`, `cargarSolicitudParaEdicion`, `obtenerPorAsignaturas`, `obtenerTodas`, `obtenerPorFiltros`, `exportar`). Es la entidad **más operada** del proyecto y la **deuda máxima** para 02-diseño: no está promovida al modelo del dominio del SDR pese a tener cuatro roles operando sobre ella. Próxima fase: arrancar `RUP/02-diseño` con esa promoción como primer paso.

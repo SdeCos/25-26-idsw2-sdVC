@@ -1,0 +1,24 @@
+@startuml importarListasAlumnos-analisis
+skinparam linetype polyline
+
+rectangle #CDEBA5 ":Listas Abierto" as ListasAbierto
+
+package importarListasAlumnos as "importarListasAlumnos()" {
+    rectangle #629EF9 ImportarListasAlumnosView
+    rectangle #b5bd68 AlumnoController
+    rectangle #b5bd68 ValidadorArchivoListasAlumnos
+    rectangle #F2AC4E AlumnoRepository
+    rectangle #F2AC4E Alumno
+}
+
+ListasAbierto -r-> ImportarListasAlumnosView          : importarListasAlumnos()
+
+ImportarListasAlumnosView -d-> AlumnoController        : importar(archivos) : InformeImportacion
+
+AlumnoController --> ValidadorArchivoListasAlumnos     : validar(archivos) : ResultadoValidacion
+
+AlumnoController --> AlumnoRepository                  : guardarLote(registros) : List<Alumno>
+
+AlumnoRepository -- Alumno
+
+@enduml

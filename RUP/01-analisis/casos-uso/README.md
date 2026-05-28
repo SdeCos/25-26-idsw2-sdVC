@@ -24,13 +24,13 @@ Diagramas de colaboración MVC por caso de uso.
 | [consultarSolicitudDispensa()](consultarSolicitudDispensa/README.md) (Alumno) | Alumno | ✅ |
 | [consultarSolicitudesDispensas()](consultarSolicitudesDispensas/README.md) | DirectorDeGrado | ✅ |
 | [editarSolicitudDispensa()](editarSolicitudDispensaDirector/README.md) (Director) | DirectorDeGrado | ✅ |
-| consultarListaAlumnos() (Secretaria) | Secretaria | ⏳ |
-| consultarDetalleMatricula() | Secretaria | ⏳ |
-| importarListasAlumnos() | Secretaria | ⏳ |
-| importarMatricula() | Secretaria | ⏳ |
-| crearSolicitudDispensa() (Secretaria) | Secretaria | ⏳ |
-| editarSolicitudDispensa() (Secretaria) | Secretaria | ⏳ |
-| consultarSolicitudDispensa() (Secretaria) | Secretaria | ⏳ |
-| exportarDispensas() | Secretaria | ⏳ |
+| [consultarListaAlumnos()](consultarListaAlumnosSecretaria/README.md) (Secretaria) | Secretaria | ✅ |
+| [consultarDetalleMatricula()](consultarDetalleMatricula/README.md) | Secretaria | ✅ |
+| [importarListasAlumnos()](importarListasAlumnos/README.md) | Secretaria | ✅ |
+| [importarMatriculas()](importarMatriculas/README.md) | Secretaria | ✅ |
+| [crearSolicitudDispensa()](crearSolicitudDispensaSecretaria/README.md) (Secretaria) | Secretaria | ✅ |
+| [editarSolicitudDispensa()](editarSolicitudDispensaSecretaria/README.md) (Secretaria) | Secretaria | ✅ |
+| [consultarSolicitudDispensa()](consultarSolicitudDispensaSecretaria/README.md) (Secretaria) | Secretaria | ✅ |
+| [exportarDispensas()](exportarDispensas/README.md) | Secretaria | ✅ |
 
-**Progreso:** 18/26
+**Progreso:** 26/26 ✅

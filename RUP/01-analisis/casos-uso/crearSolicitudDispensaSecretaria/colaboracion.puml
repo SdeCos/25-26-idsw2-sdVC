@@ -1,0 +1,26 @@
+@startuml crearSolicitudDispensaSecretaria-analisis
+skinparam linetype polyline
+
+rectangle #CDEBA5 ":Dispensas Abierto" as DispensasAbierto
+rectangle #CDEBA5 ":Collaboration EditarSolicitudDispensaSecretaria" as EditarSolicitudDispensaSecretaria
+
+package crearSolicitudDispensaSecretaria as "crearSolicitudDispensa() (Secretaria)" {
+    rectangle #629EF9 CrearSolicitudDispensaSecretariaView
+    rectangle #b5bd68 SolicitudDispensaController
+    rectangle #F2AC4E SolicitudDispensaRepository
+    rectangle #F2AC4E SolicitudDispensa
+}
+
+DispensasAbierto -r-> CrearSolicitudDispensaSecretariaView  : crearSolicitudDispensa()
+
+CrearSolicitudDispensaSecretariaView -d-> SolicitudDispensaController : validarDatosIniciales(alumno, asignatura, periodo, horario) : boolean
+
+CrearSolicitudDispensaSecretariaView --> SolicitudDispensaController  : crearSolicitudDispensaEnNombreDe(alumno, asignatura, periodo, horario) : SolicitudDispensa
+
+SolicitudDispensaController --> SolicitudDispensaRepository : crear(alumno, asignatura, periodo, horario) : SolicitudDispensa
+
+SolicitudDispensaRepository -- SolicitudDispensa
+
+CrearSolicitudDispensaSecretariaView ..> EditarSolicitudDispensaSecretaria : <<include>> editarSolicitudDispensa(solicitudNueva)
+
+@enduml

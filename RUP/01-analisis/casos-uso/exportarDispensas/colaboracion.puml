@@ -1,0 +1,24 @@
+@startuml exportarDispensas-analisis
+skinparam linetype polyline
+
+rectangle #CDEBA5 ":Dispensas Abierto" as DispensasAbierto
+
+package exportarDispensas as "exportarDispensas()" {
+    rectangle #629EF9 ExportarDispensasView
+    rectangle #b5bd68 SolicitudDispensaController
+    rectangle #b5bd68 GeneradorArchivoDispensas
+    rectangle #F2AC4E SolicitudDispensaRepository
+    rectangle #F2AC4E SolicitudDispensa
+}
+
+DispensasAbierto -r-> ExportarDispensasView          : exportarDispensas()
+
+ExportarDispensasView -d-> SolicitudDispensaController : exportar(filtros, formato, nombreArchivo) : Archivo
+
+SolicitudDispensaController --> SolicitudDispensaRepository : obtenerPorFiltros(filtros) : List<SolicitudDispensa>
+
+SolicitudDispensaRepository -- SolicitudDispensa
+
+SolicitudDispensaController --> GeneradorArchivoDispensas  : generar(solicitudes, formato, nombreArchivo) : Archivo
+
+@enduml

@@ -1,0 +1,24 @@
+@startuml importarMatriculas-analisis
+skinparam linetype polyline
+
+rectangle #CDEBA5 ":Matriculas Abierto" as MatriculasAbierto
+
+package importarMatriculas as "importarMatriculas()" {
+    rectangle #629EF9 ImportarMatriculasView
+    rectangle #b5bd68 MatriculaController
+    rectangle #b5bd68 ValidadorArchivoMatriculas
+    rectangle #F2AC4E MatriculaRepository
+    rectangle #F2AC4E Matricula
+}
+
+MatriculasAbierto -r-> ImportarMatriculasView         : importarMatriculas()
+
+ImportarMatriculasView -d-> MatriculaController        : importar(archivos) : InformeImportacion
+
+MatriculaController --> ValidadorArchivoMatriculas     : validar(archivos) : ResultadoValidacion
+
+MatriculaController --> MatriculaRepository            : guardarLote(registros) : List<Matricula>
+
+MatriculaRepository -- Matricula
+
+@enduml
