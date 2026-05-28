@@ -1,0 +1,21 @@
+@startuml consultarSolicitudDispensaProfesor-analisis
+skinparam linetype polyline
+
+rectangle #CDEBA5 ":Dispensas Abierto" as DispensasAbierto
+
+package consultarSolicitudDispensaProfesor as "consultarSolicitudDispensa() [Profesor]" {
+    rectangle #629EF9 ConsultarSolicitudDispensaProfesorView
+    rectangle #b5bd68 SolicitudDispensaController
+    rectangle #F2AC4E SolicitudDispensaRepository
+    rectangle #F2AC4E SolicitudDispensa
+}
+
+DispensasAbierto -r-> ConsultarSolicitudDispensaProfesorView : consultarSolicitudDispensa(solicitudId)
+
+ConsultarSolicitudDispensaProfesorView -d-> SolicitudDispensaController : cargarSolicitud(solicitudId) : SolicitudDispensa
+
+SolicitudDispensaController --> SolicitudDispensaRepository : obtenerPorId(solicitudId) : SolicitudDispensa
+
+SolicitudDispensaRepository -- SolicitudDispensa
+
+@enduml

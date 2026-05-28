@@ -385,3 +385,198 @@ Discrepancia detectada y NO arreglada: `Alumno.puml` usa "consultarEstadoDispens
 Índices actualizados: `casos-uso/README.md` 9/26 → 10/26 y `EditarSolicitud() ⏳` → `editarSolicitudDispensa() (Director) ✅`; README raíz `Análisis 9/26 → 10/26`.
 
 **Decisión:** Bloque DirectorDeGrado completo (2/2 CUs). Los próximos bloques (Profesor 8, Secretaria 8) **reutilizarán SolicitudDispensa** en sus CUs de dispensa correspondientes (Profesor: consultar; Secretaria: crear/consultar/editar/exportar) — el patrón "métodos Controller distintos por rol" se irá afinando ahí. Próximo paso natural: **Profesor (8 CUs)**, donde aparecen los primeros CUs no-CRUD (`registrarTomaAsistencia`, `exportarHistorialAsistencias`) y la entidad `SesionDeClase`.
+
+---
+
+## [09:15] Duda metodológica: por qué los CUs `editar` no modelan colaboración de retorno
+
+**Prompt:** No aparece ninguna colaboración con otro CU desde el editar; no se ve cómo pasar de `editarSolicitudDispensa` a consultarla. ¿Es correcto?
+
+**Resultado:** Explicación de la decisión de modelado consistente en todo el proyecto: los `<<include>>` representan **inclusión de lógica** (un CU usa a otro como sub-actividad), no **transiciones de navegación**. Patrón vigente: `crear → <<include>> editar` (siempre), `consultar → <<include>> editar` (opcional), `editar → (sin destino)` porque es terminal — la vuelta al listado/consulta es un cambio de estado del actor, no inclusión de CU. Esa información ya vive en el detallado (es su rol como state diagram).
+
+**Decisión:** Mantener el diseño actual (status quo). Si en algún momento se quisiera modelar el retorno, se haría con flecha simple sin estereotipo (no como `<<include>>`) y se aplicaría retroactivamente a todos los editar para mantener simetría. Por ahora la división de responsabilidades entre artefactos (análisis = qué objetos colaboran; detallado = en qué estados navega el actor) es coherente con pySigHor y con el resto del proyecto.
+
+---
+
+## [09:24] Análisis de `crearSesionClase()` — apertura del bloque Profesor y entrada de `SesionDeClase`
+
+**Prompt:** Empezar Profesor por `crearSesionClase`, ya que los demás CUs de sesión/asistencia dependen de que exista una sesión de clase.
+
+**Resultado:** Creados `RUP/01-analisis/casos-uso/crearSesionClase/{colaboracion.puml, colaboracion.svg, README.md}`. Estructura: 5 mensajes, 1 colaboración origen (`:Asistencias Abierto`), 1 colaboración destino (`:Sesion Asistencia Abierta` — **estado activo nuevo**, no listado). Introduce las tres clases nuevas del bloque: `CrearSesionClaseView`, `SesionDeClaseController` (reutilizable en los demás CUs del bloque), `SesionDeClaseRepository`, y la entidad `SesionDeClase`.
+
+**Especificidades del bloque Profesor (vs bloques previos):**
+
+1. **Primera ruptura del patrón "crear → editar (siempre)"**: este `crear` configura **todos los campos** en una sola vista (asignatura, grupo, aula, fecha, hora, tema) y termina exitosamente abriendo un **estado activo nuevo** (`SESION_ASISTENCIA_ABIERTA`), no volviendo al listado. No hay `<<include>>` saliente a editar. El detallado lo modela explícitamente con la transición `iniciarSesion()` → `SESION_ACTIVA_FINAL`. Confirma que el patrón "crear → editar" no es regla universal sino consecuencia de cómo se diseñó cada formulario en el requisitado; probablemente `importarListasAlumnos` y `importarMatricula` de Secretaria serán otros contraejemplos.
+
+2. **Colisión de nombre `iniciarSesion()`**: el detallado etiqueta la transición de cierre como `iniciarSesion()` — colisión con el CU `iniciarSesion()` del login (Usuario). **Renombrada en análisis a `iniciarSesionClase()`** para evitar ambigüedad. No es error de ejecución (operaciones distintas) pero sí confunde la lectura del modelo. Deuda para diseño: renombrar en `crearSesionClase.puml` línea 41.
+
+3. **Resolución implícita del Profesor propietario desde `Sesion.usuario`**: idéntico patrón que [[crearSolicitudDispensa]] con el Alumno propietario. View envía 6 parámetros al Controller, Controller envía 7 al Repository (añade `profesor`). Refuerza el patrón de "propietario implícito" como decisión transversal del proyecto.
+
+4. **Discrepancia menor detallado vs prototipo**: el detallado nombra 6 campos (asignatura, grupo, aula, fecha, hora, tema); el prototipo `crearSesionClase1.png` muestra solo 4 visibles (fecha, hora, aula, tema). Explicación: en el prototipo la asignatura es **contexto de la página** (header "Asistencias - Ingeniería de Software I") y el grupo no se ve. Análisis adopta los 6 del detallado para no perder información — decisión de UI sobre cuáles vienen del contexto pertenece a diseño.
+
+5. **`SesionDeClase` no está en el modelo del dominio del SDR**: deuda urgente para diseño (entidad central del bloque). Los catálogos referenciados (`Asignatura`, `Grupo`, `Aula`) tampoco se modelan en análisis — deuda secundaria para decidir si son entidades propias o atributos planos.
+
+Índices actualizados: `casos-uso/README.md` 10/26 → 11/26 y `crearSesionClase() ⏳` → `crearSesionClase() ✅`; README raíz `Análisis 10/26 → 11/26`.
+
+**Decisión:** Abre el bloque Profesor con la entidad `SesionDeClase` y rompiendo el patrón "crear → editar" del proyecto. Próximos CUs naturales: `editarSesionClase`, `registrarTomaAsistencia` (primer CU **no-CRUD** del proyecto), `cerrarSesionClase`, `exportarHistorialAsistencias` (segundo no-CRUD), más los 3 read-only (`consultarListaAlumnos`, `consultarDetalleAlumno`, `consultarSolicitudDispensa` del Profesor).
+
+---
+
+## [09:37] Refactor "Introduce Parameter Object" en `crearSesionClase` — `DatosSesionClase`
+
+**Prompt:** Code smell detectado por el usuario: los métodos tienen 6-7 parámetros (asignatura, grupo, aula, fecha, hora, tema, + profesor). ¿Cómo reducirlo?
+
+**Resultado:** Aplicado el refactor canónico **"Introduce Parameter Object"** (Fowler, *Refactoring*) **solo a `crearSesionClase`** (donde el smell es claro). Cambios:
+
+- **Nueva clase `DatosSesionClase`** (rectángulo naranja dentro del package): value object sin identidad que agrupa los 6 campos de configuración. Conceptualmente distinto de `SesionDeClase` (la entidad persistible).
+- **Firmas reducidas**:
+  - `validarDatosIniciales(datos) : boolean` (antes 6 params)
+  - `crearSesionClase(datos) : SesionDeClase` (antes 6 params)
+  - `crear(profesor, datos) : SesionDeClase` (antes 7 params)
+- **`profesor` deliberadamente fuera de `DatosSesionClase`**: separar identidad del propietario de los datos del formulario refuerza la regla de no-falseo desde el cliente. El Controller resuelve `profesor` desde `Sesion.usuario` y lo añade en la llamada al Repository.
+- **PUML actualizado** con `CrearSesionClaseView .. DatosSesionClase` (relación de construcción) y `SesionDeClaseRepository -- SesionDeClase` (gestión); SVG regenerado.
+- **Nueva sección del README** "refactor Introduce Parameter Object" con tabla de antes/después, ganancias (legibilidad, extensibilidad, cohesión, trazabilidad para DTO de transporte) y coste (clase adicional).
+
+**Alcance del refactor en el proyecto:** acordado con el usuario aplicarlo **solo a `crearSesionClase`** por ahora. Decisión sobre los otros `crear`:
+
+| CU | Parámetros máx. | Smell | Decisión |
+|-|-|-|-|
+| `crearSesionClase` | 7 | Sí | Aplicado |
+| `crearSolicitudDispensa` | 4 | Marginal | Pospuesto (deuda blanda) |
+| `crearUsuario` | 3 | No | Sin cambios |
+
+**Deuda blanda registrada en el README**: tras completar todos los análisis, hacer revisión transversal del patrón; si se decide uniformar (todos los `crear` con ≥4 parámetros con Parameter Object), introducir retroactivamente `DatosSolicitudDispensa`.
+
+**Decisión:** El refactor emerge orgánicamente del análisis (no de implementación) y captura una abstracción real del dominio. Es el primer refactor aplicado a un análisis ya escrito en este proyecto, y abre la puerta a una revisión transversal futura sin forzarla ahora.
+
+---
+
+## [09:43] Análisis de `editarSesionClase()` y `cerrarSesionClase()` — ciclo de vida operativo de la sesión
+
+**Prompt:** Análisis de editar y cerrar sesión de clase.
+
+**Resultado:** Cuatro archivos creados:
+- `RUP/01-analisis/casos-uso/editarSesionClase/{colaboracion.puml, colaboracion.svg, README.md}` — 3 mensajes, 1 origen (`:Sesion Asistencia Abierta`), sin destino.
+- `RUP/01-analisis/casos-uso/cerrarSesionClase/{colaboracion.puml, colaboracion.svg, README.md}` — 4 mensajes, 2 colaboraciones (`:Sesion Asistencia Abierta` → `:Asistencias Abierto`).
+
+**Especificidades de `editarSesionClase`:**
+
+1. **Primer CU `editar` cuyo único origen es un estado activo** (no un listado). El detallado lo confirma: `SESION_ACTUAL_INICIAL = SESION_ASISTENCIA_ABIERTA`. No hay carga previa — la entidad ya está en memoria desde [[crearSesionClase]].
+2. **Vista in-situ, no modal**: el prototipo muestra los 4 campos editables (Fecha, Hora, Aula, Tema) directamente en la cabecera de la pantalla de asistencias, no en un formulario aparte. Es la primera vista del proyecto con este patrón. Asimetría con todos los editar previos (modal/formulario aparte).
+3. **Campos inmutables documentados**: asignatura, grupo, profesor no editables (deuda para forzarlo en diseño con sin setters o validación). El prototipo lo refleja al no mostrar esos campos en la cabecera editable.
+4. **Sin Parameter Object**: respetando el alcance acordado, no se introduce `DatosSesionClase` aquí. El parámetro `cambios` queda opaco a nivel análisis.
+5. **Cancelación ambigua**: el detallado no contempla cancelación explícita; el prototipo muestra un botón "Volver" cuyo comportamiento en modo edición es deuda para diseño.
+
+**Especificidades de `cerrarSesionClase`:**
+
+1. **Paralelismo conceptual con [[cerrarSesion]] del Usuario**: misma estructura (4 mensajes, origen + destino), niveles distintos (sesión de aula vs sesión de sistema). Valida el patrón "cerrar = transición a estado terminal con efectos de cierre persistidos".
+2. **`horaFin` resuelta por el Controller como side effect implícito**: el detallado y el prototipo confirman que la hora no es input del Profesor sino determinada por el sistema. Decisión consistente con la resolución de `responsable`/`fechaResolucion` por el Controller en [[editarSolicitudDispensaDirector]] y de `alumno`/`profesor` propietario en los `crear`. Patrón "auto-poblado por Controller" ya consolidado.
+3. **Sin verificación de propiedad**: por construcción, `:Sesion Asistencia Abierta` ya garantiza que es el titular (no se llega a ese estado de otra forma). Análogo al [[cerrarSesion]] del Usuario.
+4. **Modal de confirmación**: a diferencia de cerrar la sesión del Usuario que era click directo, aquí el detallado y prototipo exigen confirmación explícita ("Sí, continuar" / "Cancelar"). Refleja la criticidad de la acción (se persiste el cierre).
+5. **Cierre del ciclo de vida operativo**: con este CU, una `SesionDeClase` queda analizada desde alta hasta cierre. Solo `registrarTomaAsistencia` (operación principal sobre sesión activa) y `exportarHistorialAsistencias` (read-only post-cierre) quedan en el bloque.
+
+Índices actualizados: `casos-uso/README.md` 11/26 → 13/26; README raíz `Análisis 11/26 → 13/26`. Ambos CUs marcados ✅.
+
+**Decisión:** Bloque "ciclo de vida operativo" del Profesor completo (crear → editar → cerrar). Próximo paso natural: `registrarTomaAsistencia` — **primer CU no-CRUD** del proyecto, donde aparecerán nuevas entidades (`Asistencia`, `Alumno` como dato) y el patrón de operación principal sobre la sesión activa.
+
+---
+
+## [09:47] Análisis de `consultarSolicitudDispensa()` (Profesor) — tercera variante y cierre del polimorfismo del Controller
+
+**Prompt:** Análisis de consultar solicitud dispensa para el Profesor.
+
+**Resultado:** Creados `RUP/01-analisis/casos-uso/consultarSolicitudDispensaProfesor/{colaboracion.puml, colaboracion.svg, README.md}` (folder con sufijo `Profesor` por colisión de nombre canónico con el del Alumno). 3 mensajes, 1 origen (`:Dispensas Abierto`), sin destino.
+
+**Especificidades del Profesor (completando la tríada de roles sobre `SolicitudDispensa`):**
+
+1. **Read-only puro — sin `<<include>>` saliente a editar**: primera consulta del proyecto sin salida a un CU de modificación. El `Profesor.puml` solo tiene `consultarSolicitudDispensa()` en el package "Dispensas" — sin `editar` ni `crear`. Refleja la separación de responsabilidades: el Profesor es **observador** del flujo de dispensas (necesita la información para gestionar asistencias), no participante.
+
+2. **Tercer caso del polimorfismo del Controller por subtipo de `Sesion.usuario`** — completa la tríada:
+   - Alumno: ve solo las propias (verificación de propiedad)
+   - Profesor: ve las **de sus asignaturas impartidas** (verificación "Profesor competente")
+   - Director: ve todas (sin verificación)
+   
+   Con tres roles operando con políticas distintas sobre el mismo Repository, la opción **"métodos específicos por rol"** (camino (c) abierto en [[consultarSolicitudesDispensas]] y reforzado en [[editarSolicitudDispensaDirector]]) se vuelve la más limpia. Patrón ahora consolidado para diseño.
+
+3. **Vista enriquecida con datos del solicitante**: a diferencia del Alumno (que ya sabe quién es y a qué asignaturas tiene dispensa), el Profesor necesita el contexto: nombre del alumno, grado, curso, lista de asignaturas afectadas con docente/día/hora, fechas múltiples (solicitud, edición, aprobación), comentarios. Nueva vista `ConsultarSolicitudDispensaProfesorView` distinta de la del Alumno.
+
+4. **Nueva relación de dominio detectada**: `Profesor.asignaturasImpartidas` — necesaria para la verificación de acceso. No estaba en `iniciarSesion` (donde `Profesor` era solo subtipo de `Usuario` sin atributos). Deuda nueva para el modelo del dominio.
+
+5. **Campos del prototipo no presentes en el detallado**: "Comentarios", "Fecha de Aprobación" (mostrada como `--/--/--` para pendientes), lista de asignaturas con docente/día/hora. Emergen como atributos del modelo del dominio. Confirma además que el Profesor ve dispensas **en cualquier estado** (no solo aprobadas).
+
+6. **Discrepancia con prototipo gestionada como en el Alumno**: el `Profesor1.png` muestra la lista, pero el actor solo tiene un CU singular. Adoptamos misma decisión: listado pre-existente, no CU separado. Deuda blanda para consistencia con el master-detail del Director.
+
+Índices actualizados: `casos-uso/README.md` 13/26 → 14/26 y `consultarSolicitudDispensa() (Profesor) ⏳` → `✅`; README raíz `Análisis 13/26 → 14/26`.
+
+**Decisión:** Tríada `consultarSolicitudDispensa` cerrada — tres análisis distintos, mismo Repository, tres políticas de acceso. El patrón polimórfico del Controller queda **completamente caracterizado** para que diseño pueda escoger entre los caminos abiertos. Próximo paso natural: `registrarTomaAsistencia` y `exportarHistorialAsistencias` (los dos no-CRUD del Profesor), o los dos read-only restantes (`consultarListaAlumnos`, `consultarDetalleAlumno`).
+
+---
+
+## [09:53] Análisis de `consultarListaAlumnos()` y `consultarDetalleAlumno()` — debut de `Alumno` como entidad con datos propios
+
+**Prompt:** Análisis de consultar lista y detalle de alumnos.
+
+**Resultado:** Cuatro archivos creados:
+- `RUP/01-analisis/casos-uso/consultarListaAlumnos/{colaboracion.puml, colaboracion.svg, README.md}` — 3 mensajes, origen `:Listas Abierto`.
+- `RUP/01-analisis/casos-uso/consultarDetalleAlumno/{colaboracion.puml, colaboracion.svg, README.md}` — 3 mensajes, origen `:Lista Abierta`.
+
+Ambos read-only puros, sin `<<include>>` saliente. Introducen `AlumnoController` y `AlumnoRepository` (compartidos entre los dos CUs, patrón "Controller por entidad").
+
+**Hallazgos transversales:**
+
+1. **`Alumno` debuta como entidad con datos propios**: hasta ahora era solo subtipo polimórfico de `Usuario` (desde [[iniciarSesion]]) o propietario referenciado en `SolicitudDispensa`. Aquí gana atributos académicos (carnet, grado, curso, estado de matrícula) en la lista, y atributos personales completos en la ficha (nombre, documento, correo, teléfono, descripción, dirección, ocupación, foto). Material rico para enriquecer el modelo del dominio en 02-diseño.
+
+2. **Discrepancia nominal entre detallados**: `consultarListaAlumnos` termina en `LISTA_ABIERTA`, `consultarDetalleAlumno` arranca de `ALUMNOS_ABIERTO`. El prototipo confirma que son el **mismo estado** (la lista de alumnos visible y operable). Análisis los unifica como `:Lista Abierta`. Deuda de reconciliación de nombres en el SDR.
+
+3. **Consolidación del patrón "Profesor competente"**: tercer y cuarto CU del Profesor que aplican el filtro por contexto docente (ya estaba en [[consultarSolicitudDispensaProfesor]]). Documentada la regla general: *cualquier CU del Profesor que cargue datos por asignatura debe validar que el Profesor imparte esa asignatura*. Defensa en profundidad — la UI ya filtra, el Controller revalida.
+
+4. **`consultarListaAlumnos`**:
+   - Las **pestañas del prototipo son por asignatura**: el selector emerge de `Sesion.usuario.asignaturasImpartidas`. Cómo se cargan las pestañas se deja como decisión de diseño; el CU recibe `asignatura` como input ya resuelto.
+   - El detallado dice "listado de un **curso** específico", el prototipo usa "asignatura". Probable terminología solapada del SDR; no se trata como discrepancia formal.
+
+5. **`consultarDetalleAlumno`** — dos decisiones importantes:
+   - **Asistencias como agregado, no como mensaje aparte**: el `obtenerPorId(alumnoId)` retorna un `Alumno` con su lista de asistencias. La sección colapsable del prototipo es UI; el lazy loading se diferiría a diseño si el volumen lo justifica.
+   - **Ambigüedad del prototipo gestionada**: muestra asistencias de dos asignaturas distintas, pero análisis aplica filtro "Profesor competente" por consistencia con [[consultarSolicitudDispensaProfesor]]. Deuda: confirmar regla con cliente (filtro estricto vs visibilidad total).
+
+6. **`Asistencia` referenciada pero no formalmente modelada aquí**: aparece como dato en la ficha. Su modelado completo se difiere a [[registrarTomaAsistencia]] (donde se crea).
+
+Índices actualizados: `casos-uso/README.md` 14/26 → 16/26; README raíz `Análisis 14/26 → 16/26`. Ambos CUs marcados ✅.
+
+**Decisión:** Bloque "Listas + Alumnos" del Profesor completo (2/2). Quedan 2 CUs en el bloque: `registrarTomaAsistencia` y `exportarHistorialAsistencias` — los dos **no-CRUD** del proyecto. `Alumno` y `Asistencia` están maduras para promoverse al modelo del dominio.
+
+---
+
+## [10:01] Análisis de `registrarTomaAsistencia()` y `exportarHistorialAsistencias()` — cierre del bloque Profesor y los dos primeros no-CRUD del proyecto
+
+**Prompt:** Análisis de los dos CUs restantes de Profesor.
+
+**Resultado:** Cuatro archivos creados:
+- `RUP/01-analisis/casos-uso/registrarTomaAsistencia/{colaboracion.puml, colaboracion.svg, README.md}` — 5 mensajes, debut formal de `Asistencia` como entidad.
+- `RUP/01-analisis/casos-uso/exportarHistorialAsistencias/{colaboracion.puml, colaboracion.svg, README.md}` — 4 mensajes, debut del primer **servicio de aplicación** del análisis (`GeneradorArchivoAsistencias`).
+
+Bloque Profesor completo (8/8 CUs).
+
+**Hallazgos de `registrarTomaAsistencia` (CU principal del bloque):**
+
+1. **Debut formal de `Asistencia` como entidad** — referenciada antes en [[consultarDetalleAlumno]], aquí emerge con atributos identificados: `sesion`, `alumno`, `estado` (Presente/Ausente/Tarde — **primer enum del análisis**), `justificacion` opcional. Restricción de unicidad por `(sesionId, alumnoId)`. Nuevo `AsistenciaController` y `AsistenciaRepository`.
+2. **Operación granular vs batch — modelado como granular**: cada alumno marcado genera una persistencia individual (`registrarAsistencia` por alumno → `guardar` upsert). No hay "submit final". Coherente con el prototipo del listado de asistencias (checkboxes individuales por fila).
+3. **`guardar` como upsert idempotente**: ni `crear` ni `actualizar` — la semántica de "marcar asistencia" es upsert (crea si no existía, actualiza si ya estaba). Primera operación con esta semántica en el proyecto.
+4. **Interacción `Asistencia` ↔ `SolicitudDispensa` documentada como deuda crítica**: el prototipo muestra columna "Dispensa" con valor "Dispensado" para algunos alumnos. Tres opciones de modelado documentadas (independencia / pre-marca automática / exclusión del listado) — regla de negocio crítica para diseño.
+5. **Vista compartida con la sesión activa**: `RegistrarTomaAsistenciaView` no es ventana nueva, es modo sobre la pantalla de asistencias. Continuidad UX con [[crearSesionClase]] y [[editarSesionClase]] — el wireframe efectivo es el listado de asistencias (sin prototipo dedicado).
+
+**Hallazgos de `exportarHistorialAsistencias` (cierre del bloque):**
+
+1. **Primer servicio de aplicación del análisis**: `GeneradorArchivoAsistencias` — clase distinta de Controller/Repository, con responsabilidad atómica de generar archivo a partir de datos. Color verde (lógica de aplicación) — documentado como deuda blanda introducir un cuarto color/anotación `<<service>>` si emergen muchos.
+2. **Aplicación explícita del SRP** (Principio de Responsabilidad Única, IDSW2): tres razones documentadas para separar Controller / Servicio — cohesión, extensibilidad de formatos, testabilidad. Es la primera decisión de diseño OO sólida emergente del análisis.
+3. **Discrepancia formatos detallado vs prototipo**: detallado dice "Excel, PDF", prototipo dropdown solo muestra "CSV". Análisis adopta conjunto unión `{Excel, PDF, CSV}`; confirmar con cliente. Deuda registrada.
+4. **`AsistenciaController` no genera, delega**: orquesta (recuperar + delegar) pero la transformación vive en el servicio. Patrón generalizable: para futuros exports (`exportarDispensas` de Secretaria), el Controller de la entidad delega a un generador análogo. Evita un "ExportadorController" omnipresente.
+5. **`Archivo` como tipo opaco**: cómo se materializa (stream/blob/URL temporal) es decisión de diseño. Buena ocasión para Strategy o jerarquía de generadores polimórficos en 02-diseño.
+
+Índices actualizados: `casos-uso/README.md` 16/26 → 18/26 (ambos ✅); README raíz `Análisis 16/26 → 18/26`.
+
+**Decisión:** Bloque Profesor completo (8/8). Refleja la complejidad real del proyecto:
+- 4 CUs de ciclo de vida (crear/editar/cerrar de `SesionDeClase` + registrar asistencia)
+- 3 CUs read-only (lista alumnos, detalle alumno, consultar dispensa)
+- 1 CU de exportación con servicio dedicado
+
+`Asistencia` y `Alumno` (con datos académicos) son las dos entidades nuevas más críticas para promover al modelo del dominio en 02-diseño. Siguiente bloque natural: **Secretaria (8 CUs)** — donde aparecerán los dos CUs de **importación masiva** (primer cuello no-CRUD de carga) y los 4 CUs de dispensa desde el rol de soporte administrativo. Llegamos a 18/26 (69%) del análisis.

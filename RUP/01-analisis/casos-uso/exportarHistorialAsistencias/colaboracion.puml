@@ -1,0 +1,24 @@
+@startuml exportarHistorialAsistencias-analisis
+skinparam linetype polyline
+
+rectangle #CDEBA5 ":Asistencias Abierto" as AsistenciasAbierto
+
+package exportarHistorialAsistencias as "exportarHistorialAsistencias()" {
+    rectangle #629EF9 ExportarHistorialView
+    rectangle #b5bd68 AsistenciaController
+    rectangle #b5bd68 GeneradorArchivoAsistencias
+    rectangle #F2AC4E AsistenciaRepository
+    rectangle #F2AC4E Asistencia
+}
+
+AsistenciasAbierto -r-> ExportarHistorialView           : exportarHistorialAsistencias()
+
+ExportarHistorialView -d-> AsistenciaController          : exportar(asignatura, fechaInicio, fechaFin, formato) : Archivo
+
+AsistenciaController --> AsistenciaRepository            : obtenerPorRango(asignatura, fechaInicio, fechaFin) : List<Asistencia>
+
+AsistenciaRepository -- Asistencia
+
+AsistenciaController --> GeneradorArchivoAsistencias     : generar(asistencias, formato) : Archivo
+
+@enduml

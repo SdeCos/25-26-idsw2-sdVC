@@ -1,0 +1,24 @@
+@startuml cerrarSesionClase-analisis
+skinparam linetype polyline
+
+rectangle #CDEBA5 ":Sesion Asistencia Abierta" as SesionAsistenciaAbierta
+rectangle #CDEBA5 ":Asistencias Abierto" as AsistenciasAbierto
+
+package cerrarSesionClase as "cerrarSesionClase()" {
+    rectangle #629EF9 CerrarSesionClaseView
+    rectangle #b5bd68 SesionDeClaseController
+    rectangle #F2AC4E SesionDeClaseRepository
+    rectangle #F2AC4E SesionDeClase
+}
+
+SesionAsistenciaAbierta -r-> CerrarSesionClaseView      : cerrarSesionClase()
+
+CerrarSesionClaseView -d-> SesionDeClaseController       : confirmarCierre(sesionId) : boolean
+
+SesionDeClaseController --> SesionDeClaseRepository      : actualizar(sesion) : boolean
+
+SesionDeClaseRepository -- SesionDeClase
+
+CerrarSesionClaseView -r-> AsistenciasAbierto            : volverAListado()
+
+@enduml

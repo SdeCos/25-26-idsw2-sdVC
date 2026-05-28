@@ -1,0 +1,21 @@
+@startuml editarSesionClase-analisis
+skinparam linetype polyline
+
+rectangle #CDEBA5 ":Sesion Asistencia Abierta" as SesionAsistenciaAbierta
+
+package editarSesionClase as "editarSesionClase()" {
+    rectangle #629EF9 EditarSesionClaseView
+    rectangle #b5bd68 SesionDeClaseController
+    rectangle #F2AC4E SesionDeClaseRepository
+    rectangle #F2AC4E SesionDeClase
+}
+
+SesionAsistenciaAbierta -r-> EditarSesionClaseView      : editarSesionClase(sesion)
+
+EditarSesionClaseView -d-> SesionDeClaseController       : modificarCampos(sesionId, cambios) : boolean
+
+SesionDeClaseController --> SesionDeClaseRepository      : actualizar(sesion) : boolean
+
+SesionDeClaseRepository -- SesionDeClase
+
+@enduml

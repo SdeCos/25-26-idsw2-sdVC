@@ -1,0 +1,29 @@
+@startuml registrarTomaAsistencia-analisis
+skinparam linetype polyline
+
+rectangle #CDEBA5 ":Sesion Asistencia Abierta" as SesionAsistenciaAbierta
+
+package registrarTomaAsistencia as "registrarTomaAsistencia()" {
+    rectangle #629EF9 RegistrarTomaAsistenciaView
+    rectangle #b5bd68 AsistenciaController
+    rectangle #F2AC4E AsistenciaRepository
+    rectangle #F2AC4E Asistencia
+    rectangle #F2AC4E AlumnoRepository
+    rectangle #F2AC4E Alumno
+}
+
+SesionAsistenciaAbierta -r-> RegistrarTomaAsistenciaView : registrarTomaAsistencia(sesion)
+
+RegistrarTomaAsistenciaView -d-> AsistenciaController   : cargarAlumnosDeSesion(sesionId) : List<Alumno>
+
+AsistenciaController --> AlumnoRepository               : obtenerPorAsignatura(asignatura) : List<Alumno>
+
+AlumnoRepository -- Alumno
+
+RegistrarTomaAsistenciaView --> AsistenciaController    : registrarAsistencia(sesionId, alumnoId, estado, justificacion) : Asistencia
+
+AsistenciaController --> AsistenciaRepository           : guardar(asistencia) : Asistencia
+
+AsistenciaRepository -- Asistencia
+
+@enduml
