@@ -721,3 +721,174 @@ Esto **refina la deuda hacia 02-diseño**: de las tres opciones abiertas para ma
 Índices actualizados: `casos-uso/README.md` 24/26 → **26/26 ✅**; README raíz `Análisis 24/26 → 26/26 ✅`.
 
 **Decisión:** Análisis cerrado al 100%. La entidad `SolicitudDispensa` queda **completamente caracterizada** con 4 roles y 9 operaciones del Controller (`crearSolicitudDispensa`, `crearSolicitudDispensaEnNombreDe`, `modificarCampos`, `modificarVeredicto`, `cargarSolicitud`, `cargarSolicitudParaEdicion`, `obtenerPorAsignaturas`, `obtenerTodas`, `obtenerPorFiltros`, `exportar`). Es la entidad **más operada** del proyecto y la **deuda máxima** para 02-diseño: no está promovida al modelo del dominio del SDR pese a tener cuatro roles operando sobre ella. Próxima fase: arrancar `RUP/02-diseño` con esa promoción como primer paso.
+
+---
+
+### Sesión 2026-05-29
+
+## [09:25] Cambio de modo de trabajo (cascada → ramillete por actor) y elección de stack
+
+**Prompt:** El profesor recordó que RUP no es "todo el análisis → todo el diseño → todo el desarrollo" (eso sería cascada), sino "un ramillete de casos de uso: requisitarlos, analizarlos, **diseñarlos e implementarlos** todos; luego siguiente ramillete". Petición: a partir de ahora, **diseño + implementación por actor seguido**, y **elegir tecnologías** antes de empezar.
+
+**Resultado:** Tres opciones planteadas con trade-offs:
+1. **FastAPI + React + SQLite** (recomendada) — separación clara backend/frontend, alineada con la rama `diseño-fastapi-react` de pySigHor (que sirve de referencia metodológica), Python para continuidad con el ecosistema hermano.
+2. **Django + plantillas/HTMX** — más rápido a "funciona", pero la magia del framework oculta parte del diseño OO que IDSW2 quiere visible.
+3. **Spring Boot + Thymeleaf/React** — clásico de IDSW, muy OO, pero pesado para un solo desarrollador académico.
+
+**Decisión:** Opción 1, además alineada con SigHor. SQLite (no PostgreSQL) para evitar infraestructura — connection string migrable después. El **modo de trabajo iterativo** queda fijado: cerrar diseño + implementación de un actor antes de pasar al siguiente. Próximo paso inmediato: arrancar diseño de Usuario (iniciarSesion, cerrarSesion).
+
+## [09:49] Arranque de fase 02-diseño y diseño completo del actor Usuario (2/26)
+
+**Prompt:** Empezar el diseño con el actor Usuario, como antes (con análogo nivel de detalle al del análisis).
+
+**Resultado:** Estructura de la disciplina creada al estilo de la rama `diseño-fastapi-react` de pySigHor:
+
+- `RUP/02-diseño/README.md` — portada de la disciplina, modo iterativo explicitado, tabla de progreso por actor.
+- `RUP/02-diseño/configuracion-proyecto.md` — stack (FastAPI + SQLAlchemy async + JWT/bcrypt; React + TS + Vite + axios + Context), estructura de directorios `src/backend` y `src/frontend`, `pyproject.toml`, `package.json`, `vite.config.ts`, `.env.example`, esquema SQL inicial **solo de `usuarios`** (single-table inheritance con discriminator `tipo`), mapeo análisis → diseño y comandos de desarrollo.
+- `RUP/02-diseño/arquitectura.puml` + `.svg` — diagrama C4 de contenedores (SPA / API REST / SQLite / almacén de ficheros).
+- `RUP/02-diseño/clases-diseño.puml` + `.svg` — jerarquía Usuario + Sesion + schemas Pydantic + UsuarioRepository + AuthService + AuthRouter. **Crecerá ramillete a ramillete**, no se diseña por adelantado.
+- `RUP/02-diseño/casos-uso/README.md` — índice con tabla 26 CUs (2/26 ✅).
+- `RUP/02-diseño/casos-uso/iniciarSesion/{README.md, secuencia.puml, secuencia.svg}` — diagrama de secuencia con LoginPage / authService / AuthContext / AuthRouter / AuthService / UsuarioRepository / SQLite + ramas válida/inválida.
+- `RUP/02-diseño/casos-uso/cerrarSesion/{README.md, secuencia.puml, secuencia.svg}` — diagrama mínimo: Layout / AuthContext / authService / AuthRouter, con `POST /auth/logout` no-op pero expuesto futuro-proof.
+
+**Decisiones de diseño clave (consolidadas en este ramillete):**
+
+1. **Cambio de notación de análisis → diseño**: de **diagrama de colaboración** (enlaces, intenciones) a **diagrama de secuencia** (orden temporal, tecnología concreta — endpoints HTTP, servicios, BD). Cierre del salto que pySigHor explicita en su rama.
+2. **Autenticación stateless con JWT**: la `Sesion` del análisis (concepto emergente) **no se persiste**. Vive como token firmado en `localStorage` + payload validado en cada request. El método `Sesion.cerrar()` se materializa como `localStorage.removeItem` + `setUsuario(null)`. La pregunta abierta del análisis ("¿se promueve `Sesion` al dominio?") se cierra: **no**, queda como concepto técnico.
+3. **`validarCredenciales` partido en dos pasos honestos**: `UsuarioRepository.obtener_por_username` (solo I/O) + `verify_password` dentro de `AuthService` (solo criptografía). Aplicación de SRP — el repositorio no debe conocer bcrypt. El nombre `validarCredenciales` desaparece pero la semántica se preserva en `AuthService.autenticar`.
+4. **Polimorfismo de Usuario → single-table inheritance** en SQLAlchemy con discriminator `tipo`. Una sola tabla `usuarios`. La multi-herencia de `Administrador` (es Alumno + Profesor + Director + Secretaria) **no se materializa como herencia múltiple en ORM** (no soportada limpiamente) — se materializa como `tipo = "administrador"` + inclusión jerárquica en `AuthService.tiene_rol`.
+5. **`POST /auth/logout` expuesto pese a ser no-op hoy** — punto de extensión para blacklist/auditoría sin romper contrato. Una llamada HTTP extra por logout, despreciable.
+6. **Sin modal de confirmación** en cerrarSesion (consistente con la decisión explícita del análisis) — divergencia consciente con pySigHor que sí lo lleva.
+7. **Token en `localStorage`** (no cookie `HttpOnly`) — trade-off documentado; asumido aceptable para el alcance académico, con expiración corta (60 min) como mitigación.
+
+**Estructura iterativa registrada en `configuracion-proyecto.md`**: cada nuevo ramillete **extiende** `clases-diseño.puml` y el esquema SQL — no los rehace. Próximo ramillete (Administrador: crearUsuario / consultarUsuario / editarUsuario) añadirá schemas de creación/edición, endpoints y política de autorización.
+
+Índices actualizados: README raíz `Diseño 0/26 → 2/26`; `RUP/02-diseño/casos-uso/README.md` 2/26 ✅.
+
+**Decisión:** Usuario cerrado en diseño (2/26). Próximo paso del modo iterativo: **implementar** iniciarSesion + cerrarSesion antes de pasar al ramillete del Administrador.
+
+## [10:10] Simplificación de 02-diseño — corrección de scope
+
+**Prompt:** El diseño de los CUs está bien pero se podría simplificar; en cualquier caso no se entiende el sentido de los archivos extra dentro de `02-diseño/` — con un README similar al de `01-analisis/` debería bastar.
+
+**Resultado:** Borrados los artefactos globales y recortados los READMEs por caso de uso. La disciplina queda al mismo nivel de presupuesto que análisis.
+
+- **Eliminados**: `RUP/02-diseño/configuracion-proyecto.md`, `arquitectura.puml/svg`, `clases-diseño.puml/svg`. Toda la información de stack que vivía en `configuracion-proyecto.md` (pyproject.toml, package.json, vite.config.ts, esquema SQL, comandos `uvicorn`/`npm`) era duplicación de lo que va a existir como código real. El C4 era un diagrama de tres cajas que cabe en una frase. El diagrama de clases también se elimina por la misma razón — las clases se verán en el código.
+- **Reescrito** `RUP/02-diseño/README.md` al estilo del de análisis: cambio de notación (colaboración → secuencia), modo iterativo, stack en tabla compacta, link al índice. ~15 líneas frente a las 60 anteriores.
+- **Recortados** los dos READMEs de CU: eliminadas las secciones "contratos" (Pydantic schemas completos), "errores y casos no felices", "deudas registradas" y "diferencias entre CUs". Conservado: cabecera, diagrama, participantes, materialización del análisis, decisiones de diseño (3-4 bullets), referencias. De ~7-8 KB cada uno bajan a ~3 KB.
+
+**Decisión:** Las decisiones de diseño de fondo (JWT stateless, split de validarCredenciales por SRP, single-table inheritance para Usuario, no-op logout futuro-proof) **se conservan tal cual**. Lo que cambia es el envoltorio: no se documenta nada que vaya a quedar reflejado en el código. Patrón para los próximos ramilletes: por defecto, **un README por CU + diagrama de secuencia**, sin artefactos globales adicionales salvo que aparezca una razón concreta. Memoria persistente guardada.
+
+## [10:15] Simplificación del diagrama de secuencia de iniciarSesion
+
+**Prompt:** ¿El diagrama de iniciarSesion no se podría simplificar más? cerrarSesion tiene un tamaño más adecuado (aunque influye que el CU sea más simple).
+
+**Resultado:** Diagrama recortado de 24 mensajes a 17, ~56% más pequeño en PUML (1.9 KB → 1.1 KB).
+
+- **Fuera self-calls**: `ASvc -> ASvc : verify_password`, `ASvc -> ASvc : create_access_token`, `LP -> LP : navigate`, `AC -> AC : localStorage.setItem`. Son detalles internos de cada participante, no colaboración real; viven en el README en "decisiones de diseño".
+- **Mensajes en una línea** sin `\n`.
+- **Bloque `alt` compacto**: la rama de error pasa de 4 mensajes con propagación back-to-back a `raise → 401 → error → mensaje`.
+- **Mismos participantes** (LoginPage / authService / AuthContext / AuthRouter / AuthService / UsuarioRepository / SQLite). La complejidad inherente de iniciarSesion frente a cerrarSesion (verificación contra BD, firma JWT) no se puede eliminar honestamente — sigue necesitando Service + Repo + DB. La asimetría con cerrarSesion (4 participantes vs 7) es real, no inflada.
+
+**Decisión:** Política para los siguientes CUs: los diagramas de secuencia muestran **quién habla con quién**, no **qué hace cada uno por dentro**. Las acciones internas (cripto, navegación, persistencia local, validación) se mencionan en el README, no en el diagrama. Self-calls solo si representan un paso del flujo que el lector necesita ver para entender el orden temporal — no como anotación de implementación.
+
+## [10:22] Aplicación de la misma política a cerrarSesion (cohesión entre los dos CUs del actor)
+
+**Prompt:** Hacer lo mismo con cerrarSesion: ya estaba bien de tamaño pero ahora tiene más detalles que iniciarSesion y no es cohesivo entre sí.
+
+**Resultado:** Recortados los detalles equivalentes en cerrarSesion: fuera self-calls `AC -> AC : localStorage.removeItem`, `AC -> AC : setUsuario(null)`, `LY -> LY : navigate("/login")` y la nota inline sobre el endpoint no-op. La explicación de "cerrar sesión = borrar el token del cliente" y la justificación del endpoint expuesto siguen en el README, que es donde tienen sentido.
+
+PUML 526 B (8 mensajes), SVG 12 KB. Asimetría final con iniciarSesion (8 vs 17 mensajes, 4 vs 7 participantes) refleja la complejidad inherente del CU, no la verbosidad del diagrama. Cohesión entre los dos CUs del actor restaurada.
+
+**Decisión:** Política consolidada y memoria persistente actualizada — guardada por separado para que aplique también a los siguientes ramilletes (Administrador, Profesor, etc.).
+
+## [10:45] Implementación del ramillete Usuario — iniciarSesion + cerrarSesion funcionando end-to-end
+
+**Prompt:** Empezar la implementación de los dos CUs.
+
+**Resultado:** Backend (16 ficheros) y frontend (18 ficheros) creados, ambos arrancando y validados vía HTTP. Los 2 CUs cierran el ramillete Usuario (Análisis ✅ 26/26, Diseño 2/26 ✅, Desarrollo 2/26 ✅).
+
+### Backend `src/backend/`
+
+Estructura por capas exactamente como el diseño:
+
+```
+app/
+├── core/{config,database,security}.py
+├── models/usuario.py                  # STI: Usuario + Alumno/Profesor/Director/Secretaria/Administrador
+├── schemas/auth.py                    # LoginRequest, TokenResponse, UsuarioOut
+├── repositories/usuario_repository.py # obtener_por_username, obtener_por_id
+├── services/auth_service.py           # autenticar, emitir_token + excepciones
+├── routers/auth.py                    # /auth/{login,logout,me}
+├── dependencies.py                    # get_current_user (Bearer + JWT)
+└── main.py                            # FastAPI + CORS + lifespan crea tablas
+scripts/seed.py                        # 5 usuarios de prueba (admin/profesor1/alumno1/director1/secretaria1)
+```
+
+### Frontend `src/frontend/`
+
+Estructura por responsabilidad:
+
+```
+src/
+├── pages/{LoginPage,DashboardPage}.tsx
+├── components/{Layout,RequireAuth}.tsx
+├── context/AuthContext.tsx     # token + usuario en localStorage, persiste entre recargas
+├── services/{api,authService}.ts  # axios con interceptores (inyecta Bearer, captura 401)
+├── types/auth.ts               # DTOs TS espejo de los schemas Pydantic
+└── App.tsx / main.tsx          # router + providers
+```
+
+### Sustituciones honestas respecto al diseño
+
+| Diseño | Implementación | Motivo |
+|---|---|---|
+| `python-jose` | `PyJWT` | `python-jose` sin releases activos; PyJWT más simple y mantenida |
+| `passlib[bcrypt]` | `bcrypt` directo | `passlib` rompe con `bcrypt ≥ 4.x`; el wrapper aporta poco |
+
+Ambas preservan la decisión de fondo (JWT HS256 + bcrypt con salt). Documentadas en `RUP/03-desarrollo/casos-uso/iniciarSesion/README.md`.
+
+### Incidentes durante la verificación
+
+1. **`EmailStr` rechaza `.local`**: `cgu.local` es TLD reservado. Cambiados los emails del seed a `<usuario>@cgu.es` (España, encaja con el contexto). Validación `EmailStr` del diseño se conserva.
+2. **Cache de SQLite tras borrar la BD**: el proceso uvicorn mantenía un file handle al inodo viejo (`@cgu.local`) tras eliminar `cgu.db`. Hizo falta reiniciar uvicorn — no es un bug, es un detalle de cómo Unix gestiona file descriptors de ficheros borrados.
+
+### Verificación end-to-end (HTTP)
+
+Backend (`curl localhost:8000`):
+- `POST /auth/login admin/admin123` → 200 + JWT + `tipo: "administrador"`
+- `POST /auth/login alumno1/alumno123` → 200 + `tipo: "alumno"` (**polimorfismo STI confirmado**)
+- `POST /auth/login admin/WRONG` → 401 `Credenciales no válidas`
+- `POST /auth/login nope/x` → 401 `Credenciales no válidas` (mismo mensaje — no filtra existencia)
+- `GET /auth/me` con token → 200 con UsuarioOut completo
+- `POST /auth/logout` con token → 204
+- `POST /auth/logout` sin token → 401 `Token ausente`
+- `POST /auth/logout` con token falseado → 401 `Token inválido`
+
+Frontend (`curl localhost:5173`, sirve la SPA + proxy):
+- `GET /` → `index.html` con React Refresh ✅
+- `POST /api/auth/login` (proxy a backend) → 200 ✅
+- TypeScript compila sin errores ✅
+
+Validación a nivel navegador (form → dashboard → botón logout → login) pendiente de prueba manual del usuario. Servidores quedan corriendo en `:8000` y `:5173`.
+
+### Metadatos `RUP/03-desarrollo/`
+
+Creados al estilo del análisis/diseño (espejo de presupuesto):
+- `README.md` de disciplina (~20 líneas)
+- `casos-uso/README.md` (tabla 26 CUs, 2/26)
+- `casos-uso/{iniciarSesion,cerrarSesion}/README.md` con trazabilidad código ↔ diseño y la lista de verificaciones pasadas.
+
+### Comandos de uso
+
+```bash
+# Backend
+cd src/backend && source .venv/bin/activate
+python -m scripts.seed                          # crea 5 usuarios de prueba
+uvicorn app.main:app --reload --port 8000       # docs en /docs
+
+# Frontend
+cd src/frontend && npm run dev                  # http://localhost:5173
+```
+
+**Decisión:** Ramillete Usuario completo (análisis → diseño → desarrollo). El JWT stateless funciona, la jerarquía polimórfica de Usuario se resuelve correctamente desde SQLAlchemy STI, y el frontend conecta vía proxy de Vite. Siguiente ramillete: **Administrador** (`crearUsuario`, `consultarUsuario`, `editarUsuario`) — primer ramillete con autorización por rol (`require_admin` sobre los endpoints), que estresará la decisión del análisis sobre cómo materializar la jerarquía de capacidades.

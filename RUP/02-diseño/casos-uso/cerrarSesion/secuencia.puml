@@ -1,0 +1,25 @@
+@startuml
+title Diseño — cerrarSesion()
+
+actor "Usuario\nautenticado" as U
+
+box "Frontend (React + TS)" #E8F0FE
+    participant "Layout" as LY
+    participant "AuthContext" as AC
+    participant "authService" as AS
+end box
+
+box "Backend (FastAPI)" #FFF4E0
+    participant "AuthRouter\nPOST /auth/logout" as AR
+end box
+
+U  -> LY  : pulsa "Cerrar sesión"
+LY -> AC  : logout()
+AC -> AS  : logout()
+AS -> AR  : POST /auth/logout
+AR --> AS : 204
+AS --> AC : ok
+AC --> LY : sesión limpiada
+LY --> U  : Sesión Cerrada
+
+@enduml

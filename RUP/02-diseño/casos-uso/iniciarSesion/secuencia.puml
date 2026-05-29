@@ -1,0 +1,42 @@
+@startuml
+title Diseño — iniciarSesion()
+
+actor Usuario as U
+
+box "Frontend (React + TS)" #E8F0FE
+    participant "LoginPage" as LP
+    participant "authService" as AS
+    participant "AuthContext" as AC
+end box
+
+box "Backend (FastAPI)" #FFF4E0
+    participant "AuthRouter\nPOST /auth/login" as AR
+    participant "AuthService" as ASvc
+    participant "UsuarioRepository" as UR
+end box
+
+database "SQLite" as DB
+
+U   -> LP   : credenciales
+LP  -> AS   : login(username, password)
+AS  -> AR   : POST /auth/login
+AR  -> ASvc : autenticar(username, password)
+ASvc -> UR  : obtener_por_username(username)
+UR  -> DB   : SELECT
+DB  --> UR  : Usuario | None
+UR  --> ASvc : Usuario | None
+
+alt credenciales válidas
+    ASvc --> AR : TokenResponse
+    AR  --> AS  : 200 OK
+    AS  -> AC   : setSession(token, usuario)
+    AC  --> LP  : usuario autenticado
+    LP  --> U   : Sistema Disponible
+else credenciales no válidas
+    ASvc --> AR : raise CredencialesInvalidas
+    AR  --> AS  : 401
+    AS  --> LP  : error
+    LP  --> U   : "credenciales incorrectas"
+end
+
+@enduml

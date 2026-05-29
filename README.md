@@ -12,8 +12,8 @@ El sistema surge del proyecto de requisitado desarrollado en [IDSW1](https://git
 | --------------------------------- | ---------- |
 | [Requisitado](RUP/00-requisitos/) | ✅ Migrado |
 | [Análisis](RUP/01-analisis/)      | ✅ 26/26   |
-| Diseño                            | ⏳ 0/26    |
-| Implementación                    | ⏳ 0/26    |
+| [Diseño](RUP/02-diseño/)          | ⏳ 2/26    |
+| [Desarrollo](RUP/03-desarrollo/)  | ⏳ 2/26    |
 
 ## Estructura del repositorio
 
@@ -21,10 +21,12 @@ El sistema surge del proyecto de requisitado desarrollado en [IDSW1](https://git
 25-26-idsw2-sdVC/
 ├── RUP/
 │   ├── 00-requisitos/        # Artefactos del requisitado (IDSW1-SDR)
-│   ├── 01-analisis/          # Diagramas de análisis por caso de uso
-│   ├── 02-diseño/            # Diseño técnico y stack
-│   └── 03-desarrollo/        # Seguimiento del desarrollo
-├── src/                      # Código fuente
+│   ├── 01-analisis/          # Diagramas de colaboración por caso de uso
+│   ├── 02-diseño/            # Diagramas de secuencia por caso de uso
+│   └── 03-desarrollo/        # Trazabilidad código ↔ diseño por caso de uso
+├── src/
+│   ├── backend/              # FastAPI + SQLAlchemy + SQLite
+│   └── frontend/             # React + TypeScript + Vite
 ├── modelosUML/               # Fuentes .puml de los diagramas
 ├── images/                   # SVGs generados y recursos visuales
 ├── documents/                # Documentación adicional
