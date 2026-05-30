@@ -7,6 +7,8 @@ body {
   min-height: 100vh;
 }
 
+a { color: #0071e3; }
+
 button {
   font: inherit;
   cursor: pointer;
@@ -21,14 +23,16 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
 button[type="submit"] { background: #0071e3; color: white; border-color: #0071e3; }
 button[type="submit"]:hover:not(:disabled) { background: #0077ed; }
 
-input {
+input, select {
   font: inherit;
   padding: 0.5rem;
   border: 1px solid #d2d2d7;
   border-radius: 6px;
   width: 100%;
+  background: white;
 }
-input:focus { outline: 2px solid #0071e3; outline-offset: -1px; }
+input:focus, select:focus { outline: 2px solid #0071e3; outline-offset: -1px; }
+input:disabled { background: #f5f5f7; color: #6e6e73; }
 
 .container {
   max-width: 420px;
@@ -53,3 +57,96 @@ input:focus { outline: 2px solid #0071e3; outline-offset: -1px; }
   border-bottom: 1px solid #d2d2d7;
 }
 .layout-main { padding: 2rem; }
+
+.page { max-width: 1000px; margin: 0 auto; }
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+}
+.page-header h1 { font-size: 1.5rem; }
+
+.form-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  max-width: 480px;
+}
+
+.data-table {
+  width: 100%;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-collapse: collapse;
+}
+.data-table th, .data-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #f0f0f0;
+}
+.data-table th {
+  background: #fafafa;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6e6e73;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: #fafafa; }
+
+.tipo-badge {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: #e0e0e0;
+}
+.tipo-administrador { background: #ffe0e0; color: #c00; }
+.tipo-profesor { background: #e0e8ff; color: #0040a0; }
+.tipo-director { background: #fff0c0; color: #806000; }
+.tipo-secretaria { background: #d0f0e0; color: #006040; }
+.tipo-alumno { background: #f0f0f0; color: #404040; }
+
+.estado-badge {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: #e0e0e0;
+  text-transform: capitalize;
+}
+.estado-pendiente { background: #fff0c0; color: #806000; }
+.estado-en_revision { background: #e0e8ff; color: #0040a0; }
+.estado-aprobada { background: #d0f0e0; color: #006040; }
+.estado-rechazada { background: #ffe0e0; color: #c00; }
+.estado-anulada { background: #e0e0e0; color: #6e6e73; }
+
+textarea {
+  font: inherit;
+  padding: 0.5rem;
+  border: 1px solid #d2d2d7;
+  border-radius: 6px;
+  width: 100%;
+  background: white;
+}
+textarea:focus { outline: 2px solid #0071e3; outline-offset: -1px; }
+
+.ficha {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 0.75rem 1rem;
+  max-width: 600px;
+}
+.ficha dt { color: #6e6e73; font-size: 0.875rem; }
+.ficha dd { font-weight: 500; }

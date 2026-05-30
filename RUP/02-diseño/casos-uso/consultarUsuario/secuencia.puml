@@ -1,0 +1,41 @@
+@startuml
+title Diseño — consultarUsuario()
+
+actor Administrador as A
+
+box "Frontend (React + TS)" #E8F0FE
+    participant "ConsultarUsuarioPage" as CP
+    participant "usuariosService" as US
+end box
+
+box "Backend (FastAPI)" #FFF4E0
+    participant "UsuariosRouter\nGET /usuarios/{id}" as UR
+    participant "require_rol" as RR
+    participant "UsuarioRepository" as URe
+end box
+
+database "SQLite" as DB
+
+A   -> CP   : abrir ficha {id}
+CP  -> US   : obtener(id)
+US  -> UR   : GET /usuarios/{id} (Bearer)
+UR  -> RR   : autorizar "administrador"
+RR  --> UR  : Administrador | 403
+UR  -> URe  : obtener_por_id(id)
+URe -> DB   : SELECT
+
+alt usuario encontrado
+    DB  --> URe : Usuario
+    URe --> UR  : Usuario
+    UR  --> US  : 200 + UsuarioOut
+    US  --> CP  : usuario
+    CP  --> A   : ficha por subtipo
+else no existe
+    DB  --> URe : None
+    URe --> UR  : None
+    UR  --> US  : 404
+    US  --> CP  : error
+    CP  --> A   : "usuario no encontrado"
+end
+
+@enduml

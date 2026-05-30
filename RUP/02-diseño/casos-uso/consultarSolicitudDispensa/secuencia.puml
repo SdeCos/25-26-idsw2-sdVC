@@ -1,0 +1,41 @@
+@startuml
+title Diseño — consultarSolicitudDispensa() (Alumno)
+
+actor Alumno as A
+
+box "Frontend (React + TS)" #E8F0FE
+    participant "ConsultarDispensaPage" as CDP
+    participant "dispensasService" as DS
+end box
+
+box "Backend (FastAPI)" #FFF4E0
+    participant "DispensasRouter\nGET /dispensas/{id}" as DR
+    participant "require_rol" as RR
+    participant "SolicitudDispensaService" as SDS
+    participant "SolicitudDispensaRepository" as SDR
+end box
+
+database "SQLite" as DB
+
+A   -> CDP  : abrir ficha {id}
+CDP -> DS   : obtener(id)
+DS  -> DR   : GET /dispensas/{id} (Bearer)
+DR  -> RR   : autorizar "alumno"
+RR  --> DR  : Alumno | 403
+DR  -> SDS  : obtener(id, alumno)
+SDS -> SDR  : obtener_por_id(id)
+SDR -> DB   : SELECT JOIN
+
+alt propia (PoliticaAlumno.puede_ver = true)
+    DB  --> SDR : SolicitudDispensa
+    SDR --> SDS : SolicitudDispensa
+    SDS --> DR  : SolicitudDispensaOut
+    DR  --> CDP : 200
+    CDP --> A   : ficha + acción según estado
+else no propia o no existe
+    SDS --> DR  : raise NoAutorizado | SolicitudNoEncontrada
+    DR  --> CDP : 403 | 404
+    CDP --> A   : mensaje de error
+end
+
+@enduml

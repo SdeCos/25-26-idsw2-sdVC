@@ -1,3 +1,6 @@
+from collections.abc import Callable, Coroutine
+from typing import Any
+
 import jwt as pyjwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -27,3 +30,21 @@ async def get_current_user(
     if usuario is None or not usuario.activo:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Usuario no válido")
     return usuario
+
+
+def require_rol(
+    roles: list[str],
+) -> Callable[[Usuario], Coroutine[Any, Any, Usuario]]:
+    """Factory de dependencies para proteger endpoints por rol.
+
+    Uso: `Depends(require_rol(["administrador"]))`.
+    """
+
+    async def check(usuario: Usuario = Depends(get_current_user)) -> Usuario:
+        if usuario.tipo not in roles:
+            raise HTTPException(
+                status.HTTP_403_FORBIDDEN, "No autorizado para esta operación"
+            )
+        return usuario
+
+    return check

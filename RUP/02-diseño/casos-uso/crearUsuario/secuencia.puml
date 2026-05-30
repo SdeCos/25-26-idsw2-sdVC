@@ -1,0 +1,45 @@
+@startuml
+title Diseño — crearUsuario()
+
+actor Administrador as A
+
+box "Frontend (React + TS)" #E8F0FE
+    participant "CrearUsuarioPage" as CP
+    participant "usuariosService" as US
+end box
+
+box "Backend (FastAPI)" #FFF4E0
+    participant "UsuariosRouter\nPOST /usuarios" as UR
+    participant "require_rol" as RR
+    participant "UsuarioService" as USv
+    participant "UsuarioRepository" as URe
+end box
+
+database "SQLite" as DB
+
+A   -> CP   : tipo, username, password
+CP  -> US   : crear(datos)
+US  -> UR   : POST /usuarios (Bearer)
+UR  -> RR   : autorizar "administrador"
+RR  --> UR  : Administrador | 403
+UR  -> USv  : crear(datos)
+USv -> URe  : crear(tipo, username, password_hash)
+URe -> DB   : INSERT (subtipo)
+
+alt username libre
+    DB  --> URe : Usuario
+    URe --> USv : Usuario
+    USv --> UR  : UsuarioOut
+    UR  --> US  : 201
+    US  --> CP  : usuario creado
+    CP  --> A   : navigate("/usuarios/{id}/editar")
+else username en uso
+    DB  --> URe : IntegrityError
+    URe --> USv : raise UsernameEnUso
+    USv --> UR  : raise
+    UR  --> US  : 409
+    US  --> CP  : error
+    CP  --> A   : "ese username ya existe"
+end
+
+@enduml

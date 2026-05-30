@@ -1,0 +1,35 @@
+@startuml
+title Diseño — crearSolicitudDispensa() (Alumno)
+
+actor Alumno as A
+
+box "Frontend (React + TS)" #E8F0FE
+    participant "CrearSolicitudPage" as CSP
+    participant "dispensasService" as DS
+end box
+
+box "Backend (FastAPI)" #FFF4E0
+    participant "DispensasRouter\nPOST /dispensas" as DR
+    participant "require_rol" as RR
+    participant "SolicitudDispensaService" as SDS
+    participant "SolicitudDispensaRepository" as SDR
+end box
+
+database "SQLite" as DB
+
+A   -> CSP  : asignatura, periodo, horario, motivo
+CSP -> DS   : crear(datos)
+DS  -> DR   : POST /dispensas (Bearer)
+DR  -> RR   : autorizar "alumno"
+RR  --> DR  : Alumno | 403
+DR  -> SDS  : crear(datos, alumno)
+SDS -> SDR  : crear(alumno_id, asignatura, periodo, horario, motivo)
+SDR -> DB   : INSERT (estado=PENDIENTE, fecha_solicitud=now)
+DB  --> SDR : SolicitudDispensa
+SDR --> SDS : SolicitudDispensa
+SDS --> DR  : SolicitudDispensaOut
+DR  --> DS  : 201
+DS  --> CSP : creada
+CSP --> A   : navigate("/dispensas/{id}")
+
+@enduml

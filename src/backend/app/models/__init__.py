@@ -1,10 +1,11 @@
+from app.models.solicitud_dispensa import EstadoSolicitud, SolicitudDispensa
 from app.models.usuario import (
-    Usuario,
-    Alumno,
-    Profesor,
-    DirectorDeGrado,
-    SecretariaAcademica,
     Administrador,
+    Alumno,
+    DirectorDeGrado,
+    Profesor,
+    SecretariaAcademica,
+    Usuario,
 )
 
 __all__ = [
@@ -14,4 +15,6 @@ __all__ = [
     "DirectorDeGrado",
     "SecretariaAcademica",
     "Administrador",
+    "SolicitudDispensa",
+    "EstadoSolicitud",
 ]

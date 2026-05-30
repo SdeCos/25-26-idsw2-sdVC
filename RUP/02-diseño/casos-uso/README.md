@@ -4,33 +4,33 @@ Diagramas de secuencia por caso de uso. Cada CU lleva los participantes concreto
 
 ## Estado
 
-| Caso de uso | Actor | Diseño |
-|---|---|---|
-| [iniciarSesion()](iniciarSesion/README.md) | Usuario | ✅ |
-| [cerrarSesion()](cerrarSesion/README.md) | Usuario | ✅ |
-| crearUsuario() | Administrador | ⏳ |
-| consultarUsuario() | Administrador | ⏳ |
-| editarUsuario() | Administrador | ⏳ |
-| consultarListaAlumnos() | Profesor | ⏳ |
-| consultarDetalleAlumno() | Profesor | ⏳ |
-| crearSesionClase() | Profesor | ⏳ |
-| editarSesionClase() | Profesor | ⏳ |
-| registrarTomaAsistencia() | Profesor | ⏳ |
-| cerrarSesionClase() | Profesor | ⏳ |
-| exportarHistorialAsistencias() | Profesor | ⏳ |
-| consultarSolicitudDispensa() (Profesor) | Profesor | ⏳ |
-| crearSolicitudDispensa() (Alumno) | Alumno | ⏳ |
-| editarSolicitudDispensa() (Alumno) | Alumno | ⏳ |
-| consultarSolicitudDispensa() (Alumno) | Alumno | ⏳ |
-| consultarSolicitudesDispensas() | DirectorDeGrado | ⏳ |
-| editarSolicitudDispensa() (Director) | DirectorDeGrado | ⏳ |
-| consultarListaAlumnos() (Secretaria) | Secretaria | ⏳ |
-| consultarDetalleMatricula() | Secretaria | ⏳ |
-| importarListasAlumnos() | Secretaria | ⏳ |
-| importarMatriculas() | Secretaria | ⏳ |
-| crearSolicitudDispensa() (Secretaria) | Secretaria | ⏳ |
-| editarSolicitudDispensa() (Secretaria) | Secretaria | ⏳ |
-| consultarSolicitudDispensa() (Secretaria) | Secretaria | ⏳ |
-| exportarDispensas() | Secretaria | ⏳ |
+| Caso de uso                                                                       | Actor           | Diseño |
+| --------------------------------------------------------------------------------- | --------------- | ------ |
+| [iniciarSesion()](iniciarSesion/README.md)                                        | Usuario         | ✅     |
+| [cerrarSesion()](cerrarSesion/README.md)                                          | Usuario         | ✅     |
+| [crearUsuario()](crearUsuario/README.md)                                          | Administrador   | ✅     |
+| [consultarUsuario()](consultarUsuario/README.md)                                  | Administrador   | ✅     |
+| [editarUsuario()](editarUsuario/README.md)                                        | Administrador   | ✅     |
+| consultarListaAlumnos()                                                           | Profesor        | ⏳     |
+| consultarDetalleAlumno()                                                          | Profesor        | ⏳     |
+| crearSesionClase()                                                                | Profesor        | ⏳     |
+| editarSesionClase()                                                               | Profesor        | ⏳     |
+| registrarTomaAsistencia()                                                         | Profesor        | ⏳     |
+| cerrarSesionClase()                                                               | Profesor        | ⏳     |
+| exportarHistorialAsistencias()                                                    | Profesor        | ⏳     |
+| consultarSolicitudDispensa() (Profesor)                                           | Profesor        | ⏳     |
+| [crearSolicitudDispensa() (Alumno)](crearSolicitudDispensa/README.md)             | Alumno          | ✅     |
+| [editarSolicitudDispensa() (Alumno)](editarSolicitudDispensa/README.md)           | Alumno          | ✅     |
+| [consultarSolicitudDispensa() (Alumno)](consultarSolicitudDispensa/README.md)     | Alumno          | ✅     |
+| [consultarSolicitudesDispensas()](consultarSolicitudesDispensas/README.md)        | DirectorDeGrado | ✅     |
+| [editarSolicitudDispensa() (Director)](editarSolicitudDispensaDirector/README.md) | DirectorDeGrado | ✅     |
+| consultarListaAlumnos() (Secretaria)                                              | Secretaria      | ⏳     |
+| consultarDetalleMatricula()                                                       | Secretaria      | ⏳     |
+| importarListasAlumnos()                                                           | Secretaria      | ⏳     |
+| importarMatriculas()                                                              | Secretaria      | ⏳     |
+| crearSolicitudDispensa() (Secretaria)                                             | Secretaria      | ⏳     |
+| editarSolicitudDispensa() (Secretaria)                                            | Secretaria      | ⏳     |
+| consultarSolicitudDispensa() (Secretaria)                                         | Secretaria      | ⏳     |
+| exportarDispensas()                                                               | Secretaria      | ⏳     |
 
-**Progreso:** 2/26
+**Progreso:** 10/26

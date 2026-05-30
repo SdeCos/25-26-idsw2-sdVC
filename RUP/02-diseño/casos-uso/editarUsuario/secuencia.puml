@@ -1,0 +1,35 @@
+@startuml
+title Diseño — editarUsuario()
+
+actor Administrador as A
+
+box "Frontend (React + TS)" #E8F0FE
+    participant "EditarUsuarioPage" as EP
+    participant "usuariosService" as US
+end box
+
+box "Backend (FastAPI)" #FFF4E0
+    participant "UsuariosRouter\nPATCH /usuarios/{id}" as UR
+    participant "require_rol" as RR
+    participant "UsuarioService" as USv
+    participant "UsuarioRepository" as URe
+end box
+
+database "SQLite" as DB
+
+A   -> EP   : modificar y guardar
+EP  -> US   : actualizar(id, cambios)
+US  -> UR   : PATCH /usuarios/{id} (Bearer)
+UR  -> RR   : autorizar "administrador"
+RR  --> UR  : Administrador | 403
+UR  -> USv  : actualizar(id, cambios)
+USv -> URe  : actualizar(id, cambios)
+URe -> DB   : UPDATE
+DB  --> URe : Usuario
+URe --> USv : Usuario
+USv --> UR  : UsuarioOut
+UR  --> US  : 200
+US  --> EP  : guardado
+EP  --> A   : navigate("/usuarios/{id}")
+
+@enduml

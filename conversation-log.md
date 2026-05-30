@@ -892,3 +892,383 @@ cd src/frontend && npm run dev                  # http://localhost:5173
 ```
 
 **Decisión:** Ramillete Usuario completo (análisis → diseño → desarrollo). El JWT stateless funciona, la jerarquía polimórfica de Usuario se resuelve correctamente desde SQLAlchemy STI, y el frontend conecta vía proxy de Vite. Siguiente ramillete: **Administrador** (`crearUsuario`, `consultarUsuario`, `editarUsuario`) — primer ramillete con autorización por rol (`require_admin` sobre los endpoints), que estresará la decisión del análisis sobre cómo materializar la jerarquía de capacidades.
+
+---
+
+### Sesión 2026-05-30
+
+## [10:32] Diseño de `crearUsuario()` — apertura del ramillete Administrador
+
+**Prompt:** Empezar diseño del Administrador con primera aproximación de `crearUsuario()`. Cinco decisiones abiertas sometidas a voto, las cinco por defecto aceptadas a priori.
+
+**Resultado:** Creados `RUP/02-diseño/casos-uso/crearUsuario/{secuencia.puml, secuencia.svg, README.md}`. Diagrama con 7 participantes (CrearUsuarioPage, usuariosService, UsuariosRouter, require_rol, UsuarioService, UsuarioRepository, SQLite) + actor Administrador. 16 mensajes, `alt` con dos ramas (username libre → 201 + navigate a editar; username en uso → 409 + mensaje inline). Sin self-calls (política consolidada del ramillete Usuario).
+
+**Decisiones de diseño fijadas (las cinco por defecto):**
+
+1. **Validación de unicidad sin pre-check** — un único `POST /usuarios` + `UNIQUE(username)` con captura de `IntegrityError` → 409. Evita endpoint adicional `check-username` y la race condition libre-al-perder-foco / en-uso-al-enviar.
+2. **`hash_password` en `core/security`** (no en `AuthService`) — función pura reutilizable desde alta y futuro cambio de contraseña. SRP estricto; `AuthService` ya tenía `verify_password` allí.
+3. **Despacho polimórfico con mapa explícito** `{"alumno": Alumno, "profesor": Profesor, ...}` en `UsuarioRepository` en lugar de introspección de `Usuario.__mapper__.polymorphic_map`. Greppeable, falla al añadir subtipo sin actualizarlo (deseable), decisión visible en código.
+4. **`require_rol(["administrador"])` paramétrico** desde el primer endpoint protegido — patrón generalizable a `require_rol(["profesor"])`, etc. Sin proliferación de funciones específicas.
+5. **Ruta `/usuarios/nuevo`** en lugar de modal — coherencia con `/usuarios/{id}/editar` del siguiente CU, sin problema de "cierro modal sin guardar". La `UsuariosPage` (origen `:Usuarios Abierto`) se omite del diagrama de secuencia por ser ruido UI; la transición al final es `navigate("/usuarios/{id}/editar")` (no `<<include>>` en código).
+
+**Refinamiento sobre el análisis**: el `UsuarioController` del análisis se parte en `UsuariosRouter` (autoriza + valida formato) + `UsuarioService` (hash + reglas de negocio) + `UsuarioRepository` (solo I/O). Mismo split que `AuthRouter` / `AuthService` / `UsuarioRepository` en iniciarSesion.
+
+Índices actualizados: `RUP/02-diseño/casos-uso/README.md` 2/26 → 3/26 y `crearUsuario() ⏳` → `✅`; `RUP/02-diseño/README.md` 2/26 → 3/26; README raíz `Diseño 2/26 → 3/26`.
+
+**Decisión:** `crearUsuario` cerrado en diseño. Próximo paso natural en el modo iterativo: **implementar** `crearUsuario` (backend: `POST /usuarios` con `require_rol`, `UsuarioService.crear`, `UsuarioRepository.crear` con mapa polimórfico, schema `CrearUsuarioRequest`; frontend: `CrearUsuarioPage` en `/usuarios/nuevo`) — o seguir con el diseño de `consultarUsuario` + `editarUsuario` antes para tener el ramillete entero diseñado primero. A confirmar con el usuario.
+
+---
+
+## [10:37] Diseño de `consultarUsuario()` + `editarUsuario()` — cierre del bloque Administrador en diseño
+
+**Prompt:** Seguir con el diseño de los dos CUs restantes antes de implementar (el ramillete entero diseñado antes de pasar a código).
+
+**Resultado:** Creados cuatro archivos:
+
+- `RUP/02-diseño/casos-uso/consultarUsuario/{secuencia.puml, secuencia.svg, README.md}` — 13 mensajes, `alt` con dos ramas (encontrado → 200 + ficha; no existe → 404).
+- `RUP/02-diseño/casos-uso/editarUsuario/{secuencia.puml, secuencia.svg, README.md}` — dividido en dos fases con `==` separator: **carga inicial** (12 mensajes, idéntica a consultarUsuario) y **guardar cambios** (13 mensajes, PATCH a través de `UsuarioService`).
+
+**Decisiones de diseño fijadas (defaults aceptados por adelantado):**
+
+1. **`UsuarioService` solo donde hay lógica real** — `consultarUsuario` y la fase de carga de `editarUsuario` van `Router → Repository` directos. La fase de guardado de `editar` sí pasa por Service (hash opcional de contraseña + futuras validaciones). Inversión deliberada respecto a `crearUsuario` (que sí necesita Service por el hash). Justificación: una capa Service que solo reenvía es ruido; el patrón de capas debe seguir la lógica, no una regla uniforme.
+2. **Cambio de contraseña como campo opcional del PATCH** — si el body trae `password`, `UsuarioService` lo rehash con `core/security.hash_password` antes del UPDATE. Sin endpoint aparte. Se separará si en algún momento aparece "cambiar mi propia contraseña" como CU del Usuario autenticado (semántica distinta: sujeto vía Bearer, no por id).
+3. **`tipo` no editable por contrato** — el campo no existe en `EditarUsuarioRequest`. Pydantic lo descarta si llega. Materialización honesta de la invariante del análisis sin checks en el handler.
+4. **`EditarUsuarioPage` siempre hace `GET` fresco** — incluso tras `crearUsuario` (mensaje 6 del análisis). Coste: un round-trip extra. Beneficio: un único code path, sin propagación de estado entre rutas. El flujo alternativo del análisis "entrada desde crearUsuario sin mensajes 2-3" se simplifica deliberadamente en diseño.
+5. **`GET /usuarios` (lista) fuera del diagrama** — el CU del análisis es la ficha individual; la lista es endpoint complementario mencionado solo en el README de consultarUsuario. Sin paginación por ahora.
+6. **`PATCH /usuarios/{id}` con body parcial** — semántica fiel a "modificar campos"; `None` significa "no tocar". `PUT` exigiría enviar el objeto completo y abriría sobreescritura accidental.
+7. **404 honesto en consultarUsuario** — repositorio devuelve `None` → router traduce a HTTP 404 → frontend renderiza estado de error claro. No enmascarar.
+8. **Render condicional por subtipo en cliente** — `UsuarioOut` lleva `tipo`; el componente React ramifica. Hoy `UsuarioOut` solo tiene campos comunes; el render condicional queda como punto de extensión documentado, no como código aún.
+
+**Sobre la simetría con `crearUsuario`:** los tres CUs del bloque comparten `require_rol(["administrador"])` (patrón consolidado para el Profesor/Secretaria/Director). El `UsuarioRepository` solo gana un método nuevo (`actualizar`) además de los ya introducidos en sesiones anteriores (`obtener_por_id`, `obtener_por_username`, `crear`).
+
+Índices actualizados: `RUP/02-diseño/casos-uso/README.md` 3/26 → 5/26 (ambos ✅); `RUP/02-diseño/README.md` 3/26 → 5/26; README raíz `Diseño 3/26 → 5/26`.
+
+**Decisión:** Ramillete Administrador completo en diseño (3/3 CUs). Próximo paso del modo iterativo: **implementar los tres CUs juntos** — el alcance es coherente (un `UsuariosRouter` con 4 endpoints `POST/GET/GET-list/PATCH`, un `UsuarioService` con `crear` + `actualizar`, una `usuariosService` en frontend con 3 métodos, tres páginas React `/usuarios/nuevo`, `/usuarios/{id}`, `/usuarios/{id}/editar` + la `UsuariosPage` con el listado). Es la primera vez que se implementan endpoints protegidos por rol — `require_rol` se introduce como dependency genérica reutilizable.
+
+---
+
+## [10:41] Simplificación del diagrama de `editarUsuario` — drop de la fase de carga duplicada
+
+**Prompt:** El diagrama de `editarUsuario` queda más complejo que el resto del bloque; simplificar.
+
+**Resultado:** Recortado de 26 mensajes en dos fases (`== carga inicial ==` + `== guardar cambios ==`) a 14 mensajes en una sola fase. La fase de carga era literalmente idéntica al diagrama de `consultarUsuario` (mismo `GET /usuarios/{id}`, mismo `obtener_por_id`, mismo `require_rol`); modelarla otra vez era ruido.
+
+Cambios concretos:
+
+- **`secuencia.puml`** ahora muestra solo `PATCH /usuarios/{id}` (la novedad real del CU). Sin separadores `==`, sin duplicación.
+- **`README.md`** ganó nota explícita debajo del diagrama: "El diagrama muestra solo la fase de guardado; la carga inicial es idéntica a [consultarUsuario] — el `EditarUsuarioPage` reutiliza `usuariosService.obtener(id)` y la misma cadena hasta la BD".
+- **Tabla "materialización del análisis"**: la fila de `cargarUsuarioParaEdicion` ahora dice "No representada en el diagrama — reutiliza la secuencia de `consultarUsuario`"; la fila de `modificarCampos` dice "Lo que sí modela el diagrama".
+
+Tamaño final aligned con el resto del bloque: cerrarSesion 8, consultarUsuario 13, editarUsuario 14, crearUsuario 16, iniciarSesion 17. La asimetría restante refleja complejidad inherente, no verbosidad de notación.
+
+**Decisión:** Regla generalizada y guardada en memoria persistente: cuando una fase del CU es idéntica a otro CU ya modelado, no duplicar el diagrama — modelar solo lo específico y referenciar al otro README. Aplica al resto de ramilletes (probablemente reaparecerá en CUs que carguen antes de mutar: `editarSolicitudDispensa`, `editarSesionClase`, etc.).
+
+---
+
+## [10:51] Implementación del ramillete Administrador — 3 CUs end-to-end y app dejada corriendo para prueba manual
+
+**Prompt:** Implementar los tres CUs y, a diferencia de la sesión anterior, dejar la app corriendo + dar instrucciones de prueba manual al usuario.
+
+**Resultado:** Backend + frontend implementados; 15 pruebas internas vía curl pasan; uvicorn (`:8000`) y vite (`:5173`) quedan corriendo en background. Ramillete Administrador completo (Análisis 5/26 ✅, Diseño 5/26 ✅, Desarrollo 5/26 ✅).
+
+### Backend (5 archivos nuevos/modificados)
+
+- `app/dependencies.py` — añadido `require_rol(roles: list[str])` como factory de dependencies (patrón generalizable que se reutilizará en Profesor/Secretaria/Director).
+- `app/schemas/usuarios.py` — `CrearUsuarioRequest`, `EditarUsuarioRequest` (sin campo `tipo` + `extra="ignore"` → invariante de subtipo por contrato), `UsuarioDetalleOut`.
+- `app/repositories/usuario_repository.py` — añadidos `obtener_todos`, `crear(tipo, ...)` con **mapa explícito `TIPO_A_CLASE`** (decisión del diseño), `actualizar(usuario, cambios)`. Excepción `TipoUsuarioInvalido`.
+- `app/services/usuario_service.py` — `UsuarioService.crear` (hash + delega) y `actualizar` (hash opcional + `exclude_unset=True` para body parcial). Excepciones `UsernameEnUso` (captura `IntegrityError`) y `UsuarioNoEncontrado`.
+- `app/routers/usuarios.py` — 4 endpoints `GET/POST/GET-id/PATCH` con `dependencies=[Depends(require_rol(["administrador"]))]` a nivel router (autorización uniforme sin repetir en cada handler).
+- `app/main.py` — incluye el nuevo router.
+
+### Frontend (8 archivos nuevos/modificados)
+
+- `src/types/usuarios.ts` — DTOs alineados con los schemas Pydantic.
+- `src/services/usuariosService.ts` — métodos `listar`, `obtener`, `crear`, `actualizar`.
+- `src/pages/UsuariosPage.tsx` — listado con tabla, badges por subtipo (colores), enlaces a ver/editar/nuevo.
+- `src/pages/CrearUsuarioPage.tsx` — form con tipo + 5 campos comunes; navega a `/usuarios/{id}/editar` tras 201.
+- `src/pages/ConsultarUsuarioPage.tsx` — ficha read-only `<dl>` con metadatos + botón "Editar".
+- `src/pages/EditarUsuarioPage.tsx` — GET fresco al montar + función `diff()` cliente-side (PATCH solo con lo cambiado), checkbox `activo`, password opcional, `tipo` mostrado pero `disabled` con explicación.
+- `src/components/RequireAuth.tsx` — extendido con prop opcional `roles?: TipoUsuario[]`. Si el usuario autenticado no tiene un rol permitido, redirige a `/dashboard` (no a `/login`, porque sí está autenticado).
+- `src/components/Layout.tsx` — link "Usuarios" en la cabecera, visible solo si `usuario.tipo === "administrador"`.
+- `src/App.tsx` — 4 rutas nuevas usando un helper `adminOnly(page)` que envuelve en `RequireAuth roles={['administrador']}` + `Layout`.
+- `src/index.css` — añadidas clases `.page`, `.page-header`, `.form-card`, `.data-table`, `.tipo-badge` con colores por subtipo, `.ficha` (grid 2-col para metadata).
+
+### Divergencias documentadas respecto al diseño
+
+| Diseño | Implementación | Motivo |
+|---|---|---|
+| Form de alta mínimo (tipo + username + password) | Form con tipo + username + password + nombre + apellidos + email | `nombre/apellidos/email` son `NOT NULL` en el modelo; pedirlos al alta evita usuarios incompletos. El `<<include>> editarUsuario` sigue activo (redirige tras crear). |
+
+Todas las decisiones de fondo se conservan: mapa polimórfico explícito, `require_rol` paramétrico, 409 por `UNIQUE` con captura, `tipo` invariante por contrato (no por check), GET fresco siempre.
+
+### Verificación interna — 15 pruebas curl
+
+Backend:
+- 401 sin token / 403 con token de Alumno / 200 + lista con token de Admin
+- 201 crear `profesor2` con datos válidos
+- 409 al duplicar `username`
+- 200 detalle por id / 404 por id inexistente
+- 200 PATCH cambiando nombre y email
+- 200 PATCH enviando `tipo` (descartado por Pydantic — `tipo` sigue siendo `"profesor"`) ✅ invariante
+- 200 PATCH cambiando password → login con la nueva 200, con la antigua 401 ✅ rehash correcto
+- 409 PATCH cambiando username a uno existente
+- 404 PATCH a id inexistente
+
+Frontend:
+- SPA HTML carga con título correcto
+- Proxy `/api/usuarios` reach backend
+- Login + listado vía proxy retornan 6 usuarios (5 seed + 1 creado en prueba)
+
+### Decisión nueva guardada en memoria persistente
+
+`feedback-pruebas-manuales` — tras las pruebas internas, dejar uvicorn y vite corriendo en background y dar un guion paso a paso al usuario para validar en navegador. Para esta sesión: URL `http://localhost:5173`, credenciales `admin/admin123` (+ `alumno1/alumno123` para probar 403), 6 pasos del happy path (login → ver lista → crear → editar → consultar → cambiar password → relogin con nueva), 4 edge cases (403 con Alumno; 409 en username duplicado; 404 a `/usuarios/9999`; ver que el `tipo` está bloqueado en el form).
+
+**Decisión:** Ramillete Administrador completo (3/3 desarrollo). Backend y frontend siguen corriendo (bash IDs `bpqa2iuv8` y `b7oa1y52k`). Próximo ramillete natural: **Profesor (8 CUs)** — el más grande y con la mayor variedad estructural (CRUD de sesión de clase, no-CRUD para asistencia, exportación, consultas de listas/detalle).
+
+---
+
+## [11:08] Diseño del ramillete DirectorDeGrado — 2 CUs sobre `SolicitudDispensa` con state machine
+
+**Prompt:** Diseño de los dos CUs del Director. Acordado un round de votos con seis decisiones de fondo; usuario aceptó 1, 3, 5, 6 directamente, pidió aclaración del 4 (polimorfismo del Controller) y ajustó el 2 (enum de estados a 5 valores con `EN_REVISION` y `ANULADA`). Tras la aclaración, confirmó diferir cualquier abstracción polimórfica.
+
+**Resultado:** Creados cuatro archivos:
+
+- `RUP/02-diseño/casos-uso/consultarSolicitudesDispensas/{secuencia.puml, secuencia.svg, README.md}` — master-detail en dos fases (`==`), 23 mensajes. Sin filtros server-side por ahora (Director ve todo); cuando Alumno y Secretaria entren se añadirán query params opcionales `?estado=`, `?alumno=`.
+- `RUP/02-diseño/casos-uso/editarSolicitudDispensaDirector/{secuencia.puml, secuencia.svg, README.md}` — solo fase PATCH (la carga se refiere a la fase detalle de consultar, política de no-duplicación). 17 mensajes con `alt` para transición ilegal → 422.
+
+**Saltamos Profesor (8) y Alumno (3)**: Director va antes porque introduce la entidad `SolicitudDispensa` "limpia" (Director no tiene restricciones de propiedad) y permite que cuando Alumno entre, solo añada el caso constreñido. Mismo argumento que ordenó análisis (Alumno → Director). Profesor queda para después.
+
+**Decisión central del ramillete — state machine de `SolicitudDispensa`:**
+
+Cinco estados (`PENDIENTE`, `EN_REVISION`, `APROBADA`, `RECHAZADA`, `ANULADA`) con cinco transiciones legales documentadas en el README de `editarSolicitudDispensaDirector`. Razones aportadas por el usuario para subir de 3 a 5 estados:
+
+1. **`EN_REVISION` ≠ `PENDIENTE`**: "no es lo mismo que el encargado se encuentre activamente revisando la solicitud que que la tenga en la bandeja de entrada". Modela claim explícito por el Director.
+2. **`ANULADA` necesaria**: sin ese estado el Alumno no podría cancelar su propia solicitud (UX requirement para el ramillete Alumno futuro).
+
+Implicación para el Director: el CU `editarSolicitudDispensa` modela ahora **dos transiciones** (no una): "iniciar revisión" (`PENDIENTE → EN_REVISION`) + "emitir veredicto" (`EN_REVISION → APROBADA|RECHAZADA`). Un único endpoint `PATCH /dispensas/{id}`; el Service valida la legalidad de la transición desde el estado actual + retorna 422 `TransicionNoValida` si no.
+
+**Decisiones de diseño consolidadas en este ramillete:**
+
+1. **`SolicitudDispensa` debuta como entidad del dominio** — tabla `solicitudes_dispensa`, FKs `alumno_id` y `responsable_id` a `usuarios.id`. Cierre de la deuda máxima del análisis. Atributos: `id, alumno_id, asignatura, periodo, horario, motivo, estado, observaciones, fecha_solicitud, fecha_resolucion (nullable), responsable_id (nullable)`.
+2. **Enum `EstadoSolicitud`** con 5 valores y state machine validada en el Service (no en Router ni cliente). Cliente puede ramificar UX (mostrar botón correcto); Service es la autoridad.
+3. **`PATCH /dispensas/{id}` único endpoint** para las tres transiciones del Director — coherente con `PATCH /usuarios/{id}`. Body decide la transición; Service valida.
+4. **Polimorfismo del Controller diferido** — tras explicar los tres caminos del análisis (métodos por rol / Strategy `PoliticaAcceso` / Controllers especializados) con ejemplos concretos, el usuario decidió no introducir abstracción todavía. Hoy solo el Director; cuando entren Alumno y Secretaria, refactor con tres casos concretos delante. No premature abstraction.
+5. **Sin notificación al Alumno por ahora** — análisis registra evento de dominio / cola / email como caminos posibles. Usuario reconoció que sería "buena adición a medio plazo" pero diferida. El Alumno verá nuevo estado al consultar.
+6. **`fecha_resolucion` y `responsable_id` auto-poblados por el Service** — patrón consolidado desde `crearUsuario` (Service auto-puebla side effects, cliente no los envía). `responsable_id` se fija en la primera transición `PENDIENTE → EN_REVISION` y no cambia; `fecha_resolucion` solo al alcanzar terminal (`APROBADA`/`RECHAZADA`).
+7. **`observaciones` obligatorias al rechazar, opcionales al aprobar** — validado en el Service. Razón: rechazo necesita justificación explícita.
+
+**Sobre la simplificación del editar:** seguimos la política consolidada del ramillete anterior. `EmitirVeredictoPage` siempre hace `GET /dispensas/{id}` fresco al montar (mismo patrón que `EditarUsuarioPage`); la fase de carga no se duplica en el diagrama del editar, se refiere al de consultar.
+
+**Naming decidido implícitamente** (sin pregunta al usuario): backend folder `dispensas`; frontend `dispensasService`, `DispensasPage` (lista), `ConsultarDispensaPage` (ficha), `EmitirVeredictoPage` (form de veredicto en `/dispensas/{id}/veredicto`). Ruta "veredicto" elegida sobre "editar" porque (a) precisa lo que el Director hace; (b) deja libre `/dispensas/{id}/editar` para Alumno futuro (editar motivo/adjuntos). Mismo principio que `/usuarios/{id}/editar` vs futuras rutas específicas.
+
+Índices actualizados: `RUP/02-diseño/casos-uso/README.md` 5/26 → 7/26 (ambos ✅); `RUP/02-diseño/README.md` 5/26 → 7/26; README raíz `Diseño 5/26 → 7/26`.
+
+**Decisión:** Ramillete DirectorDeGrado en diseño completo (2/2). Próximo paso del modo iterativo: **implementar los 2 CUs juntos**. Será el primer ramillete que introduce una entidad de dominio nueva (`SolicitudDispensa`) — añadirá `models/solicitud.py`, `repositories/solicitud_repository.py`, `services/solicitud_service.py`, `routers/dispensas.py`, y nueva sección al `scripts/seed.py` para crear unas solicitudes de prueba en distintos estados (sin esto el Director no tendría nada que ver al loguearse).
+
+---
+
+## [11:17] Simplificación del diagrama de `consultarSolicitudesDispensas` — drop de la fase de listado
+
+**Prompt:** Otra vez veo el de consultar demasiado grande. (El de editar está bien.)
+
+**Resultado:** Recortado de 29 mensajes en dos fases (`== listado ==` + `== detalle ==`) a 16 mensajes en una sola fase. Patrón análogo al recorte de `editarUsuario` en la sesión anterior, pero por una razón ligeramente distinta: el listado de dispensas no es una duplicación de otro CU, pero **sí es estructuralmente idéntico** al patrón genérico de cualquier list endpoint del proyecto (auth → `Repository.obtener_todas` → 200 + lista). Mismo criterio que en `consultarUsuario`, donde el `GET /usuarios` complementario solo se mencionaba en el README.
+
+Cambios concretos:
+
+- **`secuencia.puml`** ahora muestra solo la fase de detalle (`GET /dispensas/{id}`) con `alt` encontrada/404. Sin `==` separadores. Quedan 16 mensajes, alineado con `consultarUsuario` (13 mensajes).
+- **`README.md`** — nota debajo del diagrama explicando por qué el listado no aparece y referencia al patrón ya entendido. Eliminada `DispensasPage` de la tabla de participantes (pasa a ser implícita en `dispensasService.listar()`). Tabla "materialización del análisis" reescrita: las filas del listado se marcan "fuera del diagrama" y la del detalle como "lo que sí modela el diagrama" — paraleliza la forma de la tabla del `editarUsuario` simplificado.
+
+Tamaño final del bloque DirectorDeGrado: consultar 16, editar 20. Comparable con el resto: cerrarSesion 8, consultarUsuario 13, editarUsuario 14, crearUsuario 16, iniciarSesion 17. La asimetría restante refleja complejidad inherente, no verbosidad.
+
+**Decisión:** Regla generalizada y guardada en memoria persistente: además de "no duplicar fases idénticas a otro CU", añadido "no modelar fases estructuralmente triviales" — list endpoints genéricos, logins estándar, etc., se documentan en prosa y se reserva el diagrama para lo específico del CU. Aplicable retroactivamente a futuros master-detail (probable que reaparezca en CUs de la Secretaria: `consultarListaAlumnos`, `exportarDispensas` y similares).
+
+---
+
+## [11:24] Implementación del ramillete DirectorDeGrado — entidad `SolicitudDispensa` con state machine
+
+**Prompt:** Implementar los dos CUs del Director.
+
+**Resultado:** Backend + frontend implementados; 15 pruebas internas vía curl pasan; uvicorn (`:8000`) y vite (`:5173`) siguen corriendo. Ramillete DirectorDeGrado completo (Análisis 10/26 ✅, Diseño 7/26 ✅, Desarrollo 7/26 ✅). **Debuta la primera entidad del dominio** (`SolicitudDispensa`) — cierre parcial de la deuda máxima del análisis.
+
+### Backend (6 archivos nuevos + 3 editados)
+
+- `app/models/solicitud_dispensa.py` — modelo nuevo con FKs `alumno_id` y `responsable_id` a `usuarios.id`, enum `EstadoSolicitud` (5 valores), constante `ESTADOS_TERMINALES`, relaciones `lazy="joined"` al alumno y al responsable (eager-load para evitar lazy loading dentro del response serialization).
+- `app/schemas/dispensas.py` — `SolicitudDispensaOut` con `AlumnoMinOut` y `ResponsableMinOut` embebidos; `EditarVeredictoRequest` con `estado` (enum) y `observaciones?`.
+- `app/repositories/solicitud_dispensa_repository.py` — `obtener_todas` con `.unique()` (necesario por el JOIN del eager-load), `obtener_por_id`, `actualizar`.
+- `app/services/solicitud_dispensa_service.py` — set `TRANSICIONES_DIRECTOR` con las 3 transiciones legales del Director; `actualizar` valida transición, auto-puebla `responsable_id` (al entrar EN_REVISION) y `fecha_resolucion` (al alcanzar terminal), exige observaciones al rechazar. Excepciones `SolicitudNoEncontrada`, `TransicionNoValida`, `ObservacionesRequeridas`.
+- `app/routers/dispensas.py` — `GET /dispensas`, `GET /dispensas/{id}`, `PATCH /dispensas/{id}`. Cada uno con `Depends(require_rol(["director"]))` en parámetro (no `dependencies=[...]` a nivel router como en `usuarios`, porque el PATCH necesita el `current_user` para pasárselo al Service).
+- `app/main.py` — incluye el nuevo router.
+- `app/models/__init__.py` — exporta el nuevo modelo (necesario para que `Base.metadata.create_all` lo registre).
+- `scripts/seed.py` — nueva función `_seed_dispensas` idempotente que crea 3 solicitudes atribuidas a `alumno1` en estados `PENDIENTE`, `EN_REVISION` (con `responsable_id = director1`), `APROBADA` (con `observaciones` y `fecha_resolucion`). Permite probar las transiciones sin tener que crear datos a mano.
+
+### Frontend (5 archivos nuevos + 3 editados)
+
+- `src/types/dispensas.ts` — `EstadoSolicitud` como union de 5 strings; `ESTADOS_TERMINALES` como `Set` para render condicional; DTOs `SolicitudDispensa`, `AlumnoMin`, `ResponsableMin`, `EditarVeredictoRequest`.
+- `src/services/dispensasService.ts` — `listar`, `obtener`, `actualizar`.
+- `src/pages/DispensasPage.tsx` — tabla con badge de estado por fila + enlace "Ver".
+- `src/pages/ConsultarDispensaPage.tsx` — `<dl>` con todos los campos + badge de estado + botón "Iniciar revisión" o "Emitir veredicto" según estado actual (nada si terminal) + nota "estado terminal" si aplica.
+- `src/pages/EmitirVeredictoPage.tsx` — vista dual: si estado PENDIENTE muestra solo botón "Iniciar revisión"; si EN_REVISION muestra textarea de observaciones + dos botones "Aprobar"/"Rechazar" (verde/rojo). Captura el 422 del backend con su `detail` y lo muestra al usuario.
+- `src/App.tsx` — helpers `gate(roles, page)`, `adminOnly`, `directorOnly`. Tres rutas nuevas para dispensas.
+- `src/components/Layout.tsx` — link "Dispensas" en la cabecera, visible solo si `usuario.tipo === "director"` (paralelo al link "Usuarios" para admin).
+- `src/index.css` — clases `.estado-badge` con colores por estado (amarillo PENDIENTE, azul EN_REVISION, verde APROBADA, rojo RECHAZADA, gris ANULADA); estilo para `textarea`.
+
+### Decisiones de implementación notables
+
+- **`Depends(require_rol(["director"]))` en parámetros del handler** (no en `router = APIRouter(..., dependencies=[...])` como en `usuarios.py`). Razón: el PATCH necesita el `current_user` para fijar `responsable_id`; cuando se declara como dependency en el router, FastAPI no la inyecta como parámetro del handler. Trade-off documentado.
+- **`Admin no entra como director`** — `require_rol(["director"])` rechaza al usuario admin (verificado con curl: 403). Coherente con la decisión deferida del análisis sobre el polimorfismo Admin. Cuando se quiera permitir Admin como super-user, se cambia a `require_rol(["director", "administrador"])` o se introduce un check más elaborado. Por ahora, **director1/director123** es la cuenta de prueba del Director.
+- **Eager-load con `lazy="joined"` en el modelo** — evita el problema clásico de async SQLAlchemy: cuando Pydantic serializa con `from_attributes=True` accede a `.alumno` y `.responsable`; si esas relaciones son lazy, falla porque la sesión async no permite lazy loads implícitos. `lazy="joined"` los carga con JOIN en la consulta original, sin necesidad de declarar `selectinload` en cada query.
+- **`.unique().scalars().all()`** en `obtener_todas` — requerido cuando hay JOINs en eager loading, para evitar duplicados de fila por la cardinalidad del JOIN.
+- **Datos reseteados antes del cierre** — mis 7 PATCH durante las pruebas dejaron las 3 dispensas en estado terminal. Para que el usuario pueda probar manualmente la state machine se ejecutó `DELETE FROM solicitudes_dispensa` + re-seed. Estados frescos al cierre: `pendiente`, `en_revision`, `aprobada`.
+
+### Verificación interna — 15 pruebas curl
+
+Backend:
+- 401 sin token / 403 con Alumno / 403 con Admin / 200 + lista con Director
+- 200 detalle con alumno y responsable embebidos / 404 inexistente
+- 422 salto inválido `PENDIENTE → APROBADA` directo
+- 200 `PENDIENTE → EN_REVISION` (responsable_id fijado)
+- 422 rechazar sin observaciones
+- 200 aprobar sin observaciones (fecha_resolucion sellada)
+- 422 transición desde estado terminal
+- 404 PATCH a id inexistente
+- 200 rechazar con observaciones (fecha_resolucion sellada + observaciones guardadas)
+
+Frontend:
+- SPA carga / proxy vía Vite OK (3 solicitudes retornadas)
+- TypeScript compila sin errores
+
+**Decisión:** Ramillete DirectorDeGrado completo (2/2 desarrollo). Próximo ramillete natural: **Alumno (3 CUs sobre `SolicitudDispensa`)** — encaja perfecto porque la entidad ya existe y solo añade la perspectiva del propietario: `crearSolicitudDispensa` (POST), `consultarSolicitudDispensa` (GET con filtro propio), `editarSolicitudDispensa` (PATCH de motivo/adjuntos antes de EN_REVISION + transición `PENDIENTE → ANULADA`). Será la primera vez que el state machine se extiende con transiciones de otro rol (`PENDIENTE → ANULADA` del Alumno) — momento natural para considerar si se introduce ya el patrón `PoliticaAcceso` o se sigue diferiendo.
+
+---
+
+## [15:26] Ramillete Alumno completo — diseño + Strategy `PoliticaAcceso` introducida + implementación end-to-end
+
+**Prompt:** Cierre del bloque de actores pequeños. Diseño + implementación de los 3 CUs del Alumno sobre `SolicitudDispensa`, validando el ciclo completo Alumno→Director→Alumno.
+
+**Resultado:** 3 CUs cerrados en diseño y desarrollo (Análisis 13/26 ✅, Diseño 10/26 ✅, Desarrollo 10/26 ✅). **Primera materialización del polimorfismo del Controller como Strategy** (decisión aplazada en el ramillete Director, ejecutada ahora con los dos casos delante). 16 pruebas internas pasan incluyendo cross-rol y cross-propiedad. Backend y frontend siguen corriendo con datos reseteados a estado seed.
+
+### Diseño (3 archivos × 3 CUs)
+
+- `crearSolicitudDispensa/` — POST nuevo; `alumno_id` auto desde sesión (propietario implícito); navega a `/dispensas/{id}` consulta (no a editar, decisión inversa al patrón `crearUsuario` porque el form ya cubre todo).
+- `consultarSolicitudDispensa/` — extiende `GET /dispensas` + `GET /dispensas/{id}` existentes; `PoliticaAlumno.puede_ver` filtra; lista (genérica) fuera del diagrama por la regla "no modelar fases triviales".
+- `editarSolicitudDispensa/` — extiende `PATCH /dispensas/{id}` existente; schema unificado con Director; documenta state machine ampliada con `PENDIENTE → ANULADA` (Alumno propietario).
+
+### Strategy `PoliticaAcceso` (decisión de fondo del ramillete)
+
+Nuevo módulo `app/services/politica_acceso.py`:
+
+- `PoliticaAcceso` (ABC) — contrato: `obtener_listado`, `puede_ver`, `transiciones_permitidas`, `campos_editables`, `side_effects`.
+- `PoliticaAlumno` — transición `{(PENDIENTE, ANULADA)}`; campos editables `{motivo, horario, asignatura, periodo}` solo si PENDIENTE; sin side effects; listado filtrado por `alumno_id`.
+- `PoliticaDirector` — 3 transiciones del veredicto; `observaciones` editable solo en EN_REVISION; side effects (`responsable_id` al entrar EN_REVISION, `fecha_resolucion` al terminal); listado sin filtro.
+- `politica_para(usuario)` factory — error si rol no soportado (Profesor/Secretaria llegarán a su ramillete).
+
+`SolicitudDispensaService` refactorizado: delega a la Política, queda como **orquestador puro** (no conoce reglas de rol). Cuando entren Secretaria y Profesor solo añaden `PoliticaSecretaria` / `PoliticaProfesor` sin tocar el Service.
+
+### Schema unificado `EditarSolicitudRequest`
+
+Sustituye al `EditarVeredictoRequest` del Director. Todos los campos opcionales (`estado`, `motivo`, `horario`, `asignatura`, `periodo`, `observaciones`). La Política aplica:
+- Alumno: motivo/horario/asignatura/periodo si PENDIENTE; estado a ANULADA si PENDIENTE.
+- Director: observaciones si EN_REVISION; estado a EN_REVISION/APROBADA/RECHAZADA según from-state.
+
+Si el cliente envía un campo no permitido para su rol/estado → 422 `CampoNoEditable`.
+
+### Bug arreglado en vivo
+
+Primer borrador del Service saltaba `observaciones` siempre en el loop de campos editables. El Alumno podía enviar `{observaciones: "x"}` y recibir 200 (no-op silencioso) en lugar del 422 esperado. Detectado en prueba #6, fix aplicado: skip de `observaciones` solo cuando `datos.estado is not None` (i.e., cuando vino acompañando una transición). Confirmado tras re-run: 422 `Campo no editable: observaciones`.
+
+### Endpoints (cambios sobre lo ya existente)
+
+| Endpoint | Antes (ramillete Director) | Ahora |
+|---|---|---|
+| `GET /dispensas` | `require_rol(["director"])` | `["director", "alumno"]` — Service llama a Política |
+| `GET /dispensas/{id}` | `["director"]` | `["director", "alumno"]` — Política verifica propiedad |
+| `POST /dispensas` | (no existía) | `["alumno"]`, alumno_id desde sesión |
+| `PATCH /dispensas/{id}` | `["director"]` + transiciones hardcodeadas | `["director", "alumno"]` + Política decide transiciones/campos |
+
+### Frontend (5 archivos nuevos, 3 editados)
+
+Páginas nuevas:
+- `CrearSolicitudPage` (`/dispensas/nuevo`, alumnoOnly) — form 4 campos + 201 → `/dispensas/{id}`.
+- `EditarSolicitudPage` (`/dispensas/{id}/editar`, alumnoOnly) — form con diff cliente-side, botón "Cancelar solicitud" con `window.confirm`, campos `disabled` + mensaje si no PENDIENTE.
+
+Páginas ramificadas por rol:
+- `DispensasPage` — título "Mis dispensas" vs "Solicitudes de dispensa"; columna "Alumno" oculta si Alumno; botón "+ Nueva solicitud" solo Alumno; mensaje "no tienes solicitudes" si Alumno+vacío.
+- `ConsultarDispensaPage` — componente `<Acciones rol={...}>` decide qué botones mostrar (Alumno: Editar si PENDIENTE; Director: Iniciar revisión / Emitir veredicto según estado).
+
+Layout extendido — link "Mis dispensas" para Alumno; mismo path `/dispensas`.
+
+App.tsx — nuevos helpers `alumnoOnly`, `directorOrAlumno`; 5 rutas de dispensas con gates correctos.
+
+### Verificación interna — 16 pruebas curl
+
+Backend:
+- 1-2. POST con Director 403; POST con Alumno 201 (alumno_id auto)
+- 3-4. Alumno ve solo propias; Director ve todas
+- 5. Alumno edita motivo en PENDIENTE → 200
+- 6. **Alumno tocando observaciones → 422 (bug + fix)**
+- 7. Alumno transición ilegal `aprobada` → 422
+- 8. Alumno cancela PENDIENTE → ANULADA → 200
+- 9. Editar tras ANULADA → 422 CampoNoEditable
+- 10. Re-cancel ANULADA → 422 transición ilegal
+- 11. Director ve ANULADA → 200 (sin filtro propietario)
+- 12. Alumno `pendiente → en_revision` → 422 (rol equivocado)
+- 13. Director toma para revisión solicitud del Alumno → 200, responsable=Carlos
+- 14. Alumno edita motivo en EN_REVISION → 422 (PENDIENTE-only)
+- 15. Alumno cancela en EN_REVISION → 422 transición ilegal
+- 16. Cross-propiedad: Alumno intenta ver/editar dispensa ajena → 403, no aparece en su lista
+
+### Estado tras pruebas (reseteado)
+
+| ID | Asignatura | Estado |
+|---|---|---|
+| 1 | Ingeniería de Software 2 | PENDIENTE |
+| 2 | Diseño de Software | EN_REVISION |
+| 3 | Programación I | APROBADA |
+
+Todas a nombre de `alumno1` (María López). Reset hecho con `DELETE FROM solicitudes_dispensa` + re-seed.
+
+**Decisión:** Bloque de 3 actores pequeños (Usuario + Administrador + DirectorDeGrado + Alumno) **cerrado completamente** — 10/26 en las 3 disciplinas. El ciclo de vida completo de `SolicitudDispensa` está implementado de extremo a extremo: Alumno crea → Director revisa → Alumno consulta el resultado. Próximos ramilletes: **Profesor (8) + Secretaria (8)** — los dos "grandes" para sesiones futuras. Strategy `PoliticaAcceso` ya en su sitio para que cuando entren añadan `PoliticaSecretaria` y (no aplica `PoliticaProfesor` porque Profesor solo consulta dispensas, sin escrituras).
+
+---
+
+## [15:35] Cierre de sesión — pregunta del usuario sobre falta de selector de asignatura
+
+**Prompt:** En la creación de solicitud por el Alumno, ¿no falta algo estilo selector de asignaturas matriculadas en lugar de un string libre? ¿Es porque el sistema todavía no está completo o un error intrínseco?
+
+**Resultado:** Respuesta: **(a) sistema incompleto, no error intrínseco**. Explicación detallada de las tres entidades que faltan (`Asignatura`, `Matricula`, `Grupo`/`Aula`/`Horario`) y cómo se cubrirán cuando entren los dos ramilletes grandes:
+
+- **Secretaria → `importarMatriculas`** introducirá la entidad `Matricula` (relación Alumno↔Asignatura↔Periodo) ya documentada como deuda en el análisis de ese CU.
+- **Profesor → `crearSesionClase`** introducirá el catálogo `Asignatura` (+ `Grupo`, `Aula`) ya documentados como deuda secundaria en el análisis de ese CU.
+
+Cuando ambas entren, la `CrearSolicitudPage` del Alumno se transformará: input `asignatura` → selector que muestra solo matriculaciones activas del Alumno autenticado; `horario` y `periodo` derivados de la Matricula; FK `matricula_id` reemplaza los strings. Migración pequeña, schema de respuesta y una columna.
+
+Razón de no haberlo hecho así desde el inicio: implementar `SolicitudDispensa` con strings libres permitió cerrar el ciclo Alumno↔Director funcionalmente sin esperar a dos ramilletes grandes. Decisión iterativa consciente.
+
+**Decisión:** Guardado como memoria persistente del proyecto (`project-deuda-asignatura-matricula`) con instrucciones explícitas de qué tocar cuando entre el ramillete Secretaria. Cierre formal de la sesión 2026-05-30: tres ramilletes completos en un día (Administrador 3 + DirectorDeGrado 2 + Alumno 3 = 8 nuevos CUs cerrados en las 3 disciplinas, llevando el proyecto de 2/26 a 10/26 en cada una).
+
+---
+
+## [15:42] Pregunta del usuario: ¿la migración de Asignatura/Matricula va antes o después de los 2 ramilletes restantes?
+
+**Prompt:** Para confirmar, ¿se arregla tras implementar los 2 actores restantes o debería ser lo siguiente a modificar, previo a ellos?
+
+**Resultado:** Respuesta: **ni antes ni después — dentro del ramillete Secretaria**, justo tras `importarMatriculas` (paso 4 del orden interno) y antes de los 4 CUs de dispensa de Secretaria.
+
+Argumentos rechazando las dos alternativas que el usuario planteaba:
+
+1. **No "antes de ambos"** — fixearlo ahora requeriría crear `Asignatura` y `Matricula` como entidades sin sus CUs dueños. Rompería la trazabilidad RUP (cada entidad emerge del análisis del CU que la introduce) y exigiría seed manual de matriculaciones inventadas que habría que tirar cuando Secretaria entre de verdad.
+2. **No "tras ambos ramilletes"** — los **4 CUs de dispensa de Secretaria** (crearSolicitudDispensa en nombre de otro, consultar, editar, exportar) heredarían el modelo malo. Implementarlos sobre strings libres y luego migrar 4 CUs es pura deuda compuesta. Además, la Secretaria es **quien gestiona matriculaciones** — que su propio CU no use la `Matricula` que ella misma importa sería absurdo.
+
+**Decisión de orden derivada:** **Secretaria antes que Profesor**. Razón: la Secretaria es la dueña semántica de `Asignatura` + `Matricula` (administración); el Profesor las consume (docencia). Si Profesor va primero, él introduciría `Asignatura` (raro semánticamente) y la dispensa seguiría con strings hasta después.
+
+Orden interno del ramillete Secretaria fijado en memoria persistente:
+1. `importarListasAlumnos`
+2. `importarMatriculas` (introduce `Matricula` + `Asignatura`)
+3. `consultarListaAlumnos` + `consultarDetalleMatricula`
+4. **Migración de `SolicitudDispensa`** (interludio, ~30-45 min)
+5. Los 4 CUs de dispensa de Secretaria
+6. `exportarDispensas`
+
+Después: Profesor (8 CUs) consume el catálogo ya existente.
+
+Memoria `project-deuda-asignatura-matricula` actualizada con esta decisión. Cierre definitivo de la sesión.

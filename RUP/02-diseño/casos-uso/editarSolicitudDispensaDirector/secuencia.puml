@@ -1,0 +1,45 @@
+@startuml
+title Diseño — editarSolicitudDispensa() (Director)
+
+actor Director as D
+
+box "Frontend (React + TS)" #E8F0FE
+    participant "EmitirVeredictoPage" as EVP
+    participant "dispensasService" as DS
+end box
+
+box "Backend (FastAPI)" #FFF4E0
+    participant "DispensasRouter\nPATCH /dispensas/{id}" as DR
+    participant "require_rol" as RR
+    participant "SolicitudDispensaService" as SDS
+    participant "SolicitudDispensaRepository" as SDR
+end box
+
+database "SQLite" as DB
+
+D   -> EVP  : "Iniciar revisión" / "Aprobar" / "Rechazar"
+EVP -> DS   : actualizar(id, datos)
+DS  -> DR   : PATCH /dispensas/{id} (Bearer)
+DR  -> RR   : autorizar "director"
+RR  --> DR  : Director | 403
+DR  -> SDS  : actualizar(id, datos, director)
+SDS -> SDR  : obtener_por_id(id)
+SDR --> SDS : SolicitudDispensa
+
+alt transición válida
+    SDS -> SDR : actualizar(solicitud, cambios + side effects)
+    SDR -> DB  : UPDATE
+    DB  --> SDR : SolicitudDispensa
+    SDR --> SDS : SolicitudDispensa
+    SDS --> DR : SolicitudDispensaDetalleOut
+    DR  --> DS : 200
+    DS  --> EVP : actualizado
+    EVP --> D  : navigate("/dispensas/{id}")
+else transición ilegal
+    SDS --> DR : raise TransicionNoValida
+    DR  --> DS : 422
+    DS  --> EVP : error
+    EVP --> D  : "transición no permitida"
+end
+
+@enduml
