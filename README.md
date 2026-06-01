@@ -12,8 +12,8 @@ El sistema surge del proyecto de requisitado desarrollado en [IDSW1](https://git
 | --------------------------------- | ---------- |
 | [Requisitado](RUP/00-requisitos/) | ✅ Migrado |
 | [Análisis](RUP/01-analisis/)      | ✅ 26/26   |
-| [Diseño](RUP/02-diseño/)          | ⏳ 10/26   |
-| [Desarrollo](RUP/03-desarrollo/)  | ⏳ 10/26   |
+| [Diseño](RUP/02-diseño/)          | ⏳ 18/26   |
+| [Desarrollo](RUP/03-desarrollo/)  | ⏳ 18/26   |
 
 ## Estructura del repositorio
 

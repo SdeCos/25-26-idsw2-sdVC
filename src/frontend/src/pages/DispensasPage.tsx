@@ -6,13 +6,26 @@ import { useAuth } from '../context/AuthContext';
 
 const fmtFecha = (iso: string) => new Date(iso).toLocaleDateString();
 
+const descargar = (blob: Blob, filename: string) => {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+};
+
 export const DispensasPage: React.FC = () => {
   const { usuario } = useAuth();
   const [dispensas, setDispensas] = useState<SolicitudDispensa[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [exportando, setExportando] = useState(false);
 
   const esAlumno = usuario?.tipo === 'alumno';
+  const esSecretaria = usuario?.tipo === 'secretaria';
 
   useEffect(() => {
     dispensasService
@@ -22,15 +35,41 @@ export const DispensasPage: React.FC = () => {
       .finally(() => setLoading(false));
   }, []);
 
+  const exportar = async () => {
+    setExportando(true);
+    setError(null);
+    try {
+      const blob = await dispensasService.exportar();
+      const fecha = new Date().toISOString().slice(0, 10);
+      descargar(blob, `dispensas-${fecha}.csv`);
+    } catch {
+      setError('No se pudo exportar el listado');
+    } finally {
+      setExportando(false);
+    }
+  };
+
   return (
     <div className="page">
       <header className="page-header">
         <h1>{esAlumno ? 'Mis dispensas' : 'Solicitudes de dispensa'}</h1>
-        {esAlumno && (
-          <Link to="/dispensas/nuevo">
-            <button type="button">+ Nueva solicitud</button>
-          </Link>
-        )}
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          {esAlumno && (
+            <Link to="/dispensas/nuevo">
+              <button type="button">+ Nueva solicitud</button>
+            </Link>
+          )}
+          {esSecretaria && (
+            <>
+              <Link to="/dispensas/nuevo-en-nombre-de">
+                <button type="button">+ Nueva en nombre de</button>
+              </Link>
+              <button type="button" onClick={exportar} disabled={exportando}>
+                {exportando ? 'Exportando…' : 'Exportar CSV'}
+              </button>
+            </>
+          )}
+        </div>
       </header>
 
       {loading && <p>Cargando…</p>}
@@ -51,7 +90,6 @@ export const DispensasPage: React.FC = () => {
               <th>ID</th>
               {!esAlumno && <th>Alumno</th>}
               <th>Asignatura</th>
-              <th>Periodo</th>
               <th>Fecha solicitud</th>
               <th>Estado</th>
               <th></th>
@@ -66,8 +104,10 @@ export const DispensasPage: React.FC = () => {
                     {d.alumno.nombre} {d.alumno.apellidos}
                   </td>
                 )}
-                <td>{d.asignatura}</td>
-                <td>{d.periodo}</td>
+                <td>
+                  {d.asignatura_matriculada.asignatura.codigo}{' '}
+                  · {d.asignatura_matriculada.asignatura.nombre}
+                </td>
                 <td>{fmtFecha(d.fecha_solicitud)}</td>
                 <td>
                   <span className={`estado-badge estado-${d.estado}`}>

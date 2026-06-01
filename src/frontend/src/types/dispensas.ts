@@ -24,12 +24,27 @@ export interface ResponsableMin {
   apellidos: string;
 }
 
+export interface AsignaturaEmbed {
+  id: number;
+  codigo: string;
+  nombre: string;
+  ects: number;
+  caracter: 'OB' | 'OP' | 'FB';
+  curso_plan: number;
+  plan_estudios: string;
+  facultad: string;
+}
+
+export interface AsignaturaMatriculadaEmbed {
+  id: number;
+  n_matricula: number;
+  asignatura: AsignaturaEmbed;
+}
+
 export interface SolicitudDispensa {
   id: number;
   alumno: AlumnoMin;
-  asignatura: string;
-  periodo: string;
-  horario: string;
+  asignatura_matriculada: AsignaturaMatriculadaEmbed;
   motivo: string | null;
   estado: EstadoSolicitud;
   observaciones: string | null;
@@ -39,17 +54,21 @@ export interface SolicitudDispensa {
 }
 
 export interface CrearSolicitudRequest {
-  asignatura: string;
-  periodo: string;
-  horario: string;
+  alumno_id?: number;
+  asignatura_matriculada_id: number;
   motivo: string;
 }
 
 export interface EditarSolicitudRequest {
   estado?: EstadoSolicitud;
   motivo?: string;
-  horario?: string;
-  asignatura?: string;
-  periodo?: string;
+  asignatura_matriculada_id?: number;
   observaciones?: string;
+}
+
+export interface FiltrosDispensa {
+  estado?: EstadoSolicitud;
+  alumno_id?: number;
+  desde?: string;
+  hasta?: string;
 }

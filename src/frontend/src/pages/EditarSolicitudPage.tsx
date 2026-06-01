@@ -2,22 +2,20 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { isAxiosError } from 'axios';
 import { dispensasService } from '../services/dispensasService';
+import { alumnosService } from '../services/alumnosService';
 import type {
   EditarSolicitudRequest,
   SolicitudDispensa,
 } from '../types/dispensas';
+import type { AsignaturaMatriculadaDelAlumno } from '../types/alumnos';
 
 interface FormState {
-  asignatura: string;
-  periodo: string;
-  horario: string;
+  asignatura_matriculada_id: number;
   motivo: string;
 }
 
 const desdeSolicitud = (s: SolicitudDispensa): FormState => ({
-  asignatura: s.asignatura,
-  periodo: s.periodo,
-  horario: s.horario,
+  asignatura_matriculada_id: s.asignatura_matriculada.id,
   motivo: s.motivo || '',
 });
 
@@ -26,6 +24,9 @@ export const EditarSolicitudPage: React.FC = () => {
   const navigate = useNavigate();
   const [original, setOriginal] = useState<SolicitudDispensa | null>(null);
   const [form, setForm] = useState<FormState | null>(null);
+  const [asignaturas, setAsignaturas] = useState<
+    AsignaturaMatriculadaDelAlumno[]
+  >([]);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [cancelando, setCancelando] = useState(false);
@@ -37,11 +38,14 @@ export const EditarSolicitudPage: React.FC = () => {
       .then((s) => {
         setOriginal(s);
         setForm(desdeSolicitud(s));
+        return alumnosService.asignaturasMatriculadas(s.alumno.id);
       })
+      .then((lista) => setAsignaturas(lista))
       .catch((err) => {
         if (isAxiosError(err)) {
           if (err.response?.status === 404) setError('Solicitud no encontrada');
-          else if (err.response?.status === 403) setError('No tienes permiso para esta solicitud');
+          else if (err.response?.status === 403)
+            setError('No tienes permiso para esta solicitud');
           else setError('No se pudo cargar la solicitud');
         } else {
           setError('No se pudo cargar la solicitud');
@@ -52,9 +56,8 @@ export const EditarSolicitudPage: React.FC = () => {
   const diff = (): EditarSolicitudRequest => {
     if (!original || !form) return {};
     const cambios: EditarSolicitudRequest = {};
-    if (form.asignatura !== original.asignatura) cambios.asignatura = form.asignatura;
-    if (form.periodo !== original.periodo) cambios.periodo = form.periodo;
-    if (form.horario !== original.horario) cambios.horario = form.horario;
+    if (form.asignatura_matriculada_id !== original.asignatura_matriculada.id)
+      cambios.asignatura_matriculada_id = form.asignatura_matriculada_id;
     if (form.motivo !== (original.motivo || '')) cambios.motivo = form.motivo;
     return cambios;
   };
@@ -85,7 +88,11 @@ export const EditarSolicitudPage: React.FC = () => {
 
   const cancelar = async () => {
     if (!original) return;
-    if (!window.confirm('¿Seguro que quieres cancelar esta solicitud? Esta acción no se puede deshacer.')) {
+    if (
+      !window.confirm(
+        '¿Seguro que quieres cancelar esta solicitud? Esta acción no se puede deshacer.'
+      )
+    ) {
       return;
     }
     setCancelando(true);
@@ -132,34 +139,25 @@ export const EditarSolicitudPage: React.FC = () => {
 
       <form onSubmit={guardar} className="form-card">
         <div className="field">
-          <label htmlFor="asignatura">Asignatura</label>
-          <input
-            id="asignatura"
-            value={form.asignatura}
-            onChange={(e) => setForm({ ...form, asignatura: e.target.value })}
+          <label htmlFor="am">Asignatura matriculada</label>
+          <select
+            id="am"
+            value={form.asignatura_matriculada_id}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                asignatura_matriculada_id: Number(e.target.value),
+              })
+            }
             disabled={!editable}
             required
-          />
-        </div>
-        <div className="field">
-          <label htmlFor="periodo">Periodo</label>
-          <input
-            id="periodo"
-            value={form.periodo}
-            onChange={(e) => setForm({ ...form, periodo: e.target.value })}
-            disabled={!editable}
-            required
-          />
-        </div>
-        <div className="field">
-          <label htmlFor="horario">Horario</label>
-          <input
-            id="horario"
-            value={form.horario}
-            onChange={(e) => setForm({ ...form, horario: e.target.value })}
-            disabled={!editable}
-            required
-          />
+          >
+            {asignaturas.map((am) => (
+              <option key={am.id} value={am.id}>
+                {am.codigo} · {am.nombre} ({am.curso_academico}, {am.n_matricula}ª)
+              </option>
+            ))}
+          </select>
         </div>
         <div className="field">
           <label htmlFor="motivo">Motivo</label>

@@ -4,8 +4,8 @@ Introducido en el ramillete Alumno tras tener dos casos concretos (Director y
 Alumno) con políticas opuestas sobre la misma entidad. Materializa la decisión
 abierta del análisis ("strategy `PoliticaAcceso`") sin tocar el orquestador.
 
-Cuando entren Secretaria y Profesor en sus ramilletes futuros, se añaden
-`PoliticaSecretaria` y `PoliticaProfesor` sin tocar el Service.
+Cuatro políticas vivas: Alumno, Secretaria, Director. (Profesor llegará en
+su ramillete; hoy levanta ValueError.)
 """
 
 from abc import ABC, abstractmethod
@@ -27,14 +27,17 @@ class PoliticaAcceso(ABC):
 
     @abstractmethod
     async def obtener_listado(
-        self, repo: SolicitudDispensaRepository, usuario: Usuario
+        self,
+        repo: SolicitudDispensaRepository,
+        usuario: Usuario,
+        alumno_id_filtro: int | None = None,
     ) -> list[SolicitudDispensa]: ...
 
     @abstractmethod
     def puede_ver(self, solicitud: SolicitudDispensa, usuario: Usuario) -> bool: ...
 
     @abstractmethod
-    def transiciones_permitidas(self) -> set[tuple[EstadoSolicitud, EstadoSolicitud]]: ...
+    def transiciones_permitidas(self) -> frozenset[tuple[EstadoSolicitud, EstadoSolicitud]]: ...
 
     @abstractmethod
     def campos_editables(self, solicitud: SolicitudDispensa) -> frozenset[str]: ...
@@ -49,16 +52,14 @@ class PoliticaAcceso(ABC):
 
 
 class PoliticaAlumno(PoliticaAcceso):
-    """El Alumno solo ve y modifica sus propias solicitudes."""
+    """El Alumno solo ve y modifica sus propias solicitudes en estado PENDIENTE."""
 
     _TRANSICIONES = frozenset(
         {(EstadoSolicitud.PENDIENTE, EstadoSolicitud.ANULADA)}
     )
-    _CAMPOS_EN_PENDIENTE = frozenset(
-        {"motivo", "horario", "asignatura", "periodo"}
-    )
+    _CAMPOS_EN_PENDIENTE = frozenset({"motivo", "asignatura_matriculada_id"})
 
-    async def obtener_listado(self, repo, usuario):
+    async def obtener_listado(self, repo, usuario, alumno_id_filtro=None):
         return await repo.obtener_por_alumno(usuario.id)
 
     def puede_ver(self, solicitud, usuario):
@@ -68,15 +69,44 @@ class PoliticaAlumno(PoliticaAcceso):
         return self._TRANSICIONES
 
     def campos_editables(self, solicitud):
-        # Solo PENDIENTE permite editar campos; una vez tomada para revisión queda
-        # congelada para el Alumno.
         if EstadoSolicitud(solicitud.estado) != EstadoSolicitud.PENDIENTE:
             return frozenset()
         return self._CAMPOS_EN_PENDIENTE
 
     def side_effects(self, solicitud, nuevo_estado, usuario):
-        # La cancelación es terminal pero no requiere responsable_id
-        # (el propio Alumno la cancela; no hay revisor implicado).
+        return {}
+
+
+class PoliticaSecretaria(PoliticaAcceso):
+    """La Secretaria es operadora global — sin filtro de propiedad.
+
+    Misma capacidad de edición que el Alumno (modificar campos básicos cuando
+    está PENDIENTE; cancelar) pero sobre cualquier solicitud, no solo las
+    propias. No emite veredicto (eso es del Director).
+    """
+
+    _TRANSICIONES = frozenset(
+        {(EstadoSolicitud.PENDIENTE, EstadoSolicitud.ANULADA)}
+    )
+    _CAMPOS_EN_PENDIENTE = frozenset({"motivo", "asignatura_matriculada_id"})
+
+    async def obtener_listado(self, repo, usuario, alumno_id_filtro=None):
+        if alumno_id_filtro is not None:
+            return await repo.obtener_por_alumno(alumno_id_filtro)
+        return await repo.obtener_todas()
+
+    def puede_ver(self, solicitud, usuario):
+        return True
+
+    def transiciones_permitidas(self):
+        return self._TRANSICIONES
+
+    def campos_editables(self, solicitud):
+        if EstadoSolicitud(solicitud.estado) != EstadoSolicitud.PENDIENTE:
+            return frozenset()
+        return self._CAMPOS_EN_PENDIENTE
+
+    def side_effects(self, solicitud, nuevo_estado, usuario):
         return {}
 
 
@@ -92,7 +122,9 @@ class PoliticaDirector(PoliticaAcceso):
     )
     _CAMPOS_EN_REVISION = frozenset({"observaciones"})
 
-    async def obtener_listado(self, repo, usuario):
+    async def obtener_listado(self, repo, usuario, alumno_id_filtro=None):
+        if alumno_id_filtro is not None:
+            return await repo.obtener_por_alumno(alumno_id_filtro)
         return await repo.obtener_todas()
 
     def puede_ver(self, solicitud, usuario):
@@ -102,7 +134,6 @@ class PoliticaDirector(PoliticaAcceso):
         return self._TRANSICIONES
 
     def campos_editables(self, solicitud):
-        # Sólo puede ajustar observaciones mientras esté en revisión.
         if EstadoSolicitud(solicitud.estado) == EstadoSolicitud.EN_REVISION:
             return self._CAMPOS_EN_REVISION
         return frozenset()
@@ -117,13 +148,11 @@ class PoliticaDirector(PoliticaAcceso):
 
 
 def politica_para(usuario: Usuario) -> PoliticaAcceso:
-    """Factory — devuelve la política aplicable al rol del usuario.
-
-    Lanza ValueError si el rol todavía no tiene política implementada
-    (Profesor, Secretaria llegarán en ramilletes futuros).
-    """
+    """Factory — devuelve la política aplicable al rol del usuario."""
     if usuario.tipo == "alumno":
         return PoliticaAlumno()
+    if usuario.tipo == "secretaria":
+        return PoliticaSecretaria()
     if usuario.tipo == "director":
         return PoliticaDirector()
     raise ValueError(f"No hay PoliticaAcceso para el rol {usuario.tipo!r}")

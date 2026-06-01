@@ -2,12 +2,15 @@ import api from './api';
 import type {
   CrearSolicitudRequest,
   EditarSolicitudRequest,
+  FiltrosDispensa,
   SolicitudDispensa,
 } from '../types/dispensas';
 
 export const dispensasService = {
-  async listar(): Promise<SolicitudDispensa[]> {
-    const { data } = await api.get<SolicitudDispensa[]>('/dispensas');
+  async listar(params: { alumno_id?: number } = {}): Promise<SolicitudDispensa[]> {
+    const { data } = await api.get<SolicitudDispensa[]>('/dispensas', {
+      params,
+    });
     return data;
   },
 
@@ -27,5 +30,13 @@ export const dispensasService = {
   ): Promise<SolicitudDispensa> {
     const { data } = await api.patch<SolicitudDispensa>(`/dispensas/${id}`, body);
     return data;
+  },
+
+  async exportar(filtros: FiltrosDispensa = {}): Promise<Blob> {
+    const { data } = await api.get('/dispensas/exportar', {
+      params: filtros,
+      responseType: 'blob',
+    });
+    return data as Blob;
   },
 };

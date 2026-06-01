@@ -1,0 +1,41 @@
+@startuml
+title Diseño — consultarDetalleMatricula()
+
+actor Secretaria as S
+
+box "Frontend (React + TS)" #E8F0FE
+    participant "ConsultarDetalleMatriculaPage" as CDMP
+    participant "matriculasService" as MS
+end box
+
+box "Backend (FastAPI)" #FFF4E0
+    participant "MatriculasRouter\nGET /matriculas/{id}" as MR
+    participant "require_rol" as RR
+    participant "MatriculaRepository" as MRe
+end box
+
+database "SQLite" as DB
+
+S    -> CDMP : entrar a /matriculas/{id}
+CDMP -> MS   : obtener(id)
+MS   -> MR   : GET /matriculas/{id} (Bearer)
+MR   -> RR   : autorizar "secretaria"
+RR   --> MR  : Secretaria | 403
+MR   -> MRe  : obtener_por_id(id)
+MRe  -> DB   : SELECT Matricula JOIN Alumno + AsignaturasMatriculadas JOIN Asignatura
+
+alt encontrada
+    DB   --> MRe : agregado
+    MRe  --> MR  : Matricula (con alumno + lista AsignaturaMatriculada)
+    MR   --> MS  : 200 MatriculaDetalleOut
+    MS   --> CDMP: agregado
+    CDMP --> S   : ficha + tabla de asignaturas
+else no existe
+    DB   --> MRe : None
+    MRe  --> MR  : None
+    MR   --> MS  : 404
+    MS   --> CDMP: error
+    CDMP --> S   : "matrícula no encontrada"
+end
+
+@enduml

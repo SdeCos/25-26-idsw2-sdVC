@@ -1,0 +1,32 @@
+@startuml
+title Diseño — consultarListaAlumnos() (Secretaria)
+
+actor Secretaria as S
+
+box "Frontend (React + TS)" #E8F0FE
+    participant "AlumnosPage" as AP
+    participant "alumnosService" as AS
+end box
+
+box "Backend (FastAPI)" #FFF4E0
+    participant "AlumnosRouter\nGET /alumnos" as AR
+    participant "require_rol" as RR
+    participant "UsuarioRepository" as UR
+end box
+
+database "SQLite" as DB
+
+S   -> AP   : entrar a /alumnos (page=1, q=?)
+AP  -> AS   : listar({page, size, q})
+AS  -> AR   : GET /alumnos?page&size&q (Bearer)
+AR  -> RR   : autorizar "secretaria"
+RR  --> AR  : Secretaria | 403
+AR  -> UR   : buscar_alumnos(page, size, q)
+UR  -> DB   : SELECT WHERE tipo='alumno' [AND ... LIKE q] LIMIT/OFFSET
+DB  --> UR  : (rows, total)
+UR  --> AR  : (List[Alumno], total)
+AR  --> AS  : 200 PaginaAlumnosOut
+AS  --> AP  : página
+AP  --> S   : tabla + paginador
+
+@enduml

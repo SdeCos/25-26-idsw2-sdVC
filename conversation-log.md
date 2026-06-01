@@ -1272,3 +1272,340 @@ Orden interno del ramillete Secretaria fijado en memoria persistente:
 Después: Profesor (8 CUs) consume el catálogo ya existente.
 
 Memoria `project-deuda-asignatura-matricula` actualizada con esta decisión. Cierre definitivo de la sesión.
+
+---
+
+### Sesión 2026-06-01
+
+## [08:10] Diseño de `importarListasAlumnos()` e `importarMatriculas()` — apertura del ramillete Secretaria
+
+**Prompt:** Empezar el ramillete Secretaria por los dos CUs de importar (paso 1-2 del orden interno fijado en memoria).
+
+**Resultado:** Cuatro archivos creados (puml + svg + README × 2):
+
+- `RUP/02-diseño/casos-uso/importarListasAlumnos/{secuencia.puml, secuencia.svg, README.md}` — 16 mensajes, endpoint `POST /alumnos/importar` multipart.
+- `RUP/02-diseño/casos-uso/importarMatriculas/{secuencia.puml, secuencia.svg, README.md}` — 20 mensajes, endpoint `POST /matriculas/importar` multipart.
+
+Round de 4 decisiones de fondo planteado al inicio; el usuario aceptó las 3 primeras por defecto y **corrigió la cuarta** (responsable_id en Matricula).
+
+**Decisiones de diseño fijadas:**
+
+1. **Upsert por `username` sin tocar password** en listas — re-importar el listado anual no destruye credenciales que el alumno ya usa. Solo se actualizan campos no sensibles (nombre, apellidos, email, teléfono).
+2. **Política FK estricta + best-effort por registro** en matrículas — si `alumno_username` o `asignatura_codigo` no existen, esa fila va al informe de errores; las válidas se importan igual. **No** se crean alumnos implícitamente — refuerza la dependencia documentada (importarListasAlumnos antes que importarMatriculas).
+3. **Catálogo `Asignatura` introducido en este ramillete** sin CU de gestión, sembrado por `scripts/seed.py`. Estructura mínima `{id, codigo, nombre, grado}`. Era el paso anunciado en la memoria `project-deuda-asignatura-matricula`.
+4. **`responsable_id` persistido en `Matricula`** por coherencia con `SolicitudDispensa.responsable_id` (corrección del usuario sobre mi default de "no persistir"). Patrón "auditoría visible desde la propia BD" se vuelve regla del proyecto, no decisión ad-hoc por entidad.
+
+**Materialización de las decisiones en el modelo:**
+
+- **`Matricula`** = `(alumno_id, asignatura_id, curso_academico)` + `responsable_id` + `fecha_importacion`. `UNIQUE(alumno_id, asignatura_id, curso_academico)` — una matrícula única por trío; re-importar el mismo CSV produce `IntegrityError` que el Service traduce a error de informe ("matrícula duplicada").
+- **`Asignatura`** = `{id, codigo (UNIQUE), nombre, grado}` — catálogo seed; sin CU de gestión administrativa (deuda futura).
+- **Más granular que el prototipo del SDR** (que sugería 1 Matricula por grado/curso) — necesario para que en el paso 4 del orden interno `SolicitudDispensa` pueda referenciar matrícula específica de asignatura, no de grado entero.
+- **Sin `responsable_id` en `Usuario`** — coherencia local con `crearUsuario` (que tampoco lo lleva). Pero la regla del responsable persistido se mantiene **donde ya existe** para una entidad hermana (la memoria que se guarda).
+
+**Decisiones de tecnología:**
+
+- **Endpoints específicos** `POST /alumnos/importar` y `POST /matriculas/importar` (no `POST /alumnos` batch genérico). Razón: verbo multipart, resultado informe, comportamiento upsert/strict — no encaja en CRUD genérico.
+- **CSV con cabecera obligatoria** como formato único en esta fase. Listas: `username,password,nombre,apellidos,email,telefono?`. Matrículas: `alumno_username,asignatura_codigo,curso_academico`. Otros formatos = deuda.
+- **`ValidadorArchivo*` consulta repositorios** (no solo formato). Resuelve FKs en una pasada batch (`obtener_por_usernames(set)`, `obtener_por_codigos(set)`) — evita N+1 lookups si el Service hiciera resolución a posteriori.
+- **Transacción única por archivo** + `flush` único + informe único por request. Atomicidad documentada como decisión consciente.
+- **No nuevo `AlumnoRepository`** — la STI hace que toda la persistencia de Alumno viva en `usuarios`; añadimos `upsert_lote_alumnos` al `UsuarioRepository` existente. El análisis hablaba de `AlumnoRepository` pero en diseño se materializa como método del repo del agregado padre. `AlumnoService` sí es nuevo (orquesta la importación).
+- **Header malformado → 422**, **contenido inválido → 200 + informe** con sus errores por fila. Distinción "archivo roto" vs "datos malos en archivo bueno".
+
+**Tamaños de los diagramas:** 16 (listas) vs 20 (matrículas). La asimetría refleja complejidad inherente — matrículas necesita 2 lookups FK adicionales — no verbosidad. Aligned con el resto del bloque (crearUsuario 16, consultarSolicitudesDispensas 16, editar Director 17).
+
+Índices actualizados: `RUP/02-diseño/casos-uso/README.md` 10/26 → 12/26 (ambos ✅); `RUP/02-diseño/README.md` 10/26 → 12/26; README raíz `Diseño 10/26 → 12/26`.
+
+**Decisión:** Apertura del ramillete Secretaria en diseño con los 2 CUs de carga masiva. Memoria nueva guardada (`feedback-auditoria-coherente-por-entidad`). Próximo paso natural del modo iterativo: o seguir el diseño del ramillete (paso 3: `consultarListaAlumnos` + `consultarDetalleMatricula`) o implementar ya los 2 importar para ver `Matricula` y `Asignatura` vivos en código. A confirmar con el usuario.
+
+---
+
+## [08:22] Diseño de `consultarListaAlumnos()` (Secretaria) + `consultarDetalleMatricula()` y refactor del modelo `Matricula` a agregado
+
+**Prompt:** Continuar el ramillete Secretaria con los dos CUs read-only del paso 3 del orden interno.
+
+**Resultado:** Tres salidas — los dos diseños nuevos + un refactor del modelo de `Matricula` hecho horas antes en este mismo ramillete.
+
+### Decisión de fondo del round: refactor del modelo `Matricula`
+
+El análisis de [[consultarDetalleMatricula]] modela `Matricula` como **agregado complejo** con cabecera (alumno + curso académico + facultad + plan_estudios) y colección 1:N de `AsignaturaMatriculada` (con atributo `n_matricula` = 1ª/2ª/3ª convocatoria). El prototipo confirma una ficha por (alumno, curso) con tabla de asignaturas embebida.
+
+Mi diseño de `importarMatriculas` de la entrada anterior había modelado `Matricula` granular `(alumno, asignatura, curso)` — incompatible con la ficha agregada sin una capa de agregación virtual sucia.
+
+Tres opciones planteadas al usuario:
+1. **Refactor: header `Matricula` + detalle `AsignaturaMatriculada`** (recomendada, aceptada).
+2. Mantener granular + agregado virtual en el detalle.
+3. Granular + nueva entidad `MatriculaAgregada` solo de lectura (view SQL).
+
+Razones del refactor frente a las alternativas: `n_matricula` es atributo del detalle (no del header) — modelar agregado lo refleja honestamente; `SolicitudDispensa` migrará a apuntar `AsignaturaMatriculada` (referencia precisa "alumno X intenta dispensar asignatura Y en su matrícula del curso Z"); cambiar ahora es barato (sin código todavía).
+
+### Modelo refactorizado
+
+| Entidad | Campos | Constraint |
+|---|---|---|
+| `Matricula` (header) | `id, alumno_id FK, curso_academico, responsable_id FK, fecha_importacion` | `UNIQUE(alumno_id, curso_academico)` |
+| `AsignaturaMatriculada` (detalle) | `id, matricula_id FK, asignatura_id FK, n_matricula` | `UNIQUE(matricula_id, asignatura_id)` |
+| `Asignatura` (catálogo, enriquecida) | `id, codigo UNIQUE, nombre, ects, caracter (enum OB/OP/FB), curso_plan, plan_estudios, facultad` | — |
+
+`facultad` y `plan_estudios` se modelan como strings en `Asignatura` (no entidades propias) — promoción es deuda blanda (YAGNI). En la ficha del detalle se derivan tomando la primera asignatura matriculada del agregado.
+
+CSV de `importarMatriculas` cambia de cabecera: `alumno_username,curso_academico,asignatura_codigo,n_matricula` (4 columnas). Cada fila es un `AsignaturaMatriculada`; el Service hace **get-or-create** del header `Matricula` por `(alumno_username, curso_academico)` la primera vez que aparece esa combinación, y reutiliza el id en filas siguientes.
+
+Informe nuevo distingue `matriculas_creadas` (headers nuevos) vs `asignaturas_matriculadas_creadas` (filas de detalle) — útil para la Secretaria.
+
+Archivos tocados del refactor: `RUP/02-diseño/casos-uso/importarMatriculas/{secuencia.puml, README.md}` (versión 1.0 → 1.1, SVG regenerado).
+
+### Diseños nuevos
+
+- `RUP/02-diseño/casos-uso/consultarListaAlumnosSecretaria/{secuencia.puml, secuencia.svg, README.md}` — 11 mensajes, endpoint `GET /alumnos?page&size&q`.
+- `RUP/02-diseño/casos-uso/consultarDetalleMatricula/{secuencia.puml, secuencia.svg, README.md}` — 13 mensajes con `alt` 404, endpoint `GET /matriculas/{id}` retornando agregado completo.
+
+### Decisiones de diseño (defaults aceptados por adelantado)
+
+1. **Sin Service en ninguno de los dos** — patrón consolidado del proyecto (consultarUsuario, consultarSolicitudDispensa): `consultar` read-only va Router → Repository directo. Service solo donde hay reglas de negocio.
+2. **Paginación server-side desde el día 1** en `consultarListaAlumnos` (Secretaria). El prototipo del SDR menciona 332 elementos en 24 páginas. Parámetros `?page=&size=`, schema genérico `PaginaOut[T]` (primer endpoint paginado del proyecto, reutilizable). Filtros multicolumna son deuda — hoy solo `?q=` con `LIKE %q%` sobre username/nombre/apellidos/email.
+3. **`UsuarioRepository.buscar_alumnos(page, size, q)`** — método específico de la Secretaria, distinto del `obtener_todos` del Admin (que retorna todos los `Usuario`). Una sola firma cubre "listar todo" (q=None) y "buscar libre" (q=valor).
+4. **Eager-load del agregado en `consultarDetalleMatricula`**: `selectinload(asignaturas_matriculadas).joinedload(asignatura)` + `joinedload(alumno)` — una request, agregado completo. Evita JOIN cartesiano de un `joinedload` directo a la colección 1:N. Sin paginación de asignaturas dentro del agregado (un plan completo cabe en una respuesta).
+5. **`facultad` y `plan_estudios` derivados** de la primera asignatura matriculada del agregado, computados en el Router (no en SQL). Asume coherencia del catálogo (todas las asignaturas de un header pertenecen al mismo plan); si se rompe, se promueve a entidad. Deuda blanda.
+6. **Sin paginación de asignaturas matriculadas en el detalle** — un plan de Ingeniería tiene ~40 asignaturas máximo. YAGNI.
+7. **Sin defensa en profundidad en el repositorio** — la STI ya garantiza que `buscar_alumnos` filtra por `tipo='alumno'`; `require_rol("secretaria")` autoriza. Coherente con la decisión equivalente en `crearSolicitudDispensa` (Director).
+8. **404 honesto** en detalle (`obtener_por_id` retorna `None` → Router traduce a HTTP 404).
+9. **Ficha estrictamente read-only** — el actor Secretaria no tiene `editarMatricula` ni `anularMatricula`. Cuando entren los CUs de dispensa de Secretaria podrán aparecer acciones contextuales (iniciar dispensa desde una asignatura matriculada), pero hoy YAGNI.
+
+### Tamaños y simetría
+
+| CU | Mensajes | Comentario |
+|---|---|---|
+| consultarListaAlumnos (Sec) | 11 | Listado con paginación |
+| consultarDetalleMatricula | 13 | Agregado + alt 404 |
+| consultarUsuario | 13 | Patrón equivalente |
+| importarMatriculas (refactor v1.1) | 20 | Misma estructura, semántica del repository ajustada |
+
+Coherente con el resto del bloque. Asimetría justificada por la presencia/ausencia de `alt` 404.
+
+### Decisiones que se mantienen del v1.0 de importarMatriculas
+
+- Endpoint `POST /matriculas/importar` multipart con `List[UploadFile]`.
+- Política FK estricta + best-effort por registro (alumno o asignatura inexistente → fila al informe; el resto se persiste).
+- `responsable_id` en el header `Matricula` por coherencia con `SolicitudDispensa.responsable_id` (memoria `feedback-auditoria-coherente-por-entidad`).
+- `Asignatura` como catálogo seed sin CU de gestión (ahora con campos enriquecidos: ects, caracter, curso_plan, plan_estudios, facultad).
+
+Índices actualizados: `RUP/02-diseño/casos-uso/README.md` 12/26 → 14/26 (ambos ✅); `RUP/02-diseño/README.md` 12/26 → 14/26; README raíz `Diseño 12/26 → 14/26`.
+
+**Decisión:** Diseño del paso 3 del orden interno cerrado + refactor del paso 2 al modelo agregado. Faltan 4 CUs en el ramillete (dispensa Secretaria + export). Próximo paso natural del modo iterativo: **implementar ya los 4 CUs diseñados del ramillete** (importar listas + matrículas + listado alumnos + detalle matrícula) — todos comparten infraestructura nueva (`Alumno` operacional, `Matricula` agregado, `Asignatura` catálogo) que entra mejor de una sola sentada. La migración de `SolicitudDispensa` (paso 4 del orden interno) podría hacerse en el mismo push de implementación o como interludio inmediatamente posterior.
+
+---
+
+## [08:33] Diseño de los 4 CUs restantes del ramillete Secretaria — cierre del diseño (18/26)
+
+**Prompt:** "haz los 4 que quedan" — terminar el ramillete Secretaria en diseño.
+
+**Resultado:** Cuatro archivos × 3 salidas (puml + svg + README):
+
+- `RUP/02-diseño/casos-uso/crearSolicitudDispensaSecretaria/{secuencia.puml, secuencia.svg, README.md}` — 16 mensajes, `POST /dispensas` con `alumno_id` explícito en body, debuta `PoliticaSecretaria`.
+- `RUP/02-diseño/casos-uso/editarSolicitudDispensaSecretaria/{secuencia.puml, secuencia.svg, README.md}` — 16 mensajes, `PATCH /dispensas/{id}` con `alt` 422; fase de carga referida a [[consultarSolicitudDispensaSecretaria]] (regla "no duplicar fases").
+- `RUP/02-diseño/casos-uso/consultarSolicitudDispensaSecretaria/{secuencia.puml, secuencia.svg, README.md}` — 16 mensajes con `alt` 404, `GET /dispensas/{id}` con eager-load del agregado.
+- `RUP/02-diseño/casos-uso/exportarDispensas/{secuencia.puml, secuencia.svg, README.md}` — 14 mensajes, `GET /dispensas/exportar` con `GeneradorArchivoDispensas` (tercer servicio de aplicación del proyecto).
+
+**Dos defaults aceptados por adelantado** (anunciados al usuario antes de escribir):
+
+1. **Forward-looking design** sobre la migración `SolicitudDispensa → AsignaturaMatriculada` — los 4 diseños asumen la migración hecha y usan FK `asignatura_matriculada_id` (no strings libres). Cada README documenta el prerrequisito en sección dedicada. Coherente con cómo refactorizamos `importarMatriculas` en la entrada anterior antes de tener código.
+2. **`exportarDispensas` solo CSV en v1.0** — XLSX/PDF como deuda blanda. Razón: stdlib `csv` cubre el caso sin dependencias, el prototipo del SDR solo muestra CSV en su dropdown, y la abstracción de formato es prematura con un solo caso implementado.
+
+**Decisiones de diseño consolidadas en este round:**
+
+1. **`PoliticaSecretaria` añadida al módulo `politica_acceso.py`** (introducido en el ramillete Alumno). Contrato:
+   - `obtener_listado(usuario, alumno_id_filtro?)` — sin filtro de propiedad
+   - `puede_ver(...)` → `True` siempre
+   - `transiciones_permitidas` → `{(PENDIENTE, ANULADA)}` (puede cancelar pero **no** emitir veredicto)
+   - `campos_editables(PENDIENTE)` → `{motivo, asignatura_matriculada_id}` (mismos que Alumno)
+   - Sin `side_effects`
+
+2. **Un solo endpoint por verbo, política inyectada por rol** — `POST /dispensas`, `PATCH /dispensas/{id}`, `GET /dispensas/{id}` mantienen una sola firma para los 4 roles. La Strategy del ramillete Alumno se materializa por completo aquí.
+
+3. **Regla emergente del análisis materializada**: "métodos específicos por rol solo cuando la signatura difiere; cuando solo la política varía, dispatch interno por subtipo". Aplicada — Secretaria edita los mismos campos que Alumno con la misma signatura → un solo método del Service con `politica_para(current_user)`. Sin proliferar métodos como `editarComoSecretaria`.
+
+4. **Defensa contra suplantación en `crearSolicitudDispensa`**: si rol Alumno y `alumno_id` en body ≠ `current_user.id`, el Service lo **descarta silenciosamente** (no 4xx). Coherente con `crearUsuario` que descartaba `tipo`. Documentado en el schema con `extra="ignore"` semánticamente (chequeo en el Service).
+
+5. **Validación cruzada `asignatura_matriculada_id` ↔ `alumno_id`**: el Service confirma que `AsignaturaMatriculada.matricula.alumno_id == alumno_id` antes de persistir. Si no, 422 `AsignaturaMatriculadaIncoherente`. Evita que la Secretaria solicite dispensa de asignatura no cursada por el alumno.
+
+6. **`GET /dispensas/exportar` como endpoint dedicado**, no `GET /dispensas?formato=csv`. Razones: semánticas distintas (listado paginado JSON vs archivo completo attachment), el export no respeta paginación, cache/logging/rate-limits pueden divergir.
+
+7. **`GeneradorArchivoDispensas` como tercer servicio de aplicación** del proyecto. Confirma el patrón "Router orquesta + Servicio especializa" introducido conceptualmente desde `exportarHistorialAsistencias` (análisis) y replicado paralelamente en los validadores de import. Abstracción `Generador<T>` **diferida** hasta que entre `GeneradorArchivoAsistencias` (futuro ramillete Profesor) — misma lección del `PoliticaAcceso` (introducido cuando hubo dos casos concretos).
+
+8. **Filtros en `exportarDispensas` como query params simples**: `estado, alumno_id, desde, hasta`. Sin Parameter Object — la deuda blanda `FiltrosDispensa` se mantiene hasta tener un segundo endpoint que los use. Hoy solo `obtener_por_filtros` los consume.
+
+9. **Schema único `SolicitudDispensaDetalleOut` para los 4 roles** — la UI ramifica qué muestra, no el backend. Más simple y mitigado porque el listado ya filtra por permisos antes.
+
+10. **Sin auditoría del editor** en `editar` y sin auditoría de accesos en `consultar` (deudas RGPD del análisis) — diferidas, registradas en cada README. Hoy fuera de scope.
+
+**Cierre del polimorfismo del Controller sobre `SolicitudDispensa`:**
+
+Cuatro roles ahora caracterizados en código con un solo Service, un solo Repository, cuatro políticas. La entidad **más operada del proyecto** queda completamente diseñada. Lecciones aplicadas (insumo del análisis):
+
+- MVC con Controller por entidad + Servicio por operación atómica (SRP).
+- Repository agnóstico al rol; política en el Controller/Service.
+- "Métodos específicos por rol" solo cuando la signatura difiere; cuando solo la política varía → Strategy `PoliticaAcceso`.
+- Auto-poblado de auditoría por el Service.
+- Propietario implícito desde sesión salvo cuando un rol opera sobre terceros (Secretaria).
+
+**Tamaños de los diagramas del round:** 16 / 16 / 16 / 14. Coherente con el resto del proyecto (cerrarSesion 8 — el mínimo; iniciarSesion 17 — el más complejo). La uniformidad del bloque dispensa Secretaria refleja que los 4 CUs comparten Service + Politica + Repository — solo difieren en el verbo HTTP.
+
+Índices actualizados: `RUP/02-diseño/casos-uso/README.md` 14/26 → 18/26 (los 4 ✅); `RUP/02-diseño/README.md` 14/26 → 18/26; README raíz `Diseño 14/26 → 18/26`.
+
+**Decisión:** **Ramillete Secretaria completo en diseño (8/8 CUs)**. El proyecto cierra con análisis 26/26 ✅, diseño 18/26 ⏳, desarrollo 10/26 ⏳. Próximo paso del modo iterativo: implementar los 8 CUs del ramillete en un solo push, ordenados según la memoria `project-deuda-asignatura-matricula`:
+1. importarListasAlumnos + importarMatriculas (`Matricula` agregado + `Asignatura` catálogo + `AlumnoService`)
+2. consultarListaAlumnos (Sec) + consultarDetalleMatricula
+3. **Migración `SolicitudDispensa` → `AsignaturaMatriculada`** (interludio crítico)
+4. crearSolicitudDispensaSecretaria + editarSolicitudDispensaSecretaria + consultarSolicitudDispensaSecretaria
+5. exportarDispensas
+
+Cuando se cierre, el proyecto quedará en diseño 18/26 y desarrollo 18/26 — solo faltará el ramillete **Profesor (8 CUs)** para cerrar 26/26 en las tres disciplinas.
+
+---
+
+## [09:04] Implementación del ramillete Secretaria — 8 CUs end-to-end (18/26)
+
+**Prompt:** "implementalo siguiendo este diseño" — implementar los 8 CUs diseñados del ramillete Secretaria, con la migración `SolicitudDispensa → AsignaturaMatriculada` como interludio según el orden interno acordado.
+
+**Resultado:** Backend (16 archivos nuevos/editados) + frontend (15 archivos nuevos/editados) + 8 READMEs en `RUP/03-desarrollo/`. Las 12 tareas internas (`TaskList`) cierran en verde. Estado del proyecto: **análisis 26/26 ✅, diseño 18/26, desarrollo 18/26**.
+
+### Backend `src/backend/`
+
+Entidades nuevas:
+- `app/models/asignatura.py` — catálogo `Asignatura { codigo, nombre, ects, caracter (OB/OP/FB), curso_plan, plan_estudios, facultad }`.
+- `app/models/matricula.py` — agregado `Matricula (alumno_id, curso_academico, responsable_id, fecha_importacion)` UNIQUE(alumno, curso) + 1:N `AsignaturaMatriculada (matricula_id, asignatura_id, n_matricula)` UNIQUE(matricula, asignatura). Relaciones `lazy="joined"` (matricula desde AM) y `lazy="selectin"` (asignaturas desde Matricula).
+- `app/models/solicitud_dispensa.py` migrada: `asignatura/periodo/horario` strings → `asignatura_matriculada_id` FK con `lazy="joined"`.
+
+Capa de datos:
+- `app/repositories/asignatura_repository.py` — `obtener_por_codigos` (batch lookup).
+- `app/repositories/matricula_repository.py` — `obtener_por_id` (eager-load del agregado), `listar`, `get_or_create_header`, `crear_detalle` con captura de `IntegrityError`.
+- `app/repositories/usuario_repository.py` — `+ obtener_alumnos_por_usernames` (batch lookup), `+ buscar_alumnos(page, size, q?)` con `LIKE %q%` y `count()` para total, `+ upsert_lote_alumnos` sin tocar `password_hash` en existentes.
+- `app/repositories/solicitud_dispensa_repository.py` — `_eager()` helper con `joinedload(asignatura_matriculada).joinedload(asignatura)` + `joinedload(matricula)`; `obtener_por_filtros` para el export.
+
+Servicios:
+- `app/services/validador_archivo_listas_alumnos.py` — `RegistroAlumnoCrudo`, `CabeceraInvalida` (422), `ResultadoValidacion`. CSV stdlib.
+- `app/services/validador_archivo_matriculas.py` — tres pasadas (sintáctico + batch lookup FK + construcción de registros) para evitar N+1.
+- `app/services/alumno_service.py` — orquesta validar+upsert; usa `core/security.hash_password` por SRP.
+- `app/services/matricula_service.py` — caché local `(alumno_id, curso) → matricula_id` evita re-consultas durante el lote; reporta `IntegrityError` en detalles como "ya matriculada".
+- `app/services/generador_archivo_dispensas.py` — `generar_csv(lista) → bytes` con `csv.writer` + BOM `utf-8-sig` para Excel.
+- `app/services/politica_acceso.py` — `+ PoliticaSecretaria` (puede_ver=True, transición {(PENDIENTE,ANULADA)}, campos {motivo, asignatura_matriculada_id} en PENDIENTE), factory `politica_para` actualizada.
+- `app/services/solicitud_dispensa_service.py` — refactor a FK: `_asignatura_matriculada()` con `joinedload(matricula)`, validación cruzada `am.matricula.alumno_id == alumno_id` (excepción `AsignaturaMatriculadaIncoherente`), defensa contra suplantación (Alumno con `alumno_id` en body → ignora, usa sesión).
+
+Schemas Pydantic:
+- `app/schemas/paginacion.py` — `PaginaOut[T]` genérico, `ErrorImportacionOut`, `InformeImportacionAlumnosOut`, `InformeImportacionMatriculasOut`.
+- `app/schemas/alumnos.py` — `AlumnoListaItemOut`, `AsignaturaMatriculadaDelAlumnoOut`.
+- `app/schemas/matriculas.py` — `MatriculaDetalleOut` con `plan_estudios/facultad` derivados + `asignaturas_matriculadas` embed; `MatriculaListaItemOut`.
+- `app/schemas/dispensas.py` — refactor: `asignatura_matriculada` embed reemplaza strings; `CrearSolicitudRequest` añade `alumno_id` opcional (Secretaria) + `asignatura_matriculada_id`; `EditarSolicitudRequest` actualiza campos editables.
+
+Routers:
+- `app/routers/alumnos.py` — `GET /alumnos?page&size&q` (Secretaria), `POST /alumnos/importar` (multipart `List[UploadFile]`), `GET /alumnos/{id}/asignaturas-matriculadas` (Alumno propietario o Secretaria, para el selector cascada).
+- `app/routers/matriculas.py` — `GET /matriculas`, `POST /matriculas/importar`, `GET /matriculas/{id}`.
+- `app/routers/dispensas.py` — ampliado: roles extendidos en `require_rol`, nuevo `GET /dispensas/exportar?estado&alumno_id&desde&hasta`, manejo de excepciones de FK.
+- `app/main.py` — registra los dos routers nuevos.
+
+Seed:
+- `scripts/seed.py` — `_seed_asignaturas` (5 asignaturas IYA*), `_seed_matricula_alumno1` (matrícula 2025/2026 con 4 detalles), `_seed_dispensas` migrado a usar `asignatura_matriculada_id`.
+
+### Frontend `src/frontend/`
+
+Types:
+- `types/paginacion.ts`, `types/alumnos.ts`, `types/matriculas.ts` nuevos.
+- `types/dispensas.ts` refactor: `asignatura_matriculada` embed reemplaza strings; `FiltrosDispensa` añadido.
+
+Services:
+- `services/alumnosService.ts` — `listar`, `importar` (FormData multipart), `asignaturasMatriculadas`.
+- `services/matriculasService.ts` — `listar`, `obtener`, `importar`.
+- `services/dispensasService.ts` — `+ exportar(filtros)` con `responseType: 'blob'`.
+
+Páginas nuevas:
+- `pages/AlumnosPage.tsx` — listado paginado con búsqueda, paginador inferior.
+- `pages/ImportarListasAlumnosPage.tsx` — dropzone multi-archivo + tabla de informe.
+- `pages/MatriculasPage.tsx` — listado de matrículas.
+- `pages/ImportarMatriculasPage.tsx` — dropzone + informe con dos contadores.
+- `pages/ConsultarDetalleMatriculaPage.tsx` — ficha del agregado con tabla embebida de asignaturas matriculadas.
+- `pages/CrearSolicitudDispensaSecretariaPage.tsx` — autocomplete de alumno (≥2 chars, debounce 200 ms) → selector cascada de asignaturas matriculadas → motivo.
+
+Páginas adaptadas al nuevo modelo:
+- `pages/CrearSolicitudPage.tsx` — usa `alumnosService.asignaturasMatriculadas(usuario.id)` para el selector.
+- `pages/EditarSolicitudPage.tsx` — selector de asignatura matriculada; diff client-side actualizado.
+- `pages/ConsultarDispensaPage.tsx` — ficha enriquecida (código, ECTS, carácter, convocatoria, plan/facultad); rol Secretaria gana botón "Editar" si PENDIENTE.
+- `pages/DispensasPage.tsx` — botones "+ Nueva en nombre de" y "Exportar CSV" para Secretaria; descarga vía `URL.createObjectURL`.
+- `pages/EmitirVeredictoPage.tsx` — muestra código+nombre de asignatura en lugar de string.
+
+Layout & rutas:
+- `components/Layout.tsx` — links Alumnos/Matrículas/Dispensas para Secretaria.
+- `App.tsx` — helpers `secretariaOnly`, `alumnoOSecretaria`, `lectura`; 6 rutas nuevas; `/dispensas/:id/editar` abierto a Alumno+Secretaria; `/dispensas/nuevo-en-nombre-de` Secretaria.
+
+### Bug arreglado en vivo
+
+Primer test `POST /dispensas` con Secretaria → 500. Causa: `session.get(AsignaturaMatriculada, id)` no carga relaciones; el Service accedía a `am.matricula.alumno_id` lo que disparaba lazy load en sesión async → `sqlalchemy.exc.MissingGreenlet`. Fix: cambiar a query explícito con `joinedload(AsignaturaMatriculada.matricula)` + añadir `lazy="joined"` también a la relación back-ref en el modelo (defense in depth). Confirmado 201 tras el fix.
+
+### Verificación interna — pruebas curl
+
+Backend (`localhost:8000`):
+- 401 sin token / 403 con token de Alumno sobre `/alumnos`
+- `POST /alumnos/importar` con CSV 3 filas (2 válidas + 1 con `nombre` vacío) → `{creados:2, actualizados:0, errores:[{fila:4,mensaje:"campo 'nombre' obligatorio"}]}`
+- `POST /matriculas/importar` con CSV 5 filas (3 válidas + alumno desconocido + asignatura desconocida) → `{matriculas_creadas:2, asignaturas_matriculadas_creadas:3, errores:[{fila:5,mensaje:"alumno desconocido: 'fantasma'"}, {fila:6,mensaje:"asignatura desconocida: 'XYZ'"}]}`
+- `GET /alumnos?q=López` → filtra correctamente
+- `GET /matriculas/1` → agregado completo con plan/facultad derivados + 4 asignaturas matriculadas
+- `POST /dispensas` Secretaria con `alumno_id=6, asignatura_matriculada_id=1` (de otro alumno) → 422 `AsignaturaMatriculadaIncoherente`
+- `POST /dispensas` Secretaria con FK coherente → 201
+- Director NO puede exportar (403), Secretaria SÍ (200)
+- Alumno NO puede listar alumnos (403)
+
+Frontend (`localhost:5173`, vía proxy):
+- TypeScript compila limpio (`npx tsc --noEmit` sin errores)
+- Login Secretaria + listar alumnos + detalle matricula vía proxy `/api/...` → todos 200
+
+### Estado de la BD reseteada al cierre
+
+| Usuarios seed | 5 (admin, profesor1, alumno1, director1, secretaria1) |
+| Asignaturas catálogo | 5 (IYA010 Programación I, IYA020 Programación II, IYA038 Ing. SW I, IYA040 Ing. SW 2, IYA041 Diseño de Software) |
+| Matrículas | 1 (alumno1 · 2025/2026 · 4 asignaturas matriculadas) |
+| Dispensas | 3 (PENDIENTE IYA040, EN_REVISION IYA041, APROBADA IYA010) |
+
+### Guion de prueba manual
+
+URL: http://localhost:5173 — uvicorn (`b7wpwmd34`) y vite (`bgi5nxli2`) siguen corriendo en background.
+
+Credenciales:
+- `secretaria1` / `secre123` — actor principal del ramillete
+- `alumno1` / `alumno123` — para probar perspectiva Alumno
+- `director1` / `director123` — para probar 403 en exportar
+
+Camino feliz Secretaria (10 pasos):
+1. Login `secretaria1`/`secre123` → dashboard.
+2. Cabecera: links "Alumnos", "Matrículas", "Dispensas" visibles.
+3. **Alumnos**: ver lista con `alumno1` (1 de 1, paginador "Página 1 de 1").
+4. Click "Importar listas" → cargar un CSV con cabecera `username,password,nombre,apellidos,email,telefono` y 2-3 filas → ver informe con creados/actualizados.
+5. Volver a "Alumnos" → la lista crece. Probar búsqueda libre por apellido.
+6. **Matrículas** → ver 1 fila (alumno1, 2025/2026). Click "Ver" → ficha con tabla de 4 asignaturas matriculadas (códigos IYA*, ECTS, carácter).
+7. Click "Importar matrículas" → cargar CSV `alumno_username,curso_academico,asignatura_codigo,n_matricula` → informe con dos contadores (headers vs detalles).
+8. **Dispensas** → ver las 3 seed. Click "+ Nueva en nombre de" → buscar `alumno2` (si lo importaste), seleccionar, elegir asignatura matriculada del cascada, escribir motivo, crear.
+9. Click "Editar" en una dispensa PENDIENTE → cambiar el motivo o cancelar la solicitud (botón rojo).
+10. "Exportar CSV" en `/dispensas` → descarga `dispensas-2026-06-01.csv` con todas las columnas.
+
+Edge cases a verificar:
+- Login con `alumno1` → solo ve "Mis dispensas". `/alumnos` y `/matriculas` no aparecen en el menú; el acceso directo redirige.
+- Login con `director1` → "Dispensas" sí, "Alumnos/Matrículas" no. El botón "Exportar CSV" no aparece para él.
+- En "Nueva en nombre de", al elegir un alumno sin matrícula → mensaje de error.
+- Re-importar el mismo CSV de matrículas → el informe reporta "asignatura ya matriculada en este curso" para los detalles repetidos.
+
+Índices actualizados: `RUP/03-desarrollo/casos-uso/README.md` 10/26 → **18/26** (los 8 nuevos ✅); `RUP/03-desarrollo/README.md` 2/26 → 18/26; README raíz `Desarrollo 10/26 → 18/26`.
+
+**Decisión:** Ramillete Secretaria **completo en las 3 disciplinas** (8/8 análisis + diseño + desarrollo). El proyecto cierra el día con 18/26 en desarrollo y diseño. Solo queda el ramillete **Profesor (8 CUs)** para alcanzar 26/26 en las 3 disciplinas — primer CU no-CRUD del proyecto (`registrarTomaAsistencia`) y segundo export (`exportarHistorialAsistencias`, donde se verá si introducir abstracción `Generador<T>`).
+
+---
+
+## [09:09] Cierre de sesión
+
+**Prompt:** "finaliza la sesion".
+
+**Resultado:** Servidores en background parados (`uvicorn` y `vite`). BD en estado seed limpio (5 usuarios, 5 asignaturas, 1 matrícula con 4 detalles, 3 dispensas en PENDIENTE/EN_REVISION/APROBADA). Sin cambios sin commitear pendientes de log; ningún proceso huérfano.
+
+**Decisión:** Cierre formal de la sesión 2026-06-01. Resumen del día:
+- Diseño: 10/26 → **18/26** (8 CUs de Secretaria diseñados, refactor de `Matricula` a agregado, memoria `feedback-auditoria-coherente-por-entidad` guardada).
+- Desarrollo: 10/26 → **18/26** (los mismos 8 CUs implementados end-to-end con migración `SolicitudDispensa → AsignaturaMatriculada` como interludio).
+- El proyecto cierra el día con análisis 26/26 ✅, diseño 18/26, desarrollo 18/26 — solo queda el ramillete **Profesor (8 CUs)** para alcanzar 26/26 en las 3 disciplinas.
+
+---

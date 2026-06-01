@@ -1,4 +1,4 @@
-"""Crea usuarios iniciales y solicitudes de dispensa para desarrollo.
+"""Crea usuarios, catálogo de asignaturas, matrícula y dispensas para desarrollo.
 
 Idempotente: ejecutar varias veces no duplica.
 
@@ -13,6 +13,8 @@ from sqlalchemy import select
 
 from app.core.database import AsyncSessionLocal, Base, engine
 from app.core.security import hash_password
+from app.models.asignatura import Asignatura
+from app.models.matricula import AsignaturaMatriculada, Matricula
 from app.models.solicitud_dispensa import EstadoSolicitud, SolicitudDispensa
 from app.models.usuario import (
     Administrador,
@@ -62,11 +64,136 @@ USUARIOS_SEED: list[Usuario] = [
 ]
 
 
-async def _seed_dispensas(session) -> None:
-    """Crea 3 solicitudes en estados distintos atribuidas a alumno1.
+ASIGNATURAS_SEED: list[dict] = [
+    {
+        "codigo": "IYA038",
+        "nombre": "Ingeniería de Software I",
+        "ects": 6.0,
+        "caracter": "OB",
+        "curso_plan": 3,
+        "plan_estudios": "Ingeniería Informática",
+        "facultad": "Escuela Politécnica Superior",
+    },
+    {
+        "codigo": "IYA040",
+        "nombre": "Ingeniería de Software 2",
+        "ects": 6.0,
+        "caracter": "OB",
+        "curso_plan": 3,
+        "plan_estudios": "Ingeniería Informática",
+        "facultad": "Escuela Politécnica Superior",
+    },
+    {
+        "codigo": "IYA041",
+        "nombre": "Diseño de Software",
+        "ects": 6.0,
+        "caracter": "OB",
+        "curso_plan": 3,
+        "plan_estudios": "Ingeniería Informática",
+        "facultad": "Escuela Politécnica Superior",
+    },
+    {
+        "codigo": "IYA010",
+        "nombre": "Programación I",
+        "ects": 6.0,
+        "caracter": "FB",
+        "curso_plan": 1,
+        "plan_estudios": "Ingeniería Informática",
+        "facultad": "Escuela Politécnica Superior",
+    },
+    {
+        "codigo": "IYA020",
+        "nombre": "Programación II",
+        "ects": 6.0,
+        "caracter": "OB",
+        "curso_plan": 2,
+        "plan_estudios": "Ingeniería Informática",
+        "facultad": "Escuela Politécnica Superior",
+    },
+]
 
-    Idempotente: si ya hay dispensas en la BD, no hace nada.
-    """
+
+async def _seed_asignaturas(session) -> dict[str, Asignatura]:
+    """Asegura el catálogo. Retorna el mapa código → entidad para el resto del seed."""
+    mapa: dict[str, Asignatura] = {}
+    for datos in ASIGNATURAS_SEED:
+        ya_existe = await session.scalar(
+            select(Asignatura).where(Asignatura.codigo == datos["codigo"])
+        )
+        if ya_existe is None:
+            a = Asignatura(**datos)
+            session.add(a)
+            print(f"+ asignatura {datos['codigo']} ({datos['nombre']})")
+            mapa[datos["codigo"]] = a
+        else:
+            mapa[datos["codigo"]] = ya_existe
+            print(f"= asignatura {datos['codigo']} (ya existe)")
+    await session.flush()
+    return mapa
+
+
+async def _seed_matricula_alumno1(
+    session, asignaturas: dict[str, Asignatura]
+) -> dict[str, AsignaturaMatriculada]:
+    """Crea matrícula 2025/2026 para alumno1 con 4 asignaturas. Retorna el mapa
+    código → AsignaturaMatriculada (para el seed de dispensas)."""
+    alumno = await session.scalar(select(Alumno).where(Alumno.username == "alumno1"))
+    secretaria = await session.scalar(
+        select(SecretariaAcademica).where(SecretariaAcademica.username == "secretaria1")
+    )
+    if alumno is None or secretaria is None:
+        print("! no se puede sembrar matrícula sin alumno1 y secretaria1")
+        return {}
+
+    matricula = await session.scalar(
+        select(Matricula).where(
+            Matricula.alumno_id == alumno.id,
+            Matricula.curso_academico == "2025/2026",
+        )
+    )
+    if matricula is None:
+        matricula = Matricula(
+            alumno_id=alumno.id,
+            curso_academico="2025/2026",
+            responsable_id=secretaria.id,
+        )
+        session.add(matricula)
+        await session.flush()
+        print(f"+ matrícula {alumno.username} 2025/2026")
+    else:
+        print(f"= matrícula {alumno.username} 2025/2026 (ya existe)")
+
+    detalles_existentes = await session.execute(
+        select(AsignaturaMatriculada).where(
+            AsignaturaMatriculada.matricula_id == matricula.id
+        )
+    )
+    existentes_por_asig = {
+        am.asignatura_id: am for am in detalles_existentes.scalars().all()
+    }
+
+    mapa: dict[str, AsignaturaMatriculada] = {}
+    for codigo in ["IYA040", "IYA041", "IYA010", "IYA020"]:
+        asig = asignaturas[codigo]
+        am = existentes_por_asig.get(asig.id)
+        if am is None:
+            am = AsignaturaMatriculada(
+                matricula_id=matricula.id,
+                asignatura_id=asig.id,
+                n_matricula=1,
+            )
+            session.add(am)
+            await session.flush()
+            print(f"  + detalle matrícula {codigo}")
+        else:
+            print(f"  = detalle matrícula {codigo} (ya existe)")
+        mapa[codigo] = am
+    return mapa
+
+
+async def _seed_dispensas(
+    session, asignaturas_matriculadas: dict[str, AsignaturaMatriculada]
+) -> None:
     ya_hay = await session.scalar(select(SolicitudDispensa).limit(1))
     if ya_hay is not None:
         print("= dispensas (ya existen)")
@@ -76,27 +203,22 @@ async def _seed_dispensas(session) -> None:
     director = await session.scalar(
         select(DirectorDeGrado).where(DirectorDeGrado.username == "director1")
     )
-    if alumno is None or director is None:
-        print("! no se puede sembrar dispensas sin alumno1 y director1")
+    if alumno is None or director is None or not asignaturas_matriculadas:
+        print("! no se puede sembrar dispensas: faltan dependencias")
         return
 
     ahora = datetime.now(timezone.utc)
-
     dispensas = [
         SolicitudDispensa(
             alumno_id=alumno.id,
-            asignatura="Ingeniería de Software 2",
-            periodo="2026-Q2",
-            horario="Lunes 10:00-12:00",
+            asignatura_matriculada_id=asignaturas_matriculadas["IYA040"].id,
             motivo="Solapamiento con prácticas de empresa",
             estado=EstadoSolicitud.PENDIENTE.value,
             fecha_solicitud=ahora - timedelta(days=2),
         ),
         SolicitudDispensa(
             alumno_id=alumno.id,
-            asignatura="Diseño de Software",
-            periodo="2026-Q1",
-            horario="Martes 14:00-16:00",
+            asignatura_matriculada_id=asignaturas_matriculadas["IYA041"].id,
             motivo="Compatibilización con trabajo a tiempo parcial",
             estado=EstadoSolicitud.EN_REVISION.value,
             fecha_solicitud=ahora - timedelta(days=5),
@@ -104,9 +226,7 @@ async def _seed_dispensas(session) -> None:
         ),
         SolicitudDispensa(
             alumno_id=alumno.id,
-            asignatura="Programación I",
-            periodo="2026-Q1",
-            horario="Miércoles 09:00-11:00",
+            asignatura_matriculada_id=asignaturas_matriculadas["IYA010"].id,
             motivo="Asignatura ya cursada en programa anterior",
             estado=EstadoSolicitud.APROBADA.value,
             observaciones="Reconocimiento por equivalencia de plan de estudios",
@@ -115,10 +235,15 @@ async def _seed_dispensas(session) -> None:
             responsable_id=director.id,
         ),
     ]
-
     for d in dispensas:
         session.add(d)
-        print(f"+ dispensa {d.asignatura} ({d.estado})")
+        am = asignaturas_matriculadas
+        # Reverse-lookup del codigo para el print
+        codigo = next(
+            (c for c, a in am.items() if a.id == d.asignatura_matriculada_id),
+            "?",
+        )
+        print(f"+ dispensa {codigo} ({d.estado})")
 
 
 async def main() -> None:
@@ -137,7 +262,13 @@ async def main() -> None:
                 print(f"= {usuario.username} (ya existe)")
         await session.commit()
 
-        await _seed_dispensas(session)
+        asignaturas = await _seed_asignaturas(session)
+        await session.commit()
+
+        asignaturas_matriculadas = await _seed_matricula_alumno1(session, asignaturas)
+        await session.commit()
+
+        await _seed_dispensas(session, asignaturas_matriculadas)
         await session.commit()
 
 

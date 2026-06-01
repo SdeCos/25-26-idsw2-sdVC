@@ -1,0 +1,47 @@
+@startuml
+title Diseño — importarMatriculas()
+
+actor Secretaria as S
+
+box "Frontend (React + TS)" #E8F0FE
+    participant "ImportarMatriculasPage" as IMP
+    participant "matriculasService" as MS
+end box
+
+box "Backend (FastAPI)" #FFF4E0
+    participant "MatriculasRouter\nPOST /matriculas/importar" as MR
+    participant "require_rol" as RR
+    participant "MatriculaService" as MSv
+    participant "ValidadorArchivoMatriculas" as VAL
+    participant "UsuarioRepository" as UR
+    participant "AsignaturaRepository" as ARe
+    participant "MatriculaRepository" as MRe
+end box
+
+database "SQLite" as DB
+
+S   -> IMP  : drop archivos (multipart)
+IMP -> MS   : importar(archivos)
+MS  -> MR   : POST /matriculas/importar (Bearer)
+MR  -> RR   : autorizar "secretaria"
+RR  --> MR  : Secretaria | 403
+MR  -> MSv  : importar(archivos, responsable)
+MSv -> VAL  : validar(archivos)
+VAL -> UR   : obtener_por_usernames(usernames)
+UR  --> VAL : Map<username, Alumno>
+VAL -> ARe  : obtener_por_codigos(codigos)
+ARe --> VAL : Map<codigo, Asignatura>
+VAL --> MSv : ResultadoValidacion(validos, errores)
+alt validos no vacíos
+    MSv -> MRe  : upsert_headers_y_detalles(validos, responsable_id)
+    MRe -> DB   : INSERT Matricula header (get-or-create por alumno+curso)
+    MRe -> DB   : INSERT AsignaturaMatriculada (detalle)
+    DB  --> MRe : (headers, detalles)
+    MRe --> MSv : (headers, detalles)
+end
+MSv --> MR  : InformeImportacion
+MR  --> MS  : 200 + informe
+MS  --> IMP : informe
+IMP --> S   : tabla creadas / errores
+
+@enduml

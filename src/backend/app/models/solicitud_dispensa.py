@@ -6,6 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from app.core.database import Base
+from app.models.matricula import AsignaturaMatriculada
 from app.models.usuario import Usuario
 
 
@@ -14,7 +15,7 @@ class EstadoSolicitud(str, Enum):
 
     Transiciones legales:
       PENDIENTE   → EN_REVISION   (Director)
-      PENDIENTE   → ANULADA       (Alumno propietario — ramillete futuro)
+      PENDIENTE   → ANULADA       (Alumno propietario | Secretaria)
       EN_REVISION → APROBADA      (Director)
       EN_REVISION → RECHAZADA     (Director)
 
@@ -40,9 +41,9 @@ class SolicitudDispensa(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     alumno_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"), index=True)
-    asignatura: Mapped[str] = mapped_column(String(100))
-    periodo: Mapped[str] = mapped_column(String(50))
-    horario: Mapped[str] = mapped_column(String(100))
+    asignatura_matriculada_id: Mapped[int] = mapped_column(
+        ForeignKey("asignaturas_matriculadas.id"), index=True
+    )
     motivo: Mapped[str | None] = mapped_column(String(500), nullable=True)
     estado: Mapped[str] = mapped_column(
         String(20), default=EstadoSolicitud.PENDIENTE.value, index=True
@@ -61,4 +62,7 @@ class SolicitudDispensa(Base):
     )
     responsable: Mapped[Usuario | None] = relationship(
         Usuario, foreign_keys=[responsable_id], lazy="joined"
+    )
+    asignatura_matriculada: Mapped[AsignaturaMatriculada] = relationship(
+        AsignaturaMatriculada, lazy="joined"
     )

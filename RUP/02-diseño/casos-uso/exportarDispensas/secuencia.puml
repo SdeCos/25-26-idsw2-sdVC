@@ -1,0 +1,35 @@
+@startuml
+title Diseño — exportarDispensas()
+
+actor Secretaria as S
+
+box "Frontend (React + TS)" #E8F0FE
+    participant "DispensasPage" as DP
+    participant "dispensasService" as DS
+end box
+
+box "Backend (FastAPI)" #FFF4E0
+    participant "DispensasRouter\nGET /dispensas/exportar" as DR
+    participant "require_rol" as RR
+    participant "SolicitudDispensaRepository" as SDR
+    participant "GeneradorArchivoDispensas" as GAD
+end box
+
+database "SQLite" as DB
+
+S   -> DP   : aplicar filtros + Exportar
+DP  -> DS   : exportar(filtros)
+DS  -> DR   : GET /dispensas/exportar?estado&alumno_id&desde&hasta (Bearer)
+DR  -> RR   : autorizar "secretaria"
+RR  --> DR  : Secretaria | 403
+DR  -> SDR  : obtener_por_filtros(filtros)
+SDR -> DB   : SELECT WHERE estado=? AND alumno_id=? AND fecha BETWEEN ?
+DB  --> SDR : rows
+SDR --> DR  : List[SolicitudDispensa]
+DR  -> GAD  : generar_csv(lista)
+GAD --> DR  : bytes (text/csv)
+DR  --> DS  : 200 + Content-Disposition: attachment
+DS  --> DP  : blob
+DP  --> S   : descarga dispensas-YYYY-MM-DD.csv
+
+@enduml

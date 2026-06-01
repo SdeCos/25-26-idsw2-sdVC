@@ -10,7 +10,7 @@ const fmtFecha = (iso: string | null) =>
   iso ? new Date(iso).toLocaleString() : '—';
 
 interface AccionesProps {
-  rol: 'alumno' | 'director' | 'otro';
+  rol: 'alumno' | 'director' | 'secretaria' | 'otro';
   solicitud: SolicitudDispensa;
 }
 
@@ -32,7 +32,7 @@ const Acciones: React.FC<AccionesProps> = ({ rol, solicitud }) => {
     }
     return null;
   }
-  if (rol === 'alumno') {
+  if (rol === 'alumno' || rol === 'secretaria') {
     if (solicitud.estado === 'pendiente') {
       return (
         <Link to={`/dispensas/${solicitud.id}/editar`}>
@@ -60,7 +60,8 @@ export const ConsultarDispensaPage: React.FC = () => {
       .catch((err) => {
         if (isAxiosError(err)) {
           if (err.response?.status === 404) setError('Solicitud no encontrada');
-          else if (err.response?.status === 403) setError('No tienes permiso para ver esta solicitud');
+          else if (err.response?.status === 403)
+            setError('No tienes permiso para ver esta solicitud');
           else setError('No se pudo cargar la solicitud');
         } else {
           setError('No se pudo cargar la solicitud');
@@ -80,8 +81,15 @@ export const ConsultarDispensaPage: React.FC = () => {
   if (!solicitud) return null;
 
   const rol: AccionesProps['rol'] =
-    usuario?.tipo === 'alumno' ? 'alumno' : usuario?.tipo === 'director' ? 'director' : 'otro';
+    usuario?.tipo === 'alumno'
+      ? 'alumno'
+      : usuario?.tipo === 'director'
+      ? 'director'
+      : usuario?.tipo === 'secretaria'
+      ? 'secretaria'
+      : 'otro';
   const terminal = ESTADOS_TERMINALES.has(solicitud.estado);
+  const asig = solicitud.asignatura_matriculada.asignatura;
 
   return (
     <div className="page">
@@ -105,11 +113,15 @@ export const ConsultarDispensaPage: React.FC = () => {
           {solicitud.alumno.nombre} {solicitud.alumno.apellidos} ({solicitud.alumno.username})
         </dd>
         <dt>Asignatura</dt>
-        <dd>{solicitud.asignatura}</dd>
-        <dt>Periodo</dt>
-        <dd>{solicitud.periodo}</dd>
-        <dt>Horario</dt>
-        <dd>{solicitud.horario}</dd>
+        <dd>
+          <strong>{asig.codigo}</strong> · {asig.nombre} · {asig.ects} ECTS · {asig.caracter}
+        </dd>
+        <dt>Convocatoria</dt>
+        <dd>{solicitud.asignatura_matriculada.n_matricula}ª</dd>
+        <dt>Plan / facultad</dt>
+        <dd>
+          {asig.plan_estudios} — {asig.facultad}
+        </dd>
         <dt>Motivo</dt>
         <dd>{solicitud.motivo || '—'}</dd>
         <dt>Fecha solicitud</dt>

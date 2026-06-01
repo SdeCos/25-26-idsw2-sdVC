@@ -82,7 +82,9 @@ export const EmitirVeredictoPage: React.FC = () => {
 
       <div className="form-card">
         <p style={{ marginBottom: '1rem', color: '#6e6e73' }}>
-          {solicitud.alumno.nombre} {solicitud.alumno.apellidos} · {solicitud.asignatura} ({solicitud.periodo})
+          {solicitud.alumno.nombre} {solicitud.alumno.apellidos} ·{' '}
+          {solicitud.asignatura_matriculada.asignatura.codigo}{' '}
+          {solicitud.asignatura_matriculada.asignatura.nombre}
         </p>
         <p style={{ marginBottom: '1.5rem' }}>
           Estado actual:{' '}

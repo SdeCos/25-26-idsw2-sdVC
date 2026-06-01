@@ -1,0 +1,40 @@
+@startuml
+title Diseño — importarListasAlumnos()
+
+actor Secretaria as S
+
+box "Frontend (React + TS)" #E8F0FE
+    participant "ImportarListasAlumnosPage" as ILP
+    participant "alumnosService" as AS
+end box
+
+box "Backend (FastAPI)" #FFF4E0
+    participant "AlumnosRouter\nPOST /alumnos/importar" as AR
+    participant "require_rol" as RR
+    participant "AlumnoService" as ASv
+    participant "ValidadorArchivoListasAlumnos" as VAL
+    participant "UsuarioRepository" as UR
+end box
+
+database "SQLite" as DB
+
+S   -> ILP  : drop archivos (multipart)
+ILP -> AS   : importar(archivos)
+AS  -> AR   : POST /alumnos/importar (Bearer)
+AR  -> RR   : autorizar "secretaria"
+RR  --> AR  : Secretaria | 403
+AR  -> ASv  : importar(archivos)
+ASv -> VAL  : validar(archivos)
+VAL --> ASv : ResultadoValidacion(validos, errores)
+alt validos no vacíos
+    ASv -> UR   : upsert_lote_alumnos(validos)
+    UR  -> DB   : INSERT / UPDATE (por username)
+    DB  --> UR  : alumnos persistidos
+    UR  --> ASv : (creados, actualizados)
+end
+ASv --> AR  : InformeImportacion
+AR  --> AS  : 200 + informe
+AS  --> ILP : informe
+ILP --> S   : tabla creados / actualizados / errores
+
+@enduml

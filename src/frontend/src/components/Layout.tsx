@@ -2,6 +2,8 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
+const linkStyle = { color: '#0071e3', textDecoration: 'none' };
+
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { usuario, logout } = useAuth();
   const navigate = useNavigate();
@@ -19,19 +21,32 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             <strong>CGU</strong>
           </Link>
           {usuario?.tipo === 'administrador' && (
-            <Link to="/usuarios" style={{ color: '#0071e3', textDecoration: 'none' }}>
+            <Link to="/usuarios" style={linkStyle}>
               Usuarios
             </Link>
           )}
           {usuario?.tipo === 'director' && (
-            <Link to="/dispensas" style={{ color: '#0071e3', textDecoration: 'none' }}>
+            <Link to="/dispensas" style={linkStyle}>
               Dispensas
             </Link>
           )}
           {usuario?.tipo === 'alumno' && (
-            <Link to="/dispensas" style={{ color: '#0071e3', textDecoration: 'none' }}>
+            <Link to="/dispensas" style={linkStyle}>
               Mis dispensas
             </Link>
+          )}
+          {usuario?.tipo === 'secretaria' && (
+            <>
+              <Link to="/alumnos" style={linkStyle}>
+                Alumnos
+              </Link>
+              <Link to="/matriculas" style={linkStyle}>
+                Matrículas
+              </Link>
+              <Link to="/dispensas" style={linkStyle}>
+                Dispensas
+              </Link>
+            </>
           )}
         </div>
         <div>

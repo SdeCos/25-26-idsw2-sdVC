@@ -24,13 +24,13 @@ Diagramas de secuencia por caso de uso. Cada CU lleva los participantes concreto
 | [consultarSolicitudDispensa() (Alumno)](consultarSolicitudDispensa/README.md)     | Alumno          | ✅     |
 | [consultarSolicitudesDispensas()](consultarSolicitudesDispensas/README.md)        | DirectorDeGrado | ✅     |
 | [editarSolicitudDispensa() (Director)](editarSolicitudDispensaDirector/README.md) | DirectorDeGrado | ✅     |
-| consultarListaAlumnos() (Secretaria)                                              | Secretaria      | ⏳     |
-| consultarDetalleMatricula()                                                       | Secretaria      | ⏳     |
-| importarListasAlumnos()                                                           | Secretaria      | ⏳     |
-| importarMatriculas()                                                              | Secretaria      | ⏳     |
-| crearSolicitudDispensa() (Secretaria)                                             | Secretaria      | ⏳     |
-| editarSolicitudDispensa() (Secretaria)                                            | Secretaria      | ⏳     |
-| consultarSolicitudDispensa() (Secretaria)                                         | Secretaria      | ⏳     |
-| exportarDispensas()                                                               | Secretaria      | ⏳     |
+| [consultarListaAlumnos() (Secretaria)](consultarListaAlumnosSecretaria/README.md) | Secretaria      | ✅     |
+| [consultarDetalleMatricula()](consultarDetalleMatricula/README.md)                | Secretaria      | ✅     |
+| [importarListasAlumnos()](importarListasAlumnos/README.md)                        | Secretaria      | ✅     |
+| [importarMatriculas()](importarMatriculas/README.md)                              | Secretaria      | ✅     |
+| [crearSolicitudDispensa() (Secretaria)](crearSolicitudDispensaSecretaria/README.md)         | Secretaria      | ✅     |
+| [editarSolicitudDispensa() (Secretaria)](editarSolicitudDispensaSecretaria/README.md)       | Secretaria      | ✅     |
+| [consultarSolicitudDispensa() (Secretaria)](consultarSolicitudDispensaSecretaria/README.md) | Secretaria      | ✅     |
+| [exportarDispensas()](exportarDispensas/README.md)                                          | Secretaria      | ✅     |
 
-**Progreso:** 10/26
+**Progreso:** 18/26
