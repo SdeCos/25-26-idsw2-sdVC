@@ -1,0 +1,50 @@
+@startuml
+title Diseño — consultarDetalleAlumno() (Profesor)
+
+actor Profesor as P
+
+box "Frontend (React + TS)" #E8F0FE
+    participant "DetalleAlumnoPage" as DP
+    participant "alumnosService" as AS
+end box
+
+box "Backend (FastAPI)" #FFF4E0
+    participant "AlumnosRouter\nGET /alumnos/{id}" as AR
+    participant "require_rol" as RR
+    participant "AlumnoService" as ASV
+    participant "AlumnoRepository" as ARP
+end box
+
+database "SQLite" as DB
+
+P  -> DP  : click fila → /alumnos/{id}
+DP -> AS  : obtener(id)
+AS -> AR  : GET /alumnos/{id} (Bearer)
+AR -> RR  : autorizar ["profesor", "secretaria"]
+RR --> AR : Profesor | 403
+AR -> ASV : obtener_detalle(id, current_user)
+ASV -> ARP : obtener_alumno_con_matricula(id)
+ARP -> DB  : SELECT u.* + eager(matriculas → asignaturas_matriculadas → asignatura)
+DB  --> ARP : Alumno
+ARP --> ASV : Alumno | None
+
+alt encontrado y Profesor competente
+    ASV -> ASV : filtrar asistencias por asignaturas impartidas\n(hoy: lista vacía — Asistencia aún no existe)
+    ASV --> AR : AlumnoDetalleOut
+    AR  --> AS : 200
+    AS  --> DP : ficha
+    DP  --> P  : datos + asistencias filtradas
+else no encontrado
+    ARP --> ASV : None
+    ASV --> AR  : raise AlumnoNoEncontrado
+    AR  --> AS  : 404
+    AS  --> DP  : error
+    DP  --> P   : "alumno no encontrado"
+else encontrado pero sin asignatura compartida
+    ASV --> AR  : raise ProfesorNoCompetente
+    AR  --> AS  : 403
+    AS  --> DP  : error
+    DP  --> P   : "no impartes ninguna asignatura de este alumno"
+end
+
+@enduml

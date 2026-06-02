@@ -1,0 +1,35 @@
+@startuml
+title Diseño — crearSesionClase()
+
+actor Profesor as P
+
+box "Frontend (React + TS)" #E8F0FE
+    participant "CrearSesionClasePage" as CP
+    participant "sesionesClaseService" as SS
+end box
+
+box "Backend (FastAPI)" #FFF4E0
+    participant "SesionesClaseRouter\nPOST /sesiones-clase" as SR
+    participant "require_rol" as RR
+    participant "SesionClaseService" as SCS
+    participant "SesionClaseRepository" as SCR
+end box
+
+database "SQLite" as DB
+
+P  -> CP  : asignatura, grupo, aula, fecha, hora, tema
+CP -> SS  : crear(datos)
+SS -> SR  : POST /sesiones-clase (Bearer)
+SR -> RR  : autorizar "profesor"
+RR --> SR : Profesor | 403
+SR -> SCS : crear(datos, current_user)
+SCS -> SCR : crear(profesor_id=current_user.id, datos)
+SCR -> DB  : INSERT (estado=ABIERTA, fecha_creacion=now)
+DB  --> SCR : SesionDeClase
+SCR --> SCS : SesionDeClase
+SCS --> SR  : SesionDeClaseOut
+SR  --> SS  : 201
+SS  --> CP  : creada
+CP  --> P   : navigate("/sesiones-clase/{id}")
+
+@enduml

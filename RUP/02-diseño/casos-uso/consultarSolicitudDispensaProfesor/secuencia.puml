@@ -1,0 +1,54 @@
+@startuml
+title Diseño — consultarSolicitudDispensa() (Profesor)
+
+actor Profesor as P
+
+box "Frontend (React + TS)" #E8F0FE
+    participant "ConsultarDispensaPage" as CP
+    participant "dispensasService" as DS
+end box
+
+box "Backend (FastAPI)" #FFF4E0
+    participant "DispensasRouter\nGET /dispensas/{id}" as DR
+    participant "require_rol" as RR
+    participant "SolicitudDispensaService" as SDS
+    participant "politica_acceso" as PA
+    participant "SolicitudDispensaRepository" as SDR
+end box
+
+database "SQLite" as DB
+
+P  -> CP  : click en fila → /dispensas/{id}
+CP -> DS  : obtener(id)
+DS -> DR  : GET /dispensas/{id} (Bearer)
+DR -> RR  : autorizar ["alumno", "secretaria", "director", "profesor"]
+RR --> DR : Profesor | 403
+DR -> SDS : obtener(id, current_user)
+SDS -> PA : politica_para(Profesor)
+PA  --> SDS : PoliticaProfesor
+SDS -> SDR : obtener_por_id(id)
+SDR -> DB  : SELECT con eager-load AsignaturaMatriculada, Matricula, Alumno
+DB  --> SDR : SolicitudDispensa | None
+SDR --> SDS : SolicitudDispensa | None
+
+alt encontrada y profesor competente
+    SDS -> PA  : puede_ver(solicitud, Profesor)
+    PA  --> SDS : True (asignatura.id ∈ Profesor.asignaturas_impartidas)
+    SDS --> DR  : SolicitudDispensaDetalleOut
+    DR  --> DS  : 200
+    DS  --> CP  : ficha enriquecida
+    CP  --> P   : datos + alumno + asignatura
+else no encontrada
+    SDS --> DR  : raise SolicitudNoEncontrada
+    DR  --> DS  : 404
+    DS  --> CP  : error
+    CP  --> P   : "dispensa no encontrada"
+else encontrada pero asignatura no impartida
+    PA  --> SDS : False
+    SDS --> DR  : raise NoAutorizado
+    DR  --> DS  : 403
+    DS  --> CP  : error
+    CP  --> P   : "no impartes la asignatura de esta dispensa"
+end
+
+@enduml

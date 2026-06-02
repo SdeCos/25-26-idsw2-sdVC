@@ -30,7 +30,7 @@ Stack alineado con la rama [`diseño-fastapi-react`](https://github.com/mmasias/
 
 ## Casos de uso diseñados
 
-Ver [índice](casos-uso/README.md) — 18/26.
+Ver [índice](casos-uso/README.md) — 26/26 ✅.
 
 ## Referencias
 

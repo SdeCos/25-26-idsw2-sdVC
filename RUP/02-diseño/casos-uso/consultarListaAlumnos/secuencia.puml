@@ -1,0 +1,43 @@
+@startuml
+title Diseño — consultarListaAlumnos() (Profesor)
+
+actor Profesor as P
+
+box "Frontend (React + TS)" #E8F0FE
+    participant "ListaAlumnosPage\n(pestañas por asignatura)" as LP
+    participant "alumnosService" as AS
+end box
+
+box "Backend (FastAPI)" #FFF4E0
+    participant "AlumnosRouter\nGET /alumnos" as AR
+    participant "require_rol" as RR
+    participant "AlumnoService" as ASV
+    participant "AlumnoRepository" as ARP
+end box
+
+database "SQLite" as DB
+
+P  -> LP  : selecciona pestaña (asignatura)
+LP -> AS  : listar({asignatura_id, page, size})
+AS -> AR  : GET /alumnos?asignatura_id&page&size (Bearer)
+AR -> RR  : autorizar ["profesor", "secretaria"]
+RR --> AR : Profesor | 403
+AR -> ASV : listar(filtros, current_user)
+
+alt asignatura impartida por el Profesor
+    ASV -> ARP : buscar_por_asignatura(asignatura_id, page, size)
+    ARP -> DB  : SELECT u.* JOIN matriculas m JOIN asignaturas_matriculadas am\n  WHERE am.asignatura_id = ? AND u.tipo='alumno'\n  LIMIT/OFFSET
+    DB  --> ARP : (rows, total)
+    ARP --> ASV : (List[Alumno], total)
+    ASV --> AR  : PaginaOut[AlumnoEnAsignaturaOut]
+    AR  --> AS  : 200
+    AS  --> LP  : página
+    LP  --> P   : tabla + paginador
+else asignatura no impartida
+    ASV --> AR  : raise ProfesorNoCompetente
+    AR  --> AS  : 403
+    AS  --> LP  : error
+    LP  --> P   : "no impartes esta asignatura"
+end
+
+@enduml

@@ -1609,3 +1609,144 @@ Edge cases a verificar:
 - El proyecto cierra el día con análisis 26/26 ✅, diseño 18/26, desarrollo 18/26 — solo queda el ramillete **Profesor (8 CUs)** para alcanzar 26/26 en las 3 disciplinas.
 
 ---
+
+### Sesión 2026-06-02
+
+## [08:25] Diseño de `crearSesionClase()` y `editarSesionClase()` — apertura del ramillete Profesor
+
+**Prompt:** "vamos, por ultimo con lo que queda de hacer, profesor, empezemos con los 2 relacionados con la sesion de clase (crear y editar), haz el diseno".
+
+**Resultado:** Seis archivos creados (puml + svg + README × 2):
+
+- `RUP/02-diseño/casos-uso/crearSesionClase/{secuencia.puml, secuencia.svg, README.md}` — 13 mensajes, endpoint `POST /sesiones-clase` con propietario implícito desde sesión y transición a estado activo `/sesiones-clase/{id}`.
+- `RUP/02-diseño/casos-uso/editarSesionClase/{secuencia.puml, secuencia.svg, README.md}` — 18 mensajes con `alt` para "no propietario o estado CERRADA"; fase de carga referida implícitamente al `GET /sesiones-clase/{id}` futuro (regla "no duplicar fases").
+
+**Decisiones de fondo del ramillete consolidadas (defaults aceptados por adelantado, anunciadas al usuario antes de escribir):**
+
+1. **`SesionDeClase` debuta como entidad de dominio** — cierre de la deuda urgente del análisis. Tabla `sesiones_clase` con FKs `profesor_id` (auto-poblado desde sesión) y `asignatura_id` (al catálogo introducido por `importarMatriculas`), enum `EstadoSesionClase = {ABIERTA, CERRADA}` con state machine, sin UNIQUE adicional (solapamiento horario es regla de negocio abierta, deuda blanda).
+2. **`grupo` y `aula` como strings libres** — YAGNI. No hay CU de gestión administrativa para ellos; si entra "gestionar aulas" en el futuro, se promueven a catálogos. Coherente con cómo `SolicitudDispensa` arrancó con strings antes de `AsignaturaMatriculada`.
+3. **`profesor.asignaturas_impartidas` diferida** — hoy el Profesor puede elegir cualquier asignatura del catálogo. La restricción se materializará cuando entre `consultarListaAlumnos` del Profesor (donde la relación es crítica para el filtrado).
+4. **Sin `PoliticaAcceso` para `SesionDeClase`** — solo un rol participa. La Strategy nació en el ramillete Alumno con dos roles concretos; introducirla aquí sería abstracción prematura. Defensa de propiedad (`sesion.profesor_id == current_user.id`) y de estado (`== ABIERTA`) viven directamente en `SesionClaseService` — el paralelo a la regla de propiedad de `PoliticaAlumno` sin Strategy intermedia.
+5. **`DatosSesionClase` del análisis → `CrearSesionClaseRequest` Pydantic** — el value object queda materializado como schema de transporte, sin dataclass interno adicional. Es el Parameter Object real en código.
+6. **`EditarSesionClaseRequest` sin `asignatura_id`/`grupo`/`profesor_id`** — invariantes materializadas por contrato (`extra="ignore"`), mismo patrón que `tipo` en `EditarUsuarioRequest`. Defensa silenciosa, sin checks explícitos.
+7. **Edición in-situ, no ruta separada** — `/sesiones-clase/{id}` es **una sola** página con dos modos (ver / editar); respeta literalmente el análisis ("el Profesor no abandona la pantalla de asistencias para tocar metadatos"). El botón "Cancelar" usa `window.confirm` si hay cambios sin guardar (resuelve la deuda del análisis).
+8. **Tras 201 en `crearSesionClase`, navega a `/sesiones-clase/{id}`** (estado activo), no a un listado. Materializa la asimetría del análisis "crear → estado activo nuevo" frente a "crear → editar (siempre)" de los CRUDs previos. Esta vista será la base para `editarSesionClase` (in-situ), `registrarTomaAsistencia` y `cerrarSesionClase`.
+
+**Entidades nuevas introducidas (a materializar en implementación):**
+- `app/models/sesion_clase.py` — `SesionDeClase` + enum `EstadoSesionClase`
+- `app/schemas/sesiones_clase.py` — `CrearSesionClaseRequest`, `EditarSesionClaseRequest`, `SesionDeClaseOut`
+- `app/services/sesion_clase_service.py` — `crear`, `actualizar` con excepciones `SesionClaseInvalida`/`SesionClaseNoEncontrada`/`SesionClaseNoEditable`
+- `app/repositories/sesion_clase_repository.py` — `crear`, `obtener_por_id`, `listar_por_profesor`
+- Catálogo `GET /asignaturas` ligero (lectura del seed)
+
+**Tamaños de los diagramas:** 13 (crear) vs 18 (editar con `alt`). Alineados con el resto del proyecto (cerrarSesion 8 — el mínimo; iniciarSesion 17 — el más complejo). La asimetría refleja complejidad inherente (alt-block en editar, no en crear), no verbosidad.
+
+Índices actualizados: `RUP/02-diseño/casos-uso/README.md` 18/26 → 20/26 (ambos ✅); `RUP/02-diseño/README.md` 18/26 → 20/26; README raíz `Diseño 18/26 → 20/26`.
+
+**Decisión:** Apertura del ramillete Profesor en diseño con los 2 CUs de "ciclo de vida operativo" de la sesión de clase. Próximos pasos naturales del modo iterativo: o seguir el diseño del ramillete con `cerrarSesionClase` (que cierra el ciclo de vida — transición `ABIERTA → CERRADA`) + `registrarTomaAsistencia` (primer CU no-CRUD del proyecto, debuta `Asistencia`), o implementar ya estos 2 para ver `SesionDeClase` viva. A confirmar con el usuario.
+
+---
+
+## [08:30] Diseño de `consultarListaAlumnos()` y `consultarDetalleAlumno()` (Profesor) — debut de la relación `profesor_asignaturas`
+
+**Prompt:** "perfecto, ahora vamos con los 2 relacionados con los alumnos".
+
+**Resultado:** Seis archivos creados (puml + svg + README × 2):
+
+- `RUP/02-diseño/casos-uso/consultarListaAlumnos/{secuencia.puml, secuencia.svg, README.md}` — 14 mensajes con `alt` "asignatura no impartida → 403"; endpoint `GET /alumnos?asignatura_id&page&size` extendido.
+- `RUP/02-diseño/casos-uso/consultarDetalleAlumno/{secuencia.puml, secuencia.svg, README.md}` — 17 mensajes con tres ramas `alt` (encontrado / 404 / 403); endpoint nuevo `GET /alumnos/{id}`.
+
+**Decisión central del ramillete — debut de la tabla `profesor_asignaturas`:**
+
+Cierre de la deuda diferida en [crearSesionClase] ("`profesor.asignaturas_impartidas` diferida hasta consultarListaAlumnos"). Es la primera vez que la relación es **load-bearing** en código: sin ella no se puede aplicar la regla emergente "Profesor competente" (regla del análisis que se repite en 3 CUs del Profesor: `consultarSolicitudDispensaProfesor`, `consultarListaAlumnos`, `consultarDetalleAlumno`).
+
+- Estructura: tabla N:M `(profesor_id PK→usuarios.id, asignatura_id PK→asignaturas.id)`, sin atributos adicionales. Acceso desde Python como relación `Usuario.asignaturas_impartidas` (`lazy="selectin"`, `secondary=`).
+- Seed: pobla `profesor1 → IYA038, IYA040, IYA041` para que la prueba manual funcione.
+- Endpoint auxiliar `GET /profesores/yo/asignaturas` para que el frontend cargue las pestañas al montar.
+
+**Decisiones de fondo consolidadas (defaults aceptados por adelantado, anunciadas al usuario):**
+
+1. **`GET /alumnos` extendido** con `["secretaria", "profesor"]` y `?asignatura_id?` opcional. Service ramifica por rol: Secretaria opcional sin restricción; Profesor requerido + defensa "Profesor competente" (422 si falta, 403 si no imparte). El `?q=` de Secretaria sigue funcionando.
+2. **`GET /alumnos/{id}` nuevo** con `["profesor", "secretaria"]` — recurso distinto de `/usuarios/{id}` (vista admin) y `/matriculas/{id}` (ficha de la matrícula). La Secretaria salta la verificación competente; el Profesor exige al menos una asignatura compartida (404 si no existe el alumno; 403 si existe pero no comparte asignatura — distinción honesta sin enmascaramiento).
+3. **`AlumnoService` introducido aquí** — orquesta verificación competente + filtrado de asistencias. Es el primer Service que materializa la regla del análisis "regla del Profesor competente en defensa en profundidad".
+4. **Sin Strategy `PoliticaAcceso`** — aunque hay dos roles operando sobre Alumno, las firmas del Repository difieren (`buscar_alumnos(page, size, q)` Secretaria vs `buscar_por_asignatura(asignatura_id, page, size)` Profesor). Aplica la regla emergente del proyecto: cuando la signatura difiere → métodos específicos del Service; cuando solo la política varía → Strategy. Misma lección que en `crearSolicitudDispensaSecretaria`. Sin abstracción prematura.
+5. **Schema `AlumnoEnAsignaturaOut`** distinto del `AlumnoListaItemOut` de Secretaria — campos académicos del prototipo (`carnet`/`curso_academico`/`estado_matricula`) derivados del join con `Matricula`. Dos schemas honestos en vez de unión con `Optional` siempre llenos en un rol y `None` en otro.
+6. **Schema `AlumnoDetalleOut`** distinto del `MatriculaDetalleOut` — el primero es la ficha de **una persona** (Profesor consulta personas), el segundo de **una matrícula** (Secretaria consulta matrículas). Aunque comparten datos, las audiencias y entradas difieren.
+7. **`Asistencia` diferida al CU dueño `registrarTomaAsistencia`** — el schema reserva `asistencias: List[AsistenciaResumenOut]` pero hoy retorna `[]`. Mismo enfoque que `Matricula` con `importarMatriculas` (la entidad emerge del CU dueño semántico). Evita seed manual de asistencias inventadas y no rompe la trazabilidad RUP.
+8. **Filtro de asistencias en el Service**, no en el Repository — el Repository devuelve el agregado completo; el Service filtra por las asignaturas del Profesor antes de serializar. Resuelve la ambigüedad del prototipo del análisis en favor del filtro estricto.
+9. **Eager-load del agregado del alumno** — `selectinload(matriculas).selectinload(asignaturas_matriculadas).joinedload(asignatura)` para evitar el problema de lazy-load en sesión async (conocido del ramillete Director). Una request, agregado completo.
+
+**Entidades nuevas introducidas en este ramillete:**
+
+- Tabla N:M `profesor_asignaturas` + relación `Usuario.asignaturas_impartidas`
+- `AlumnoService` (`app/services/alumno_service.py`) — el actual `app/services/alumno_service.py` del bloque Secretaria (que solo importa CSVs) probablemente se renombra a `AlumnoImportService` o se fusiona, deuda blanda
+- `AlumnoRepository` métodos nuevos: `buscar_por_asignatura(asignatura_id, page, size)`, `obtener_alumno_con_matricula(id)`
+- Endpoint auxiliar `GET /profesores/yo/asignaturas`
+- Schemas: `AlumnoEnAsignaturaOut`, `AlumnoDetalleOut`, `AsistenciaResumenOut` (placeholder hasta `registrarTomaAsistencia`)
+
+**Tamaños de los diagramas:** 14 (lista) vs 17 (detalle con 3 ramas alt). Alineados con el resto del proyecto. La asimetría refleja que el detalle tiene tres caminos honestos (200/404/403), no verbosidad.
+
+Índices actualizados: `RUP/02-diseño/casos-uso/README.md` 20/26 → 22/26 (ambos ✅); `RUP/02-diseño/README.md` 20/26 → 22/26; README raíz `Diseño 20/26 → 22/26`.
+
+**Decisión:** Segundo paso del ramillete Profesor en diseño. La relación `profesor_asignaturas` queda definida y disponible para los próximos CUs del bloque. Quedan **4 CUs del Profesor en diseño** (`registrarTomaAsistencia`, `cerrarSesionClase`, `exportarHistorialAsistencias`, `consultarSolicitudDispensa` del Profesor) y **8/26 en desarrollo**. Próximo paso natural: o seguir con el diseño de los 4 restantes, o implementar ya estos 4 diseñados (Sesión×2 + Alumnos×2) en un push.
+
+---
+
+## [08:46] Diseño de los 4 CUs restantes del Profesor — cierre del diseño 26/26
+
+**Prompt:** "haz los disenos restantes".
+
+**Resultado:** Doce archivos creados (puml + svg + README × 4):
+
+- `RUP/02-diseño/casos-uso/cerrarSesionClase/{secuencia.puml, secuencia.svg, README.md}` — 17 mensajes con `alt`, `PATCH /sesiones-clase/{id}` con `{estado: "CERRADA"}` y side effect `hora_fin = now`.
+- `RUP/02-diseño/casos-uso/registrarTomaAsistencia/{secuencia.puml, secuencia.svg, README.md}` — 16 mensajes con `alt`, `PUT /sesiones-clase/{id}/asistencias/{alumno_id}` upsert granular idempotente; debuta `Asistencia`.
+- `RUP/02-diseño/casos-uso/exportarHistorialAsistencias/{secuencia.puml, secuencia.svg, README.md}` — 17 mensajes con `alt`, `GET /asistencias/exportar?asignatura_id&desde&hasta`; segundo servicio generador del proyecto.
+- `RUP/02-diseño/casos-uso/consultarSolicitudDispensaProfesor/{secuencia.puml, secuencia.svg, README.md}` — 21 mensajes con 3 ramas `alt` (200/404/403), `GET /dispensas/{id}` extendido; debuta `PoliticaProfesor` (cuarta política del módulo).
+
+**Decisiones de fondo consolidadas (defaults aceptados por adelantado):**
+
+1. **`cerrarSesionClase` reutiliza `PATCH /sesiones-clase/{id}`** con `{estado: "CERRADA"}` — coherencia con la state machine de `SolicitudDispensa` (un solo endpoint para transiciones). El Service detecta la transición por el body y sella `hora_fin = now`. Sin endpoint dedicado `POST /sesiones-clase/{id}/cerrar`. Patrón "PATCH con state machine inferida" sólidamente consolidado en el proyecto (Director, Alumno y ahora Profesor).
+2. **`Asistencia` debuta como entidad** — cierre de la última deuda urgente del análisis. Tabla `asistencias` con UNIQUE `(sesion_clase_id, alumno_id)`, enum `EstadoAsistencia = {PRESENTE, AUSENTE, TARDE}`, `justificacion` y `fecha_registro` opcionales. La unicidad compuesta es la base del upsert idempotente.
+3. **`PUT /sesiones-clase/{id}/asistencias/{alumno_id}` (granular)** — semántica HTTP correcta para upsert con identidad conocida. El análisis adoptó granular sobre batch; el diseño lo respeta. Sin "submit final"; cada cambio del Profesor persiste inmediatamente. Concurrencia trivial (último-en-escribir-gana).
+4. **Interacción `Asistencia ↔ SolicitudDispensa`: opción A** (independencia con vista combinada). El backend retorna ambas entidades por separado; el frontend muestra una columna "Dispensa" derivada cruzando `SolicitudDispensa.APROBADA` con `(alumno_id, asignatura)`. La columna no se persiste; es presentación pura.
+5. **`GeneradorArchivoAsistencias` paralelo a `GeneradorArchivoDispensas`** — segundo servicio del proyecto. **Sin abstracción `Generador<T>`** (anunciada como deuda blanda en `exportarDispensas` y en el análisis). Razón: dos generadores con misma forma pero **no contrato formal** (`generar_csv(List[Dispensa])` vs `generar_csv(List[Asistencia])` — no intercambiables). Introducir ABC sería agrupación sintáctica sin polimorfismo real. Coherente con la lección "abstracción solo cuando hay un caso polimórfico real".
+6. **CSV único en v1.0** — XLSX/PDF como deuda blanda. `csv` stdlib cubre el caso sin dependencias. Mismo enfoque que `exportarDispensas`.
+7. **`PoliticaProfesor` introducida** — cuarta y última política sobre `SolicitudDispensa`. Contrato: `obtener_listado` filtra por join con `profesor_asignaturas`; `puede_ver` exige asignatura impartida; transiciones y campos editables vacíos (read-only puro, sin write paths). Cierre del polimorfismo del Controller sobre la entidad **más operada** del proyecto: cuatro políticas inyectables, **un único Service + un único Repository**.
+8. **`require_rol(["alumno", "secretaria", "director", "profesor"])`** en `GET /dispensas` y `GET /dispensas/{id}` — el dispatch vive en la Política. PATCH/POST/exportar quedan sin cambios (siguen en sus subconjuntos previos).
+9. **404 vs 403 honestos en consultarSolicitudDispensa (Profesor)** — si no existe la dispensa → 404; si existe pero la asignatura no es impartida → 403. Sin enmascaramiento por privacidad. Coherente con la decisión paralela del Profesor sobre `consultarDetalleAlumno`.
+10. **Sub-recurso `/sesiones-clase/{id}/asistencias`** (no `/asistencias` plano) — refleja la jerarquía conceptual (asistencia pertenece a sesión). Coherente con `asignaturas_matriculadas` que cuelga de `matriculas`.
+
+**Cierre del polimorfismo del Controller sobre `SolicitudDispensa`:** Con la cuarta política se completa la entidad más operada del proyecto:
+
+| Rol | Política | Listado | `puede_ver` | Transiciones | Campos editables |
+|---|---|---|---|---|---|
+| Alumno | `PoliticaAlumno` | propias | propietario | `{(PENDIENTE, ANULADA)}` | motivo, asig_matr (si PENDIENTE) |
+| Director | `PoliticaDirector` | sin filtro | siempre | 3 (veredicto) | observaciones (si EN_REVISION) |
+| Secretaria | `PoliticaSecretaria` | sin filtro | siempre | `{(PENDIENTE, ANULADA)}` | motivo, asig_matr (si PENDIENTE) |
+| Profesor | `PoliticaProfesor` | join con `profesor_asignaturas` | asignatura impartida | vacío | vacío |
+
+Sin proliferación de Controllers. Sin if-else por rol en el código de aplicación.
+
+**Entidades introducidas en este round:**
+
+- `Asistencia` + enum `EstadoAsistencia` (modelo, schemas, service, repository)
+- Endpoints nuevos: `PUT /sesiones-clase/{id}/asistencias/{alumno_id}`, `GET /sesiones-clase/{id}/asistencias`, `GET /asistencias/exportar`
+- `AsistenciaService`, `AsistenciaRepository` (con `upsert` y `obtener_por_rango`)
+- `GeneradorArchivoAsistencias` (paralelo a `GeneradorArchivoDispensas`)
+- `PoliticaProfesor` en `app/services/politica_acceso.py`
+
+**Tamaños de los diagramas:** 17 (cerrar) / 16 (registrar) / 17 (exportar) / 21 (consultar dispensa). Alineados con el resto del proyecto. La asimetría del último refleja que tiene tres ramas `alt` (200/404/403), no verbosidad.
+
+Índices actualizados: `RUP/02-diseño/casos-uso/README.md` 22/26 → **26/26 ✅**; `RUP/02-diseño/README.md` 22/26 → **26/26 ✅**; README raíz `Diseño 22/26 → 26/26 ✅`.
+
+**Decisión:** **Disciplina de Diseño cerrada al 100%** (26/26). El proyecto cierra el día con análisis 26/26 ✅, **diseño 26/26 ✅**, desarrollo 18/26 ⏳. Próximo paso natural: implementar los 8 CUs restantes del ramillete Profesor (2 Sesión + 2 Alumnos + cerrar + registrar + exportar + consultar dispensa) en un push, con la migración de:
+- Tabla N:M `profesor_asignaturas` + seed
+- Entidad `SesionDeClase` + state machine
+- Entidad `Asistencia` con UNIQUE compuesto
+- Extensión de endpoints existentes (`/alumnos`, `/dispensas`) con nuevos roles y filtros
+- `PoliticaProfesor` añadida al módulo
+- Segundo servicio generador (`GeneradorArchivoAsistencias`)
+
+Cuando se cierre, el proyecto quedará en **26/26 en las tres disciplinas**.
+
+---

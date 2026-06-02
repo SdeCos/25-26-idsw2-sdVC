@@ -1,0 +1,46 @@
+@startuml
+title Diseño — exportarHistorialAsistencias()
+
+actor Profesor as P
+
+box "Frontend (React + TS)" #E8F0FE
+    participant "ExportarHistorialPage\n(modal)" as EP
+    participant "asistenciasService" as AS
+end box
+
+box "Backend (FastAPI)" #FFF4E0
+    participant "AsistenciasRouter\nGET /asistencias/exportar" as AR
+    participant "require_rol" as RR
+    participant "AsistenciaService" as ASV
+    participant "AsistenciaRepository" as ARP
+    participant "GeneradorArchivoAsistencias" as GA
+end box
+
+database "SQLite" as DB
+
+P  -> EP  : asignatura, desde, hasta, formato=CSV
+EP -> AS  : exportar({asignatura_id, desde, hasta})
+AS -> AR  : GET /asistencias/exportar?asignatura_id&desde&hasta (Bearer)
+AR -> RR  : autorizar "profesor"
+RR --> AR : Profesor | 403
+AR -> ASV : exportar(filtros, current_user)
+
+alt asignatura impartida por el Profesor
+    ASV -> ARP : obtener_por_rango(asignatura_id, desde, hasta)
+    ARP -> DB  : SELECT a.* JOIN sesiones_clase s\n  WHERE s.asignatura_id=? AND s.fecha BETWEEN ?
+    DB  --> ARP : List[Asistencia]
+    ARP --> ASV : List[Asistencia]
+    ASV -> GA  : generar_csv(asistencias)
+    GA  --> ASV : bytes (BOM utf-8-sig)
+    ASV --> AR  : StreamingResponse
+    AR  --> AS  : 200 (Content-Disposition: attachment)
+    AS  --> EP  : blob
+    EP  --> P   : descarga "asistencias-{asignatura}-{fecha}.csv"
+else asignatura no impartida
+    ASV --> AR  : raise ProfesorNoCompetente
+    AR  --> AS  : 403
+    AS  --> EP  : error
+    EP  --> P   : "no impartes esta asignatura"
+end
+
+@enduml

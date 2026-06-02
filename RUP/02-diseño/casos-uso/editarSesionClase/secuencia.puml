@@ -1,0 +1,45 @@
+@startuml
+title Diseño — editarSesionClase()
+
+actor Profesor as P
+
+box "Frontend (React + TS)" #E8F0FE
+    participant "SesionClaseActivaPage\n(modo edición)" as SP
+    participant "sesionesClaseService" as SS
+end box
+
+box "Backend (FastAPI)" #FFF4E0
+    participant "SesionesClaseRouter\nPATCH /sesiones-clase/{id}" as SR
+    participant "require_rol" as RR
+    participant "SesionClaseService" as SCS
+    participant "SesionClaseRepository" as SCR
+end box
+
+database "SQLite" as DB
+
+P  -> SP  : "Guardar" sobre cabecera editable
+SP -> SS  : actualizar(id, cambios)
+SS -> SR  : PATCH /sesiones-clase/{id} (Bearer)
+SR -> RR  : autorizar "profesor"
+RR --> SR : Profesor | 403
+SR -> SCS : actualizar(id, cambios, current_user)
+SCS -> SCR : obtener_por_id(id)
+SCR --> SCS : SesionDeClase
+
+alt edición válida (propietario + ABIERTA + campos permitidos)
+    SCS -> SCR : actualizar(sesion, cambios)
+    SCR -> DB  : UPDATE
+    DB  --> SCR : SesionDeClase
+    SCR --> SCS : SesionDeClase
+    SCS --> SR  : SesionDeClaseOut
+    SR  --> SS  : 200
+    SS  --> SP  : actualizado
+    SP  --> P   : salir del modo edición (in-situ)
+else no propietario o estado CERRADA
+    SCS --> SR  : raise SesionClaseNoEditable
+    SR  --> SS  : 403 / 422
+    SS  --> SP  : error
+    SP  --> P   : "no se puede editar esta sesión"
+end
+
+@enduml

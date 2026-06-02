@@ -1,0 +1,44 @@
+@startuml
+title Diseño — registrarTomaAsistencia()
+
+actor Profesor as P
+
+box "Frontend (React + TS)" #E8F0FE
+    participant "SesionClaseActivaPage\n(modo toma de lista)" as SP
+    participant "asistenciasService" as AS
+end box
+
+box "Backend (FastAPI)" #FFF4E0
+    participant "AsistenciasRouter\nPUT /sesiones-clase/{id}/asistencias/{alumno_id}" as AR
+    participant "require_rol" as RR
+    participant "AsistenciaService" as ASV
+    participant "AsistenciaRepository" as ARP
+end box
+
+database "SQLite" as DB
+
+P  -> SP  : marca estado de un alumno (Presente/Ausente/Tarde)
+SP -> AS  : marcar(sesionId, alumnoId, {estado, justificacion?})
+AS -> AR  : PUT /sesiones-clase/{id}/asistencias/{alumno_id} (Bearer)
+AR -> RR  : autorizar "profesor"
+RR --> AR : Profesor | 403
+AR -> ASV : marcar(sesion_id, alumno_id, datos, current_user)
+ASV -> ASV : validar Profesor competente\n(sesion.profesor_id == current_user.id\nAND sesion.estado == ABIERTA\nAND alumno matriculado en sesion.asignatura)
+
+alt todas las validaciones OK
+    ASV -> ARP : upsert(sesion_id, alumno_id, estado, justificacion)
+    ARP -> DB  : INSERT ... ON CONFLICT (sesion_clase_id, alumno_id)\n  DO UPDATE SET estado, justificacion, fecha_registro=now
+    DB  --> ARP : Asistencia
+    ARP --> ASV : Asistencia
+    ASV --> AR  : AsistenciaOut
+    AR  --> AS  : 200
+    AS  --> SP  : marca persistida
+    SP  --> P   : fila actualizada en vivo
+else propietario, estado o matrícula inválidos
+    ASV --> AR  : raise AsistenciaNoEditable
+    AR  --> AS  : 403 / 422
+    AS  --> SP  : error
+    SP  --> P   : "no se puede registrar"
+end
+
+@enduml
