@@ -15,6 +15,8 @@
 
 ## propósito
 
+> **Nota — scoping por grado.** Originalmente este CU implicaba que el Director podía emitir veredicto sobre **cualquier** dispensa. Una revisión posterior restauró la entidad `Grado` del SDR; ahora solo puede sobre las cuya asignatura pertenece a su grado — la `PoliticaDirector.puede_ver` deja de devolver `True` siempre y compara `solicitud.asignatura_matriculada.asignatura.grado_id == director.grado_id`. La estructura MVC del CU es idéntica; cambia el conjunto de solicitudes alcanzables. Detalle en [[gestionarCatalogoGrados]].
+
 Análisis del caso de uso `editarSolicitudDispensa()` **invocado por el DirectorDeGrado** mediante diagrama de colaboración MVC. Es la operación mediante la cual el Director **emite veredicto** sobre una `SolicitudDispensa`: cambia su estado (Aprobar/Rechazar) y añade observaciones. El sistema registra fecha y responsable, y notifica al alumno.
 
 Aunque comparte nombre con [[editarSolicitudDispensa]] del Alumno, las dos operaciones son **semánticamente distintas**: el Alumno modifica el contenido de su solicitud (motivo, adjuntos); el Director modifica el resultado/veredicto. Se modelan como **análisis separados** porque sus puntos de entrada, campos editables, side effects y vistas son diferentes — y porque el requisitado ya distingue dos detallados (`EditarSolicitudDispensa.puml` del Alumno vs `EditarSolicitud.puml` del Director).

@@ -1,0 +1,24 @@
+@startuml gestionarCatalogoGrados-analisis
+skinparam linetype polyline
+
+rectangle #CDEBA5 ":Catalogo Abierto" as CatalogoAbierto
+
+package gestionarCatalogoGrados as "gestionarCatalogoGrados()" {
+    rectangle #629EF9 GradosView
+    rectangle #b5bd68 GradoController
+    rectangle #F2AC4E GradoRepository
+    rectangle #F2AC4E Grado
+}
+
+CatalogoAbierto -r-> GradosView          : gestionarCatalogoGrados()
+
+GradosView      --> GradoController      : listar() : list<Grado>
+GradosView      --> GradoController      : crear(codigo, nombre, facultad) : Grado
+GradosView      --> GradoController      : actualizar(id, cambios) : Grado
+GradosView      --> GradoController      : eliminar(id)
+
+GradoController --> GradoRepository      : obtenerTodos / crear / actualizar / eliminar (con validación)
+
+GradoRepository -- Grado
+
+@enduml

@@ -32,5 +32,6 @@ Diagramas de colaboración MVC por caso de uso.
 | [editarSolicitudDispensa()](editarSolicitudDispensaSecretaria/README.md) (Secretaria) | Secretaria | ✅ |
 | [consultarSolicitudDispensa()](consultarSolicitudDispensaSecretaria/README.md) (Secretaria) | Secretaria | ✅ |
 | [exportarDispensas()](exportarDispensas/README.md) | Secretaria | ✅ |
+| [gestionarCatalogoGrados()](gestionarCatalogoGrados/README.md) | Secretaria | ✅ |
 
-**Progreso:** 26/26 ✅
+**Progreso:** 27/27 ✅

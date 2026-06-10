@@ -15,6 +15,8 @@
 
 ## propósito
 
+> **Nota — scoping por grado.** Cuando se redactó este análisis el Director veía **todas** las dispensas del sistema. Una revisión posterior restauró la entidad `Grado` del SDR (`Grado → DirectorDeGrado : Dirigido por`), de modo que el Director ve solo las dispensas cuya asignatura pertenece a su grado. La mecánica MVC del CU no cambia (mismo Controller, mismo Repository, misma View) — lo que cambia es el filtro aplicado en `obtenerTodas()`: ahora es `obtenerPorGrado(grado_id)`. Las afirmaciones tipo "ve todas" del texto que sigue deben leerse como "ve todas las de su grado". Detalle en [[gestionarCatalogoGrados]].
+
 Análisis del caso de uso `consultarSolicitudesDispensas()` mediante diagrama de colaboración MVC. Es el CU **read-only de master-detail** del DirectorDeGrado: el Director accede al listado de **todas** las solicitudes de dispensa del sistema, abre el detalle de una seleccionada, y opcionalmente transita a [[editarSolicitudDispensa]] para emitir veredicto (aprobar/rechazar/observar).
 
 A diferencia del CU homólogo del Alumno ([[consultarSolicitudDispensa]] — singular), aquí el alcance abarca **el listado completo + el detalle en una misma colaboración**. El Director es el revisor, no el propietario.

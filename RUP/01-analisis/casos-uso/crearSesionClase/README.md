@@ -17,7 +17,11 @@
 
 Análisis del caso de uso `crearSesionClase()` mediante diagrama de colaboración MVC. Apertura del bloque Profesor: el Profesor configura una nueva sesión de clase (asignatura, grupos, aula, fecha, hora, tema) y al confirmarla el sistema pasa a estado `SESION_ASISTENCIA_ABIERTA`, donde podrá pasar lista mediante [[registrarTomaAsistencia]].
 
-> **Evolución post-base.** En la versión inicial del análisis `grupo` era cardinal 1 (string libre). Tras detectar que una sesión puede servir a varios grupos simultáneamente (típico de asignaturas transversales como Inglés con varias titulaciones), se actualizó a `grupos: list[str]`. Las menciones del análisis a "grupo" singular en las secciones de refactor histórico (Long Parameter List) se preservan tal como fueron escritas. Detalles y decisión completa en [`RUP/PLAN-MEJORAS.md`](/RUP/PLAN-MEJORAS.md) (ítem M6).
+> **Notas — revisiones posteriores al análisis inicial.**
+>
+> **Cardinalidad de grupos.** En la versión inicial `grupo` era cardinal 1 (string libre). Tras detectar que una sesión puede servir a varios grupos simultáneamente (típico de asignaturas transversales como Inglés con varias titulaciones), se actualizó a `grupos: list[str]`. Las menciones a "grupo" singular en las secciones de refactor histórico (Long Parameter List) se preservan tal como fueron escritas — son narrativa pedagógica sobre un problema distinto.
+>
+> **Asignatura promovida con FK a `Grado`.** Una de las "deudas para 02-diseño" señaladas más abajo era *"decidir si Asignatura, Grupo, Aula son entidades de dominio propias o atributos planos"*. 02-diseño optó por mantenerlos como strings libres (`Asignatura.plan_estudios` y `Asignatura.facultad`), decisión que arrastró sin querer la pérdida del scoping de Director/Secretaria por grado modelado en el SDR. Una revisión posterior revierte la parte de Asignatura: `plan_estudios` y `facultad` desaparecen y se reemplazan por una FK `grado_id` a la entidad `Grado`. Grupo y Aula siguen como strings libres (Grupo solo cambió de cardinalidad; Aula no ha tenido caso que lo justifique). Detalle en [[gestionarCatalogoGrados]].
 
 Es la primera entidad del proyecto cuyo CU de creación **no termina en un listado** sino en un **nuevo estado activo** (la sesión de clase abierta). Esto rompe con el patrón "crear → editar (siempre) → listado" del bloque Administrador y Alumno.
 

@@ -2065,4 +2065,22 @@ Usuario pide implementar tal cual el SDR. Antes de codear, pide que primero se a
 
 Implementación pendiente — próximo paso.
 
+## [11:01] M7 — 01-analisis hecho
+
+**Prompt:** "vamos a empezar con la implementacion de m7, empieza con el analisis".
+
+**Resultado:** Análisis de M7 cerrado siguiendo el principio de [[feedback_scope_minimo_disciplinas]] (no rehacer 10 CUs, solo lo canónico):
+
+- **Nuevo CU `gestionarCatalogoGrados`** en `RUP/01-analisis/casos-uso/gestionarCatalogoGrados/` — README.md detallado + colaboracion.puml + colaboracion.svg. Documenta el CRUD de Grados por Secretaria, justifica por qué Grado sí merece entidad (los 4 criterios del análisis "promover a entidad" se cumplen, contrastando con M6 donde no aplicaba a Grupo) y por qué el catálogo queda global (no scoped) frente al resto de operaciones.
+- **4 notas "Evolución post-base"** insertadas al principio del propósito de los CUs con cambio sustantivo de comportamiento:
+  - `consultarSolicitudesDispensas` — Director ya no ve "todas" sino las de su grado.
+  - `editarSolicitudDispensaDirector` — solo emite veredicto sobre dispensas de su grado.
+  - `consultarListaAlumnosSecretaria` — Secretaria ve solo alumnos de su grado.
+  - `crearSesionClase` — añadida sección M7 a la nota existente de M6: la decisión "string libre" de Asignatura (deuda señalada en su día para 02-diseño) queda revertida; `plan_estudios` y `facultad` desaparecen y se reemplazan por FK `grado_id`.
+- **Índice de la disciplina** (`01-analisis/casos-uso/README.md`) actualizado con sección "Post-base (plan de mejoras)" listando el nuevo CU y bloque "Evolución post-base — CUs con cambio de comportamiento" enumerando los 4 CUs anotados. Progreso ajustado a `26/26 base + 1/3 post-base`.
+
+CUs derivados que no se reescriben (importarMatriculas, consultarDetalleMatricula, exportarDispensas, etc.): el cambio es solo "ahora hay grado_id en la entidad que ya conocían", y se cubre con la referencia al CU `gestionarCatalogoGrados`. Estructura MVC sin cambios.
+
+**Decisión:** Siguiente paso: 02-diseño cuando el usuario lo indique.
+
 ---

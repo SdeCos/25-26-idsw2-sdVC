@@ -15,6 +15,8 @@
 
 ## propósito
 
+> **Nota — scoping por grado.** Originalmente "completo" significaba "todos los alumnos del sistema". Una revisión posterior restauró la entidad `Grado` del SDR (`Grado → SecretariaAcademica : Gestionado por`), de modo que la Secretaria ve solo los alumnos cuyas matrículas pertenecen a su grado. La cascada del scoping aplica también a matrículas y dispensas en sus respectivos CUs. La estructura MVC no cambia; cambia el filtro: `obtenerTodos()` → `obtenerPorGrado(grado_id)`. Detalle en [[gestionarCatalogoGrados]].
+
 Análisis del caso de uso `consultarListaAlumnos()` **invocado por la Secretaria** mediante diagrama de colaboración MVC. La Secretaria consulta el listado **completo** de alumnos del sistema, sin filtro por asignatura — a diferencia del CU homólogo del Profesor ([[consultarListaAlumnos]]), que filtra por asignaturas impartidas.
 
 Es la **cuarta política del Controller polimórfico**, ahora aplicada sobre `AlumnoController` (las tres primeras estaban sobre `SolicitudDispensaController`). Refuerza el patrón "métodos específicos por rol" como dirección consolidada hacia 02-diseño.
