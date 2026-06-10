@@ -35,6 +35,19 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
               Mis dispensas
             </Link>
           )}
+          {usuario?.tipo === 'profesor' && (
+            <>
+              <Link to="/sesiones-clase" style={linkStyle}>
+                Sesiones
+              </Link>
+              <Link to="/alumnos" style={linkStyle}>
+                Alumnos
+              </Link>
+              <Link to="/dispensas" style={linkStyle}>
+                Dispensas
+              </Link>
+            </>
+          )}
           {usuario?.tipo === 'secretaria' && (
             <>
               <Link to="/alumnos" style={linkStyle}>

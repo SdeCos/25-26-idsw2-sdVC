@@ -1750,3 +1750,172 @@ Sin proliferación de Controllers. Sin if-else por rol en el código de aplicaci
 Cuando se cierre, el proyecto quedará en **26/26 en las tres disciplinas**.
 
 ---
+
+## [10:07] Implementación del ramillete Profesor — 8 CUs end-to-end (cierre 26/26)
+
+**Prompt:** "perfecto, implementalos".
+
+**Resultado:** Backend + frontend implementados; 18/18 pruebas internas vía curl pasan; uvicorn (`:8000`) y vite (`:5173`) corriendo con BD reseteada al estado seed. **Ramillete Profesor completo** (Análisis 26/26 ✅, Diseño 26/26 ✅, **Desarrollo 26/26 ✅**). El proyecto cierra al 100% en las tres disciplinas.
+
+### Backend (16 archivos nuevos / 9 editados)
+
+Entidades nuevas y relaciones:
+- `app/models/profesor_asignatura.py` — tabla N:M (sin clase de dominio independiente).
+- `app/models/sesion_clase.py` — `SesionDeClase` + enum `EstadoSesionClase = {ABIERTA, CERRADA}`.
+- `app/models/asistencia.py` — `Asistencia` con UNIQUE compuesto `(sesion_clase_id, alumno_id)` + enum `{PRESENTE, AUSENTE, TARDE}`.
+- `app/models/usuario.py` — añadido `asignaturas_impartidas` (`relationship` con `secondary=profesor_asignaturas`, `lazy="selectin"`).
+- `app/models/__init__.py` — registros nuevos.
+
+Capa de datos:
+- `app/repositories/sesion_clase_repository.py` — `crear`, `obtener_por_id`, `listar_por_profesor`, `actualizar`.
+- `app/repositories/asistencia_repository.py` — `upsert` con `sqlite_insert(...).on_conflict_do_update(...)`, `listar_por_sesion`, `obtener_por_rango`.
+- `app/repositories/asignatura_repository.py` — extendido con `obtener_todas`, `obtener_por_id`.
+- `app/repositories/usuario_repository.py` — extendido con `buscar_por_asignatura` (join `matriculas`+`asignaturas_matriculadas`) y `obtener_alumno_con_matricula` (eager-load).
+- `app/repositories/solicitud_dispensa_repository.py` — añadido `obtener_por_asignaturas` para PoliticaProfesor.
+
+Servicios:
+- `app/services/sesion_clase_service.py` — `crear`/`obtener`/`listar`/`actualizar`; state machine `ABIERTA → CERRADA`; defensa de propiedad y de estado; excepciones `SesionClaseNoEncontrada`, `SesionClaseInvalida`, `SesionClaseNoEditable`.
+- `app/services/asistencia_service.py` — `marcar` (propietario + estado + alumno matriculado) y `listar_por_sesion`.
+- `app/services/generador_archivo_asistencias.py` — CSV con BOM utf-8-sig, paralelo a `GeneradorArchivoDispensas`.
+- `app/services/politica_acceso.py` — `PoliticaProfesor` añadida (cuarta política); factory actualizada.
+- `app/services/alumno_service.py` — extendido con `listar_por_asignatura` y `obtener_detalle` (defensa "Profesor competente").
+
+Schemas:
+- `app/schemas/asignaturas.py` — `AsignaturaOut`.
+- `app/schemas/sesiones_clase.py` — `CrearSesionClaseRequest`, `EditarSesionClaseRequest`, `SesionDeClaseOut`. Invariantes materializadas por `extra="ignore"` (igual que `tipo` en `EditarUsuarioRequest`).
+- `app/schemas/asistencias.py` — `AsistenciaIn`, `AsistenciaOut`.
+- `app/schemas/alumnos.py` — añadidos `AlumnoEnAsignaturaOut` (Profesor) y `AlumnoDetalleOut`.
+
+Routers nuevos y extensiones:
+- `app/routers/sesiones_clase.py` — `GET/POST /sesiones-clase`, `GET/PATCH /sesiones-clase/{id}`, sub-recurso `GET/PUT /sesiones-clase/{id}/asistencias[/{alumno_id}]`.
+- `app/routers/asistencias.py` — `GET /asistencias/exportar`.
+- `app/routers/asignaturas.py` — `GET /asignaturas` (catálogo).
+- `app/routers/profesores.py` — `GET /profesores/yo/asignaturas`.
+- `app/routers/alumnos.py` — extendido: `GET /alumnos?asignatura_id` con dispatch por rol, `GET /alumnos/{id}` nuevo.
+- `app/routers/dispensas.py` — `require_rol` extendido a `["director","alumno","secretaria","profesor"]` en `GET /dispensas` y `GET /dispensas/{id}`.
+- `app/main.py` — registra los 4 routers nuevos.
+
+Seed:
+- `scripts/seed.py` — añadidas tres funciones: `_seed_profesor_asignaturas` (profesor1 → IYA038/IYA040/IYA041), `_seed_sesiones_clase` (una ABIERTA hoy, una CERRADA ayer), `_seed_asistencias_demo`.
+
+### Frontend (12 archivos nuevos / 5 editados)
+
+Types:
+- `types/asignaturas.ts`, `types/sesiones_clase.ts`, `types/asistencias.ts` nuevos.
+- `types/alumnos.ts` extendido con `AlumnoEnAsignatura`, `AlumnoDetalle`, `AsistenciaEnFicha`.
+
+Services:
+- `services/asignaturasService.ts`, `services/profesoresService.ts`, `services/sesionesClaseService.ts`, `services/asistenciasService.ts` nuevos.
+- `services/alumnosService.ts` extendido con `listarPorAsignatura`, `obtener`.
+
+Páginas nuevas (Profesor):
+- `SesionesClasePage.tsx` — listado + selector de asignatura + botón export CSV.
+- `CrearSesionClasePage.tsx` — form con select de asignaturas impartidas.
+- `SesionClaseActivaPage.tsx` — vista + edición in-situ + toma de asistencia + cerrar (modal `window.confirm`).
+- `ListaAlumnosPage.tsx` — con pestañas por asignatura impartida.
+- `DetalleAlumnoPage.tsx` — ficha con secciones colapsables.
+
+Navegación y bifurcación:
+- `App.tsx` — añadidos `profesorOnly`, `profesorOSecretaria`. `/alumnos` ramifica con `BifurcacionAlumnos` (Profesor → `ListaAlumnosPage`; Secretaria → `AlumnosPage`).
+- `Layout.tsx` — link "Sesiones", "Alumnos", "Dispensas" para Profesor.
+- `DispensasPage.tsx` — adaptada para mostrar "Dispensas de mis asignaturas" con rol Profesor; sin botones de creación/export.
+- `ConsultarDispensaPage.tsx` — ya estaba: el rol Profesor cae en `'otro'` → componente `<Acciones>` retorna `null` (read-only puro). Sin cambios necesarios.
+
+### Bug detectado y arreglado en vivo
+
+1. **`hora_fin` sobrescrita al cerrar**: la primera implementación sellaba `hora_fin = datetime.now().time()` al cerrar, perdiendo la hora planeada. Decisión revisada: el cierre solo cambia el estado; `hora_fin` se preserva. Divergencia documentada en el README de desarrollo de `cerrarSesionClase`. Razón: sobrescribir hora planeada con `now()` pierde información útil sin ganar nada (el cierre se identifica por `estado=cerrada`).
+2. **`PoliticaProfesor.obtener_listado` no filtraba**: el primer `obtener_por_asignaturas` usaba `joinedload` y un `where(AsignaturaMatriculada.asignatura_id.in_(ids))` sin JOIN explícito → SQLAlchemy ignoraba el filtro. El listado del Profesor devolvía 3 dispensas en vez de 2. Fix: JOIN explícito `solicitudes_dispensa JOIN asignaturas_matriculadas`. Confirmado 2 dispensas tras el fix.
+
+### Decisiones de diseño consolidadas
+
+- **`SesionDeClase` y `Asistencia` debutan como entidades** del dominio — cierre de las dos deudas urgentes del análisis.
+- **State machine `ABIERTA → CERRADA`** con un solo PATCH; misma forma que `SolicitudDispensa`.
+- **Tabla N:M `profesor_asignaturas`** introducida como load-bearing en `consultarListaAlumnos` (cierre de la deuda diferida en `crearSesionClase`).
+- **`Asistencia ↔ SolicitudDispensa`: opción A** (independientes); frontend cruza si necesita.
+- **`PoliticaProfesor`** cuarta y última política sobre `SolicitudDispensa` — read-only puro (transiciones y campos editables vacíos).
+- **Sin abstracción `Generador<T>`** — dos generadores con misma forma pero contratos no intercambiables. Diferida.
+- **Sub-recurso `/sesiones-clase/{id}/asistencias`** — refleja la jerarquía conceptual.
+- **`BifurcacionAlumnos`** en `/alumnos` — Profesor y Secretaria comparten ruta con pages distintas.
+
+### Verificación interna — 18 pruebas curl
+
+Backend (todos OK):
+- `/profesores/yo/asignaturas` Profesor (3 asignaturas seed); Alumno 403.
+- `/sesiones-clase` GET, POST, PATCH (editar), PATCH (cerrar), PATCH (editar cerrada=422), PATCH (reabrir=422).
+- `/alumnos` sin asignatura_id (422), con IYA040 (200), con IYA010=403.
+- `/alumnos/{id}` 200/404.
+- `PUT /sesiones-clase/{id}/asistencias/{alumno_id}` marcar 200, upsert 200, sesión cerrada 422.
+- `/dispensas` Profesor (2 filtradas), dispensa IYA010=403, PATCH=422.
+- `/asistencias/exportar` CSV OK 200 con BOM; IYA010 403.
+- Cross-rol: Alumno en `/sesiones-clase` 403; Director ve 3 dispensas; Alumno ve sus 3.
+
+Frontend:
+- `npx tsc --noEmit` limpio (sin errores).
+- vite (`:5173`) sirve la SPA; proxy `/api` → backend OK.
+
+### Estado de la BD reseteada al cierre
+
+| Recurso | Estado seed |
+|---|---|
+| Usuarios | 5 (admin/profesor1/alumno1/director1/secretaria1) |
+| Asignaturas catálogo | 5 (IYA010, IYA020, IYA038, IYA040, IYA041) |
+| Profesor → asignaturas | profesor1 imparte IYA038, IYA040, IYA041 |
+| Matrículas | 1 (alumno1 · 2025/2026 · 4 asignaturas matriculadas) |
+| Dispensas | 3 (IYA040 pendiente, IYA041 en_revision, IYA010 aprobada) |
+| Sesiones de clase | 2 (IYA040 hoy abierta, IYA040 ayer cerrada) |
+| Asistencias | 1 (alumno1 presente en la sesión cerrada) |
+
+### Guion de prueba manual
+
+URL: http://localhost:5173 — uvicorn (bplnq92xj) y vite (ba4g55i2y) siguen corriendo en background.
+
+Credenciales:
+- `profesor1` / `profe123` — actor principal del ramillete
+- `alumno1` / `alumno123` — para probar visibilidad cruzada de dispensas
+- `director1` / `director123` — para confirmar que el flujo de veredicto sigue funcionando
+- `secretaria1` / `secre123` — para confirmar que el listado de Alumnos no se rompió
+
+Camino feliz Profesor (10 pasos):
+1. Login `profesor1`/`profe123` → dashboard.
+2. Cabecera: ver links "Sesiones", "Alumnos", "Dispensas".
+3. **Sesiones** → ver 2 sesiones (una abierta hoy, una cerrada ayer).
+4. Click "+ Nueva sesión" → form con select IYA038/IYA040/IYA041, completar y crear → navega a la vista activa.
+5. En la vista activa: pulsar "Editar", cambiar `aula`/`tema`, "Guardar".
+6. Probar "Cancelar" tras editar → `window.confirm` pide confirmación.
+7. Marcar alumno1 como Presente → Tarde → Ausente (cada click persiste).
+8. "Finalizar sesión" → modal de confirmación → estado pasa a `cerrada`, navega al listado.
+9. **Alumnos** → pestañas IYA038/IYA040/IYA041; click pestaña → carga alumnos matriculados. Click "Ver ficha".
+10. **Dispensas** → ver solo IYA040 + IYA041 (2 dispensas, IYA010 oculta). Click "Ver" → ficha sin botones de acción.
+
+Edge cases:
+- Selector de export en `/sesiones-clase` → exporta CSV (descarga `asistencias-{codigo}-{fecha}.csv`).
+- Login con `alumno1` → solo "Mis dispensas" visible; acceso directo a `/sesiones-clase` redirige a dashboard.
+- Login con `secretaria1` → ve "Alumnos", "Matrículas", "Dispensas"; `/alumnos` muestra el listado paginado de la Secretaria (no las pestañas del Profesor).
+
+### Estado del proyecto al cierre
+
+| Disciplina | Estado |
+|---|---|
+| Análisis | ✅ 26/26 |
+| Diseño | ✅ 26/26 |
+| Desarrollo | ✅ 26/26 |
+
+**El proyecto está completo en las tres disciplinas RUP.**
+
+---
+
+## [10:13] Cierre de sesión
+
+**Prompt:** "perfecto, finaliza la sesion".
+
+**Resultado:** Servidores en background parados (`uvicorn` y `vite`). BD en estado seed limpio. Sin procesos huérfanos. Cambios sin commitear (a la espera de commit manual del usuario): 21 archivos modificados + 35 archivos nuevos cubriendo backend, frontend y READMEs de `RUP/03-desarrollo` para los 8 CUs del ramillete Profesor.
+
+**Decisión:** Cierre formal de la sesión 2026-06-02. Resumen del día:
+
+- Diseño: 18/26 → **26/26 ✅** (los 8 CUs del Profesor: sesión×2, alumnos×2, cerrar, registrar, exportar, dispensa Profesor).
+- Desarrollo: 18/26 → **26/26 ✅** (los mismos 8 CUs implementados end-to-end con `SesionDeClase`, `Asistencia`, tabla N:M `profesor_asignaturas`, `PoliticaProfesor` y `GeneradorArchivoAsistencias` como entidades/servicios nuevos).
+- Bugs detectados y resueltos en vivo: `hora_fin` sobrescrita al cerrar (decisión revertida a preservar la planeada) y filtrado de `PoliticaProfesor.obtener_listado` sin JOIN explícito.
+
+El proyecto cierra el día — y la disciplina RUP — al **100% en análisis, diseño y desarrollo** (26/26 en las tres).
+
+---

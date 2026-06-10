@@ -4,8 +4,7 @@ Introducido en el ramillete Alumno tras tener dos casos concretos (Director y
 Alumno) con políticas opuestas sobre la misma entidad. Materializa la decisión
 abierta del análisis ("strategy `PoliticaAcceso`") sin tocar el orquestador.
 
-Cuatro políticas vivas: Alumno, Secretaria, Director. (Profesor llegará en
-su ramillete; hoy levanta ValueError.)
+Cuatro políticas vivas: Alumno, Secretaria, Director, Profesor.
 """
 
 from abc import ABC, abstractmethod
@@ -147,6 +146,37 @@ class PoliticaDirector(PoliticaAcceso):
         return cambios
 
 
+class PoliticaProfesor(PoliticaAcceso):
+    """El Profesor ve las dispensas de las asignaturas que imparte. Read-only.
+
+    No participa en el flujo de modificación (ni transiciones ni campos
+    editables). El filtro por asignaturas impartidas se aplica en
+    `obtener_listado` y en `puede_ver` cruzando con la relación
+    `usuario.asignaturas_impartidas` (tabla N:M `profesor_asignaturas`).
+    """
+
+    async def obtener_listado(self, repo, usuario, alumno_id_filtro=None):
+        ids = {a.id for a in usuario.asignaturas_impartidas}
+        if not ids:
+            return []
+        return await repo.obtener_por_asignaturas(ids)
+
+    def puede_ver(self, solicitud, usuario):
+        am = solicitud.asignatura_matriculada
+        if am is None or am.asignatura is None:
+            return False
+        return am.asignatura.id in {a.id for a in usuario.asignaturas_impartidas}
+
+    def transiciones_permitidas(self):
+        return frozenset()
+
+    def campos_editables(self, solicitud):
+        return frozenset()
+
+    def side_effects(self, solicitud, nuevo_estado, usuario):
+        return {}
+
+
 def politica_para(usuario: Usuario) -> PoliticaAcceso:
     """Factory — devuelve la política aplicable al rol del usuario."""
     if usuario.tipo == "alumno":
@@ -155,4 +185,6 @@ def politica_para(usuario: Usuario) -> PoliticaAcceso:
         return PoliticaSecretaria()
     if usuario.tipo == "director":
         return PoliticaDirector()
+    if usuario.tipo == "profesor":
+        return PoliticaProfesor()
     raise ValueError(f"No hay PoliticaAcceso para el rol {usuario.tipo!r}")

@@ -11,14 +11,14 @@ Implementación de cada caso de uso bajo [`/src`](/src/), con un README de traza
 | [crearUsuario()](crearUsuario/README.md) | Administrador | ✅ |
 | [consultarUsuario()](consultarUsuario/README.md) | Administrador | ✅ |
 | [editarUsuario()](editarUsuario/README.md) | Administrador | ✅ |
-| consultarListaAlumnos() | Profesor | ⏳ |
-| consultarDetalleAlumno() | Profesor | ⏳ |
-| crearSesionClase() | Profesor | ⏳ |
-| editarSesionClase() | Profesor | ⏳ |
-| registrarTomaAsistencia() | Profesor | ⏳ |
-| cerrarSesionClase() | Profesor | ⏳ |
-| exportarHistorialAsistencias() | Profesor | ⏳ |
-| consultarSolicitudDispensa() (Profesor) | Profesor | ⏳ |
+| [consultarListaAlumnos()](consultarListaAlumnos/README.md) | Profesor | ✅ |
+| [consultarDetalleAlumno()](consultarDetalleAlumno/README.md) | Profesor | ✅ |
+| [crearSesionClase()](crearSesionClase/README.md) | Profesor | ✅ |
+| [editarSesionClase()](editarSesionClase/README.md) | Profesor | ✅ |
+| [registrarTomaAsistencia()](registrarTomaAsistencia/README.md) | Profesor | ✅ |
+| [cerrarSesionClase()](cerrarSesionClase/README.md) | Profesor | ✅ |
+| [exportarHistorialAsistencias()](exportarHistorialAsistencias/README.md) | Profesor | ✅ |
+| [consultarSolicitudDispensa() (Profesor)](consultarSolicitudDispensaProfesor/README.md) | Profesor | ✅ |
 | [crearSolicitudDispensa() (Alumno)](crearSolicitudDispensa/README.md) | Alumno | ✅ |
 | [editarSolicitudDispensa() (Alumno)](editarSolicitudDispensa/README.md) | Alumno | ✅ |
 | [consultarSolicitudDispensa() (Alumno)](consultarSolicitudDispensa/README.md) | Alumno | ✅ |
@@ -33,4 +33,4 @@ Implementación de cada caso de uso bajo [`/src`](/src/), con un README de traza
 | [consultarSolicitudDispensa() (Secretaria)](consultarSolicitudDispensaSecretaria/README.md) | Secretaria | ✅ |
 | [exportarDispensas()](exportarDispensas/README.md) | Secretaria | ✅ |
 
-**Progreso:** 18/26
+**Progreso:** 26/26 ✅

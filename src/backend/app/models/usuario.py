@@ -1,10 +1,12 @@
 from datetime import datetime
 
 from sqlalchemy import Boolean, DateTime, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from app.core.database import Base
+from app.models.asignatura import Asignatura
+from app.models.profesor_asignatura import profesor_asignaturas
 
 
 class Usuario(Base):
@@ -28,6 +30,15 @@ class Usuario(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True)
     activo: Mapped[bool] = mapped_column(Boolean, default=True)
     creado_en: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    # Relación N:M con asignaturas. Solo significa algo para Profesor/Director
+    # (jerarquía); los demás tipos la tienen vacía. Se define aquí para que el
+    # mapper la conozca para todos los subtipos sin polimorfismo extra.
+    asignaturas_impartidas: Mapped[list[Asignatura]] = relationship(
+        Asignatura,
+        secondary=profesor_asignaturas,
+        lazy="selectin",
+    )
 
     __mapper_args__ = {
         "polymorphic_on": "tipo",

@@ -17,8 +17,14 @@ import { MatriculasPage } from './pages/MatriculasPage';
 import { ImportarMatriculasPage } from './pages/ImportarMatriculasPage';
 import { ConsultarDetalleMatriculaPage } from './pages/ConsultarDetalleMatriculaPage';
 import { CrearSolicitudDispensaSecretariaPage } from './pages/CrearSolicitudDispensaSecretariaPage';
+import { SesionesClasePage } from './pages/SesionesClasePage';
+import { CrearSesionClasePage } from './pages/CrearSesionClasePage';
+import { SesionClaseActivaPage } from './pages/SesionClaseActivaPage';
+import { ListaAlumnosPage } from './pages/ListaAlumnosPage';
+import { DetalleAlumnoPage } from './pages/DetalleAlumnoPage';
 import { Layout } from './components/Layout';
 import { RequireAuth } from './components/RequireAuth';
+import { useAuth } from './context/AuthContext';
 import type { TipoUsuario } from './types/auth';
 
 const gate = (roles: TipoUsuario[], page: React.ReactNode) => (
@@ -30,10 +36,13 @@ const gate = (roles: TipoUsuario[], page: React.ReactNode) => (
 const adminOnly = (page: React.ReactNode) => gate(['administrador'], page);
 const directorOnly = (page: React.ReactNode) => gate(['director'], page);
 const secretariaOnly = (page: React.ReactNode) => gate(['secretaria'], page);
+const profesorOnly = (page: React.ReactNode) => gate(['profesor'], page);
 const alumnoOSecretaria = (page: React.ReactNode) =>
   gate(['alumno', 'secretaria'], page);
+const profesorOSecretaria = (page: React.ReactNode) =>
+  gate(['profesor', 'secretaria'], page);
 const lectura = (page: React.ReactNode) =>
-  gate(['alumno', 'director', 'secretaria'], page);
+  gate(['alumno', 'director', 'secretaria', 'profesor'], page);
 
 export const App: React.FC = () => (
   <Routes>
@@ -54,14 +63,22 @@ export const App: React.FC = () => (
     <Route path="/usuarios/:id" element={adminOnly(<ConsultarUsuarioPage />)} />
     <Route path="/usuarios/:id/editar" element={adminOnly(<EditarUsuarioPage />)} />
 
-    {/* Secretaria — alumnos y matrículas */}
-    <Route path="/alumnos" element={secretariaOnly(<AlumnosPage />)} />
+    {/* Alumnos — Secretaria (listado paginado) y Profesor (por asignatura) */}
+    <Route path="/alumnos" element={profesorOSecretariaOAlumnosPage()} />
     <Route path="/alumnos/importar" element={secretariaOnly(<ImportarListasAlumnosPage />)} />
+    <Route path="/alumnos/:id" element={profesorOSecretaria(<DetalleAlumnoPage />)} />
+
+    {/* Matrículas — Secretaria */}
     <Route path="/matriculas" element={secretariaOnly(<MatriculasPage />)} />
     <Route path="/matriculas/importar" element={secretariaOnly(<ImportarMatriculasPage />)} />
     <Route path="/matriculas/:id" element={secretariaOnly(<ConsultarDetalleMatriculaPage />)} />
 
-    {/* Dispensas — abiertas a los tres roles */}
+    {/* Profesor — Sesiones de clase */}
+    <Route path="/sesiones-clase" element={profesorOnly(<SesionesClasePage />)} />
+    <Route path="/sesiones-clase/nuevo" element={profesorOnly(<CrearSesionClasePage />)} />
+    <Route path="/sesiones-clase/:id" element={profesorOnly(<SesionClaseActivaPage />)} />
+
+    {/* Dispensas — abiertas a los cuatro roles */}
     <Route path="/dispensas" element={lectura(<DispensasPage />)} />
     <Route path="/dispensas/nuevo" element={gate(['alumno'], <CrearSolicitudPage />)} />
     <Route
@@ -78,3 +95,21 @@ export const App: React.FC = () => (
     <Route path="*" element={<Navigate to="/dashboard" replace />} />
   </Routes>
 );
+
+// Bifurcación en /alumnos: la Secretaria ve `AlumnosPage` (búsqueda libre);
+// el Profesor ve `ListaAlumnosPage` (con pestañas por asignatura).
+function profesorOSecretariaOAlumnosPage(): React.ReactNode {
+  return (
+    <RequireAuth roles={['profesor', 'secretaria']}>
+      <Layout>
+        <BifurcacionAlumnos />
+      </Layout>
+    </RequireAuth>
+  );
+}
+
+const BifurcacionAlumnos: React.FC = () => {
+  const { usuario } = useAuth();
+  if (usuario?.tipo === 'profesor') return <ListaAlumnosPage />;
+  return <AlumnosPage />;
+};

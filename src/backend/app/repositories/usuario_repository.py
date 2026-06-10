@@ -1,6 +1,8 @@
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
+from app.models.matricula import AsignaturaMatriculada, Matricula
 from app.models.usuario import (
     Administrador,
     Alumno,
@@ -75,6 +77,72 @@ class UsuarioRepository:
             .offset((page - 1) * size)
         )
         return list(result.scalars().all()), total
+
+    async def buscar_por_asignatura(
+        self,
+        asignatura_id: int,
+        page: int,
+        size: int,
+    ) -> tuple[list[Alumno], int]:
+        """Alumnos matriculados en una asignatura concreta.
+
+        Join con `matriculas` + `asignaturas_matriculadas`. Una fila por
+        alumno (un alumno puede estar en varios cursos académicos; tomamos
+        cualquiera — el listado del Profesor no distingue curso).
+        """
+        subq = (
+            select(Matricula.alumno_id)
+            .join(
+                AsignaturaMatriculada,
+                AsignaturaMatriculada.matricula_id == Matricula.id,
+            )
+            .where(AsignaturaMatriculada.asignatura_id == asignatura_id)
+            .distinct()
+            .subquery()
+        )
+        stmt = select(Alumno).where(Alumno.id.in_(select(subq.c.alumno_id)))
+        total_stmt = select(func.count()).select_from(stmt.subquery())
+        total = (await self.session.execute(total_stmt)).scalar_one()
+        result = await self.session.execute(
+            stmt.order_by(Alumno.apellidos, Alumno.nombre)
+            .limit(size)
+            .offset((page - 1) * size)
+        )
+        return list(result.scalars().all()), total
+
+    async def obtener_alumno_con_matricula(self, alumno_id: int) -> Alumno | None:
+        """Alumno con su agregado de matrículas/asignaturas-matriculadas eager-loaded.
+
+        Necesario para (a) validar "Profesor competente" (intersección de
+        asignaturas) y (b) componer la ficha del Alumno.
+        """
+        # Carga del propio alumno
+        result = await self.session.execute(
+            select(Alumno).where(Alumno.id == alumno_id)
+        )
+        alumno = result.scalars().first()
+        if alumno is None:
+            return None
+        # Eager-load de las matrículas del alumno
+        stmt_mat = (
+            select(Matricula)
+            .where(Matricula.alumno_id == alumno_id)
+            .options(
+                selectinload(Matricula.asignaturas_matriculadas).joinedload(
+                    AsignaturaMatriculada.asignatura
+                )
+            )
+        )
+        mat_result = await self.session.execute(stmt_mat)
+        alumno.matriculas_cargadas = list(mat_result.unique().scalars().all())  # type: ignore[attr-defined]
+        return alumno
+
+    async def asignaturas_impartidas_ids(self, profesor_id: int) -> set[int]:
+        """Conjunto de `asignatura_id` que el Profesor imparte (relación N:M)."""
+        prof = await self.session.get(Usuario, profesor_id)
+        if prof is None:
+            return set()
+        return {a.id for a in prof.asignaturas_impartidas}
 
     async def crear(
         self,

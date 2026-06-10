@@ -1,5 +1,8 @@
 from app.models.asignatura import Asignatura, CaracterAsignatura
+from app.models.asistencia import Asistencia, EstadoAsistencia
 from app.models.matricula import AsignaturaMatriculada, Matricula
+from app.models.profesor_asignatura import profesor_asignaturas
+from app.models.sesion_clase import EstadoSesionClase, SesionDeClase
 from app.models.solicitud_dispensa import EstadoSolicitud, SolicitudDispensa
 from app.models.usuario import (
     Administrador,
@@ -23,4 +26,9 @@ __all__ = [
     "CaracterAsignatura",
     "Matricula",
     "AsignaturaMatriculada",
+    "profesor_asignaturas",
+    "SesionDeClase",
+    "EstadoSesionClase",
+    "Asistencia",
+    "EstadoAsistencia",
 ]

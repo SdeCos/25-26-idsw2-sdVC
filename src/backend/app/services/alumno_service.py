@@ -1,8 +1,15 @@
-"""Orquestador de operaciones sobre Alumno con lógica propia (importación)."""
+"""Orquestador de operaciones sobre Alumno.
+
+Tres funciones:
+- `importar`: validación + upsert masivo (CSV de Secretaria).
+- `listar_por_asignatura`: aplica "Profesor competente" antes del listado.
+- `obtener_detalle`: ficha del alumno con verificación de acceso del Profesor.
+"""
 
 from __future__ import annotations
 
 from app.core.security import hash_password
+from app.models.usuario import Usuario
 from app.repositories.usuario_repository import UsuarioRepository
 from app.schemas.paginacion import (
     ErrorImportacionOut,
@@ -11,6 +18,18 @@ from app.schemas.paginacion import (
 from app.services.validador_archivo_listas_alumnos import (
     ValidadorArchivoListasAlumnos,
 )
+
+
+class ProfesorNoCompetente(Exception):
+    """El Profesor no imparte la asignatura solicitada."""
+
+
+class AlumnoNoEncontrado(Exception):
+    pass
+
+
+class AsignaturaRequerida(Exception):
+    """El rol Profesor exige `asignatura_id` en el listado."""
 
 
 class AlumnoService:
@@ -56,3 +75,43 @@ class AlumnoService:
                 for e in resultado.errores
             ],
         )
+
+    async def listar_por_asignatura(
+        self,
+        asignatura_id: int,
+        page: int,
+        size: int,
+        usuario: Usuario,
+    ) -> tuple[list, int]:
+        """Lista alumnos matriculados en la asignatura.
+
+        Defensa "Profesor competente": si el rol es Profesor, exige que la
+        asignatura esté en sus impartidas.
+        """
+        if usuario.tipo == "profesor":
+            ids = {a.id for a in usuario.asignaturas_impartidas}
+            if asignatura_id not in ids:
+                raise ProfesorNoCompetente
+        # Secretaria: sin restricción.
+        return await self.repo.buscar_por_asignatura(asignatura_id, page, size)
+
+    async def obtener_detalle(self, alumno_id: int, usuario: Usuario):
+        """Ficha del alumno con verificación 'Profesor competente'.
+
+        Devuelve el `Alumno` con su agregado de matrículas cargado en
+        `matriculas_cargadas`. Si el rol es Profesor, exige al menos una
+        asignatura compartida con el alumno; 403 `ProfesorNoCompetente` si no.
+        """
+        alumno = await self.repo.obtener_alumno_con_matricula(alumno_id)
+        if alumno is None:
+            raise AlumnoNoEncontrado(alumno_id)
+        if usuario.tipo == "profesor":
+            impartidas = {a.id for a in usuario.asignaturas_impartidas}
+            matriculadas = {
+                am.asignatura_id
+                for m in getattr(alumno, "matriculas_cargadas", [])
+                for am in m.asignaturas_matriculadas
+            }
+            if not (impartidas & matriculadas):
+                raise ProfesorNoCompetente
+        return alumno

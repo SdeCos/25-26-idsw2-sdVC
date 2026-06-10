@@ -35,6 +35,30 @@ class SolicitudDispensaRepository:
         )
         return list(result.unique().scalars().all())
 
+    async def obtener_por_asignaturas(
+        self, asignatura_ids: set[int] | list[int]
+    ) -> list[SolicitudDispensa]:
+        """Dispensas cuya asignatura está en el conjunto dado.
+
+        Usado por la `PoliticaProfesor` (cruza con `asignaturas_impartidas`).
+        Necesita JOIN explícito con `asignaturas_matriculadas` porque
+        `joinedload` no se puede usar para filtrar.
+        """
+        ids = list(asignatura_ids)
+        if not ids:
+            return []
+        stmt = (
+            self._eager()
+            .join(
+                AsignaturaMatriculada,
+                AsignaturaMatriculada.id
+                == SolicitudDispensa.asignatura_matriculada_id,
+            )
+            .where(AsignaturaMatriculada.asignatura_id.in_(ids))
+        )
+        result = await self.session.execute(stmt)
+        return list(result.unique().scalars().all())
+
     async def obtener_por_id(self, id: int) -> SolicitudDispensa | None:
         result = await self.session.execute(
             self._eager().where(SolicitudDispensa.id == id)

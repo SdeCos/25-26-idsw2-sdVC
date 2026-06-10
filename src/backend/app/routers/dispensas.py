@@ -29,7 +29,7 @@ from app.services.solicitud_dispensa_service import (
 
 router = APIRouter(prefix="/dispensas", tags=["dispensas"])
 
-_require_lectura = require_rol(["director", "alumno", "secretaria"])
+_require_lectura = require_rol(["director", "alumno", "secretaria", "profesor"])
 _require_creacion = require_rol(["alumno", "secretaria"])
 _require_secretaria = require_rol(["secretaria"])
 

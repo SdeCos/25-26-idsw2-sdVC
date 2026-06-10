@@ -7,14 +7,17 @@ Uso:
 """
 
 import asyncio
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, time, timedelta, timezone
 
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from app.core.database import AsyncSessionLocal, Base, engine
 from app.core.security import hash_password
 from app.models.asignatura import Asignatura
+from app.models.asistencia import Asistencia, EstadoAsistencia
 from app.models.matricula import AsignaturaMatriculada, Matricula
+from app.models.sesion_clase import EstadoSesionClase, SesionDeClase
 from app.models.solicitud_dispensa import EstadoSolicitud, SolicitudDispensa
 from app.models.usuario import (
     Administrador,
@@ -246,6 +249,101 @@ async def _seed_dispensas(
         print(f"+ dispensa {codigo} ({d.estado})")
 
 
+async def _seed_profesor_asignaturas(
+    session, asignaturas: dict[str, Asignatura]
+) -> None:
+    """Asocia profesor1 → IYA038, IYA040, IYA041 (3 asignaturas que imparte)."""
+    profesor = await session.scalar(
+        select(Profesor)
+        .where(Profesor.username == "profesor1")
+        .options(selectinload(Profesor.asignaturas_impartidas))
+    )
+    if profesor is None:
+        print("! no se puede sembrar profesor_asignaturas sin profesor1")
+        return
+
+    codigos_imparte = ["IYA038", "IYA040", "IYA041"]
+    existentes = {a.codigo for a in profesor.asignaturas_impartidas}
+    for codigo in codigos_imparte:
+        if codigo in existentes:
+            print(f"= profesor1 ya imparte {codigo}")
+            continue
+        profesor.asignaturas_impartidas.append(asignaturas[codigo])
+        print(f"+ profesor1 imparte {codigo}")
+
+
+async def _seed_sesiones_clase(
+    session, asignaturas: dict[str, Asignatura]
+) -> None:
+    """Dos sesiones de clase de profesor1: una ABIERTA hoy, una CERRADA ayer."""
+    ya_hay = await session.scalar(select(SesionDeClase).limit(1))
+    if ya_hay is not None:
+        print("= sesiones de clase (ya existen)")
+        return
+    profesor = await session.scalar(
+        select(Profesor).where(Profesor.username == "profesor1")
+    )
+    if profesor is None:
+        print("! no se puede sembrar sesiones sin profesor1")
+        return
+
+    hoy = date.today()
+    ayer = hoy - timedelta(days=1)
+    sesiones = [
+        SesionDeClase(
+            profesor_id=profesor.id,
+            asignatura_id=asignaturas["IYA040"].id,
+            grupo="3A",
+            aula="Aula 201",
+            fecha=hoy,
+            hora_inicio=time(10, 0),
+            hora_fin=time(11, 30),
+            tema="Patrones de diseño: introducción",
+            estado=EstadoSesionClase.ABIERTA.value,
+        ),
+        SesionDeClase(
+            profesor_id=profesor.id,
+            asignatura_id=asignaturas["IYA040"].id,
+            grupo="3A",
+            aula="Aula 201",
+            fecha=ayer,
+            hora_inicio=time(10, 0),
+            hora_fin=time(11, 30),
+            tema="UML — repaso",
+            estado=EstadoSesionClase.CERRADA.value,
+        ),
+    ]
+    for s in sesiones:
+        session.add(s)
+        print(f"+ sesión IYA040 {s.fecha} ({s.estado})")
+
+
+async def _seed_asistencias_demo(session) -> None:
+    """Una asistencia de alumno1 en la sesión CERRADA de ayer (datos demo)."""
+    ya_hay = await session.scalar(select(Asistencia).limit(1))
+    if ya_hay is not None:
+        print("= asistencias (ya existen)")
+        return
+    alumno = await session.scalar(
+        select(Alumno).where(Alumno.username == "alumno1")
+    )
+    sesion = await session.scalar(
+        select(SesionDeClase)
+        .where(SesionDeClase.estado == EstadoSesionClase.CERRADA.value)
+        .limit(1)
+    )
+    if alumno is None or sesion is None:
+        return
+    session.add(
+        Asistencia(
+            sesion_clase_id=sesion.id,
+            alumno_id=alumno.id,
+            estado=EstadoAsistencia.PRESENTE.value,
+        )
+    )
+    print(f"+ asistencia demo alumno1 → sesión {sesion.id}")
+
+
 async def main() -> None:
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -265,10 +363,19 @@ async def main() -> None:
         asignaturas = await _seed_asignaturas(session)
         await session.commit()
 
+        await _seed_profesor_asignaturas(session, asignaturas)
+        await session.commit()
+
         asignaturas_matriculadas = await _seed_matricula_alumno1(session, asignaturas)
         await session.commit()
 
         await _seed_dispensas(session, asignaturas_matriculadas)
+        await session.commit()
+
+        await _seed_sesiones_clase(session, asignaturas)
+        await session.commit()
+
+        await _seed_asistencias_demo(session)
         await session.commit()
 
 

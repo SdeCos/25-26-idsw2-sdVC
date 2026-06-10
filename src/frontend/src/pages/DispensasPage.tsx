@@ -26,6 +26,7 @@ export const DispensasPage: React.FC = () => {
 
   const esAlumno = usuario?.tipo === 'alumno';
   const esSecretaria = usuario?.tipo === 'secretaria';
+  const esProfesor = usuario?.tipo === 'profesor';
 
   useEffect(() => {
     dispensasService
@@ -52,7 +53,13 @@ export const DispensasPage: React.FC = () => {
   return (
     <div className="page">
       <header className="page-header">
-        <h1>{esAlumno ? 'Mis dispensas' : 'Solicitudes de dispensa'}</h1>
+        <h1>
+          {esAlumno
+            ? 'Mis dispensas'
+            : esProfesor
+            ? 'Dispensas de mis asignaturas'
+            : 'Solicitudes de dispensa'}
+        </h1>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           {esAlumno && (
             <Link to="/dispensas/nuevo">
@@ -79,6 +86,8 @@ export const DispensasPage: React.FC = () => {
         <p style={{ color: '#6e6e73' }}>
           {esAlumno
             ? 'No tienes solicitudes. Pulsa "+ Nueva solicitud" para crear la primera.'
+            : esProfesor
+            ? 'No hay dispensas en tus asignaturas.'
             : 'No hay solicitudes registradas.'}
         </p>
       )}

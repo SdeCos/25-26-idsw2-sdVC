@@ -1,5 +1,7 @@
 import api from './api';
 import type {
+  AlumnoDetalle,
+  AlumnoEnAsignatura,
   AlumnoListaItem,
   AsignaturaMatriculadaDelAlumno,
 } from '../types/alumnos';
@@ -7,6 +9,7 @@ import type { InformeImportacionAlumnos } from '../types/paginacion';
 import type { PaginaOut } from '../types/paginacion';
 
 export const alumnosService = {
+  /** Listado de Secretaria (paginado + búsqueda libre). */
   async listar(params: {
     page?: number;
     size?: number;
@@ -15,6 +18,23 @@ export const alumnosService = {
     const { data } = await api.get<PaginaOut<AlumnoListaItem>>('/alumnos', {
       params,
     });
+    return data;
+  },
+
+  /** Listado del Profesor (filtrado por asignatura impartida). */
+  async listarPorAsignatura(
+    asignaturaId: number,
+    page = 1,
+    size = 50
+  ): Promise<PaginaOut<AlumnoEnAsignatura>> {
+    const { data } = await api.get<PaginaOut<AlumnoEnAsignatura>>('/alumnos', {
+      params: { asignatura_id: asignaturaId, page, size },
+    });
+    return data;
+  },
+
+  async obtener(id: number): Promise<AlumnoDetalle> {
+    const { data } = await api.get<AlumnoDetalle>(`/alumnos/${id}`);
     return data;
   },
 

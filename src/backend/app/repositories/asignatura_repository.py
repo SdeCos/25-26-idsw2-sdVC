@@ -17,3 +17,12 @@ class AsignaturaRepository:
             select(Asignatura).where(Asignatura.codigo.in_(codigos))
         )
         return {a.codigo: a for a in result.scalars().all()}
+
+    async def obtener_todas(self) -> list[Asignatura]:
+        result = await self.session.execute(
+            select(Asignatura).order_by(Asignatura.codigo)
+        )
+        return list(result.scalars().all())
+
+    async def obtener_por_id(self, id: int) -> Asignatura | None:
+        return await self.session.get(Asignatura, id)
