@@ -1919,3 +1919,43 @@ Edge cases:
 El proyecto cierra el día — y la disciplina RUP — al **100% en análisis, diseño y desarrollo** (26/26 en las tres).
 
 ---
+
+### Sesión 2026-06-10
+
+## [09:30] Script de arranque unificado
+
+**Prompt:** "dame un script que inicie todo lo necesario para que la aplicación funcione, ubícalo donde creas que es más acertado".
+
+**Resultado:** `scripts/start.sh` en la raíz. Crea venv si falta, instala backend y frontend solo si hace falta, copia `.env.example→.env`, ejecuta `seed.py` (idempotente), lanza `uvicorn :8000` y `vite :5173` en background, y los mata a ambos con `trap` al Ctrl+C.
+
+**Decisión:** Carpeta `scripts/` nueva en la raíz (convención habitual; no contamina `src/`). Validado por el usuario.
+
+## [09:40] Guion de pruebas manuales por rol
+
+**Prompt:** "se me ha olvidado un poco toda la estructura y pruebas que debo hacer, dame una lista de pruebas para comprobar que todo funcione correctamente".
+
+**Resultado:** Checklist por rol (Administrador, Profesor, Alumno, Director, Secretaria) + bloque transversal Usuario + smoke API rápido con `curl`, ajustado a los datos sembrados (`alumno1` en IYA040 con 4 asignaturas matriculadas, 3 dispensas en distintos estados, 2 sesiones de IYA040).
+
+## [09:50] Aclaraciones tras pruebas + creación de CSVs
+
+**Prompt:** Lista de dudas tras la batería de pruebas: (1) quién asigna asignaturas al Profesor; (2) si el desplegable de `/sesiones-clase` debería filtrar; (3) si "Grupo" debería ser desplegable; (4) por qué la ficha del alumno muestra `Asistencias (0)` aun tras cerrar sesiones; (5) por qué la Secretaria importa pero no crea alumnos/matrículas individualmente; (6) crear CSVs de prueba para los botones de importar.
+
+**Resultado:**
+1. Hoy nadie — `profesor_asignaturas` solo se siembra en `seed.py`, no hay endpoint para gestionarla. Tampoco hay CRUD de asignaturas. Cabo suelto del SDR.
+2. El `<select>` actual es solo selector de exportación, no filtro. UX confusa.
+3. `SesionDeClase.grupo` es `String(50)` libre; no existe entidad `Grupo` ni catálogo del que tirar.
+4. Bug conocido: `routers/alumnos.py:214-224` devuelve `asistencias=[]` hardcodeado con comentario "Se rellenará cuando…". Las asistencias sí se persisten.
+5. Diseño deliberado: las matrículas tienen fuente externa (Universitas), por eso solo se importan; el alta masiva de alumnos por CSV refleja el flujo real de inicio de curso. El `crearUsuario` del Administrador es alta puntual de cualquier rol como efecto del subtipado STI.
+6. Cuatro CSVs en `/tmp/cgu-test-csv/`: `alumnos-ok.csv` y `alumnos-mal.csv` (4 errores distintos, uno por fila), `matriculas-ok.csv` y `matriculas-mal.csv` (5 errores distintos, uno por fila). Cada CSV "mal" mantiene cabecera válida para forzar errores por fila visibles en el informe.
+
+**Decisión:** Aclaración como Q&A, sin tocar código.
+
+## [09:55] Plan de mejoras post-base
+
+**Prompt:** Acuerdo con (1), (2), (3 opción ligera) y (4). Pidió plan de acción paso a paso en archivo a elegir, y revisión del razonamiento.
+
+**Resultado:** Aviso de contradicción en (5): si la Secretaria gana el catálogo de asignaturas por ser "operadora académica", el alta individual de alumnos a mitad de curso debería ser también suya por el mismo argumento, no del Administrador. Plan creado en `RUP/PLAN-MEJORAS.md` (movido aquí desde `RUP/03-desarrollo/` por atravesar las tres disciplinas) con 5 items (M1 asistencias, M2 filtro sesiones, M3 grupo derivado, M4 mover alta alumno a Secretaria, M5 catálogo asignaturas + asignar profesor↔asignatura), orden por coste creciente, qué disciplinas RUP toca cada uno, y nota de que ejecutarlo completo sube el denominador de 26 a 29 CUs.
+
+**Decisión:** El plan documenta las decisiones, no se ejecuta todavía. Espera confirmación del usuario sobre la corrección en M4 (mover alta de alumno individual a Secretaria) antes de empezar.
+
+---
