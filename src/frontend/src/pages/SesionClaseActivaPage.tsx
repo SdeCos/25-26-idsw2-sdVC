@@ -201,8 +201,8 @@ export const SesionClaseActivaPage: React.FC = () => {
             <dd>
               {sesion.asignatura.codigo} · {sesion.asignatura.nombre}
             </dd>
-            <dt>Grupo</dt>
-            <dd>{sesion.grupo}</dd>
+            <dt>Grupos</dt>
+            <dd>{sesion.grupos.join(', ')}</dd>
             <dt>Aula</dt>
             <dd>{sesion.aula}</dd>
             <dt>Fecha</dt>

@@ -84,7 +84,7 @@ def serializar_sesion_para_csv(asistencia: Asistencia) -> dict:
     return {
         "fecha": s.fecha.isoformat(),
         "asignatura": s.asignatura.codigo if s.asignatura else "",
-        "grupo": s.grupo,
+        "grupos": ", ".join(s.grupos or []),
         "aula": s.aula,
         "alumno_username": a.username,
         "alumno_nombre": a.nombre,

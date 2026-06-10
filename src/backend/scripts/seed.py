@@ -293,7 +293,7 @@ async def _seed_sesiones_clase(
         SesionDeClase(
             profesor_id=profesor.id,
             asignatura_id=asignaturas["IYA040"].id,
-            grupo="3A",
+            grupos=["3A"],
             aula="Aula 201",
             fecha=hoy,
             hora_inicio=time(10, 0),
@@ -304,7 +304,7 @@ async def _seed_sesiones_clase(
         SesionDeClase(
             profesor_id=profesor.id,
             asignatura_id=asignaturas["IYA040"].id,
-            grupo="3A",
+            grupos=["3A"],
             aula="Aula 201",
             fecha=ayer,
             hora_inicio=time(10, 0),

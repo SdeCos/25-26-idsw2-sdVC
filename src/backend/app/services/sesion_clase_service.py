@@ -30,10 +30,29 @@ class SesionClaseService:
         if hf <= hi:
             raise SesionClaseInvalida("hora_fin debe ser posterior a hora_inicio")
 
+    @staticmethod
+    def _normalizar_grupos(grupos: list[str]) -> list[str]:
+        """Recorta espacios, descarta vacíos y deduplica preservando orden.
+
+        Una sesión debe servir al menos a un grupo. Aceptar 0 sería un agujero
+        de validación (no se sabe a quién pasa lista).
+        """
+        vistos: set[str] = set()
+        limpios: list[str] = []
+        for g in grupos:
+            g = g.strip()
+            if g and g not in vistos:
+                vistos.add(g)
+                limpios.append(g)
+        if not limpios:
+            raise SesionClaseInvalida("indica al menos un grupo")
+        return limpios
+
     async def crear(
         self, datos: CrearSesionClaseRequest, usuario: Usuario
     ) -> SesionDeClase:
         self._validar_horas(datos.hora_inicio, datos.hora_fin)
+        datos.grupos = self._normalizar_grupos(datos.grupos)
         return await self.repo.crear(profesor_id=usuario.id, datos=datos)
 
     async def listar(self, usuario: Usuario) -> list[SesionDeClase]:

@@ -22,6 +22,13 @@ export const sesionesClaseService = {
     return data;
   },
 
+  async gruposUsados(asignaturaId: number): Promise<string[]> {
+    const { data } = await api.get<string[]>('/sesiones-clase/grupos', {
+      params: { asignatura_id: asignaturaId },
+    });
+    return data;
+  },
+
   async actualizar(
     id: number,
     body: EditarSesionClaseRequest

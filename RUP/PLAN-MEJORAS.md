@@ -1,6 +1,6 @@
 # Plan de mejoras post-base
 
-Tras la primera ronda de pruebas manuales sobre el sistema base (26 CUs implementados), surgieron 5 huecos: 1 bug, 2 mejoras de UX y 2 funcionalidades faltantes. Este plan los aborda en orden de coste creciente.
+Tras la primera ronda de pruebas manuales sobre el sistema base (26 CUs implementados), surgieron 5 huecos iniciales (1 bug, 2 mejoras de UX y 2 funcionalidades faltantes), más uno detectado mientras se ejecutaba el plan (cardinalidad de grupos por sesión). Este plan los aborda en orden de coste creciente.
 
 **Principio de reparto que guía el plan:** la Secretaría es la operadora académica del sistema (alumnos, matrículas, asignaturas, planes); el Administrador es el operador del sistema (cuentas de personal: profesores, directores, secretarias, administradores). Esto justifica mover a Secretaria las altas que hoy hace el Administrador y darle también el catálogo de asignaturas.
 
@@ -9,12 +9,14 @@ Tras la primera ronda de pruebas manuales sobre el sistema base (26 CUs implemen
 | # | Item | Alcance RUP | Coste estimado | Estado |
 |---|------|-------------|----------------|--------|
 | M1 | Asistencias en la ficha del alumno | 03 (backend + pequeño frontend) | bajo | hecho (2026-06-10) |
-| M2 | Filtro de asignatura en `/sesiones-clase` | 03 (solo frontend) | bajo | pendiente |
-| M3 | Grupo en sesión: desplegable derivado del historial | 03 (backend + frontend) | bajo | pendiente |
+| M2 | Filtro de asignatura en `/sesiones-clase` | 03 (solo frontend) | bajo | hecho (2026-06-10) |
+| M3 | Grupo en sesión: desplegable derivado del historial | 03 (backend + frontend) | bajo | hecho (2026-06-10) |
+| M6 | Sesiones con múltiples grupos (cardinalidad 1 → N) | 01 + 02 + 03 | medio | hecho (2026-06-10) |
+| M7 | Restaurar `Grado` como entidad y scoping de Director/Secretaria por grado | 01 + 02 + 03 | alto | pendiente |
 | M4 | Alta individual de alumno por Secretaria; el Administrador deja de poder crear alumnos | 01 + 02 + 03 | medio | pendiente |
 | M5 | Catálogo de asignaturas + asignar profesor↔asignatura por Secretaria | 01 + 02 + 03 | alto | pendiente |
 
-Orden recomendado: M1 → M2 → M3 → M4 → M5. Los tres primeros son arreglos contenidos que no tocan diseño; M4 y M5 son CUs nuevos y siguen el ciclo RUP completo.
+Orden recomendado: M1 → M2 → M3 → M6 → M7 → M4 → M5. Los tres primeros son arreglos contenidos que no tocan diseño; M6, M7, M4 y M5 atraviesan las tres disciplinas.
 
 ---
 
@@ -45,9 +47,9 @@ Verificado con `curl` (4 asistencias devueltas para `alumno1`, ordenadas por fec
 
 ---
 
-## M2 — Filtro de asignatura en el listado de sesiones
+## M2 — Filtro de asignatura en el listado de sesiones  ·  **hecho (2026-06-10)**
 
-**Síntoma.** El `<select>` de la cabecera de `/sesiones-clase` parece un filtro pero solo alimenta la exportación. Confuso.
+**Síntoma.** El `<select>` de la cabecera de `/sesiones-clase` parecía un filtro pero solo alimentaba la exportación. Confuso.
 
 **Decisión.** Mantener el selector de exportación (es necesario para `exportarHistorialAsistencias`) y **añadir un filtro distinto**, con opción "Todas" por defecto, que sí restrinja la tabla.
 
@@ -61,11 +63,14 @@ Verificado con `curl` (4 asistencias devueltas para `alumno1`, ordenadas por fec
 
 **Sin cambios en backend.** Sin tocar 01/02.
 
+**Resumen de la ejecución.** Cambios en un único archivo:
+- `src/frontend/src/pages/SesionesClasePage.tsx` — nuevo estado `asigFiltro`, `<select>` "Filtrar por asignatura:" sobre la tabla, etiqueta "Exportar:" delante del selector preexistente, `.filter()` aplicado al `.map()` del `<tbody>`.
+
 ---
 
-## M3 — Grupo en sesión: desplegable derivado
+## M3 — Grupo en sesión: desplegable derivado  ·  **hecho (2026-06-10)**
 
-**Síntoma.** El campo "Grupo" al crear sesión es un `<input>` de texto libre. Fácil teclear inconsistencias (`3A` vs `3-A` vs `3 A`).
+**Síntoma.** El campo "Grupo" al crear sesión era un `<input>` de texto libre. Fácil teclear inconsistencias (`3A` vs `3-A` vs `3 A`).
 
 **Decisión.** Opción ligera: el desplegable se rellena dinámicamente con los grupos distintos que **ese profesor** ha usado en **esa asignatura**, más una opción "Nuevo grupo…" que abre un input de texto. **Sin entidad `Grupo` ni CU nuevo**: aprovecha que `SesionDeClase.grupo` ya es persistente.
 
@@ -80,6 +85,12 @@ Verificado con `curl` (4 asistencias devueltas para `alumno1`, ordenadas por fec
 3. Probar: primera vez sin sesiones para una asignatura → solo opción "Nuevo"; tras crear una sesión con `grupo=3A`, volver al formulario y verificar que `3A` aparece como opción.
 
 **Sin tocar 01/02:** es refinamiento de UX de un CU existente (`crearSesionClase`).
+
+**Resumen de la ejecución.** Cambios en 4 archivos:
+- `src/backend/app/repositories/sesion_clase_repository.py` — nuevo `grupos_distintos(profesor_id, asignatura_id)` con `SELECT DISTINCT s.grupo`.
+- `src/backend/app/routers/sesiones_clase.py` — nuevo `GET /sesiones-clase/grupos?asignatura_id=N`, insertado antes de `GET /{sesion_id}` para que FastAPI no lo intente parsear como id.
+- `src/frontend/src/services/sesionesClaseService.ts` — método `gruposUsados(asignaturaId)`.
+- `src/frontend/src/pages/CrearSesionClasePage.tsx` — al cambiar de asignatura recarga los grupos; renderiza `<select>` con los previos + opción "+ Nuevo grupo…", o `<input>` directo si no hay previos; envoltorio `<div>` + `display:block` en el botón "← Volver al listado de grupos" para que no se cuele al lado del campo "Aula" (bug detectado en la primera prueba).
 
 ---
 
@@ -144,6 +155,145 @@ Verificado con `curl` (4 asistencias devueltas para `alumno1`, ordenadas por fec
 
 ---
 
+## M6 — Sesiones con múltiples grupos (cardinalidad 1 → N)  ·  **hecho (2026-06-10)**
+
+**Síntoma.** Validando M2 (filtro de listado) el usuario detectó que el modelo asume **un grupo por sesión** (`grupo: String(50)`). La realidad académica permite que una misma sesión sirva a varios grupos a la vez — caso canónico: Inglés con ADE + Ing. Informática + Ing. Org. Industrial en el mismo aula, mismo horario. La columna "Grupo" del listado mentía: solo podía mostrar una de varias etiquetas.
+
+**Decisión de modelado.** `grupos: list[str]` como columna JSON en `sesiones_clase`. **No** se promueve a entidad `Grupo` con tabla N:M porque:
+- Un grupo aquí no tiene identidad reusable: "3A en IYA040" ≠ "3A en IYA041", son cohortes contextuales.
+- Un grupo no tiene atributos propios (tutor, capacidad, calendario) — sería tabla de `(id, nombre)` vacía de semántica.
+- No hay CU de gestión de grupos; convertir a entidad arrastraría un CU nuevo (paralelo a M5) cuya justificación no existe.
+- Si en el futuro Grupo gana atributos, migrar de JSON list a entidad con FK es directo (un `INSERT … SELECT DISTINCT` desde la columna JSON).
+
+Coherente con la decisión original de 02-diseño de mantener `grupo` como string libre (YAGNI); solo se cambia la cardinalidad.
+
+**Cambios en disciplinas RUP.**
+
+### 01-analisis
+- `casos-uso/crearSesionClase/README.md`: actualización de la introducción y de las definiciones canónicas de `SesionDeClase` y `DatosSesionClase` para reflejar `grupos: list[str]`. Se añadió una nota "Evolución post-base" remitiendo a este plan. Las menciones a "grupo" en la sección histórica "Long Parameter List" se preservan (es narrativa pedagógica sobre un problema distinto, no canónica).
+
+### 02-diseño
+- `casos-uso/crearSesionClase/README.md`: actualización de `participantes`, contrato HTTP del POST y la decisión "grupos/aula strings libres" para documentar por qué no entidad.
+- `casos-uso/crearSesionClase/secuencia.puml`: parámetro renombrado; SVG regenerado con `plantuml -tsvg`.
+
+### 03-desarrollo
+- Backend (7 archivos):
+  - `models/sesion_clase.py` — `grupo: String(50)` → `grupos: Mapped[list[str]] = mapped_column(JSON, default=list)`.
+  - `schemas/sesiones_clase.py` — `grupos: list[str]` en `SesionDeClaseOut` y `CrearSesionClaseRequest`; docstring de `EditarSesionClaseRequest` actualizado (grupos sigue siendo no editable post-creación).
+  - `services/sesion_clase_service.py` — nuevo `_normalizar_grupos` que recorta, descarta vacíos, deduplica y exige al menos 1.
+  - `repositories/sesion_clase_repository.py` — `crear()` usa `datos.grupos`; `grupos_distintos()` aplana las listas JSON en Python (pequeña escala, evita acoplamiento a `JSON_EACH` de SQLite).
+  - `services/generador_archivo_asistencias.py` — columna CSV `grupo` → `grupos`, valor `", ".join(s.grupos)`.
+  - `services/asistencia_service.py::serializar_sesion_para_csv` — misma transformación.
+  - `scripts/seed.py` — `grupo="3A"` → `grupos=["3A"]`.
+- Frontend (4 archivos):
+  - `types/sesiones_clase.ts` — `grupo: string` → `grupos: string[]` en `SesionDeClase` y `CrearSesionClaseRequest`.
+  - `pages/SesionesClasePage.tsx` — columna "Grupo" → "Grupos"; render con `grupos.join(', ')`.
+  - `pages/SesionClaseActivaPage.tsx` — mismo render.
+  - `pages/CrearSesionClasePage.tsx` — reescritura del bloque de selección: chips removibles con × para los grupos añadidos, `<input list="grupos-previos">` con `<datalist>` autocompletando los grupos previos no seleccionados, botón "Añadir" (también Enter). El botón problemático "← Volver al listado de grupos" desaparece — ya no aplica con chips.
+- BD: borrar `cgu.db` y re-ejecutar `seed.py` (mismo flujo que M1; la columna JSON es un cambio destructivo en SQLite y `Base.metadata.create_all` no migra esquemas).
+
+**Verificación.**
+- `curl` confirma: listado devuelve `grupos: ["3A"]` (array); `POST` con `grupos: []` → 422 "indica al menos un grupo"; `POST` con `grupos: ["ADE","INF"]` → 201.
+- UI: chips, autocomplete contra previos, validación cliente y servidor.
+
+---
+
+## M7 — Restaurar `Grado` como entidad y scoping de Director/Secretaria
+
+**Síntoma.** En la realidad académica cada Grado tiene su propio Director (el de ADE no resuelve dispensas de Informática) y su propia Secretaria (idem). En el sistema actual `DirectorDeGrado` y `SecretariaAcademica` son globales: cualquiera ve y resuelve cualquier cosa. `services/politica_acceso.py:130` materializa la pifia: `PoliticaDirector.puede_ver` devuelve literalmente `True` siempre.
+
+**Causa raíz.** El **SDR sí modeló `Grado` como entidad de dominio** (`RUP/00-requisitos/ModeloDelDominio/DiagramasDeClase/ModeloCompleto.puml`):
+
+```
+class Grado
+Matricula --> Grado : Pertenece a
+Asignatura --> Grado : Pertenece a
+Grado --> DirectorDeGrado : Dirigido por
+Grado --> SecretariaAcademica : Gestionado por
+DirectorDeGrado -u-|> Profesor : Es un
+```
+
+Durante análisis/diseño la entidad se aplanó: `Asignatura.plan_estudios` y `Asignatura.facultad` son strings libres, `Matricula` no tiene grado, y Director/Secretaria son globales. La decisión local en `crearSesionClase` README ("plan_estudios como string libre, YAGNI") arrastró sin querer la pérdida del scoping. **A diferencia de M5 (alta de catálogo de asignaturas, fuera del SDR), M7 es restaurar algo que el SDR pidió y se perdió.**
+
+**Decisión.** Implementarlo tal cual el SDR. Particularidades verificadas en el código actual antes de planificar:
+- `DirectorDeGrado(Profesor)` **ya hereda de Profesor** en `models/usuario.py:57` — la STI anidada del SDR ya está implementada. No hay coste ahí.
+- Cada `Asignatura` pertenece a **un único** `Grado` (simplificación del SDR aceptada — universidades reales pueden compartir asignaturas entre grados con códigos distintos, pero no es nuestro alcance).
+
+**Cambios en disciplinas RUP.**
+
+### 01-analisis
+- Restaurar `Grado` como entidad en cualquier CU que lo mencione (sobre todo los del bloque Dispensa: `consultarSolicitudesDispensas`, `consultarSolicitudDispensa`, `editarSolicitudDispensaDirector`, y los del bloque Matrícula: `importarMatriculas`, `consultarDetalleMatricula`).
+- Documentar la corrección en el README de `crearSesionClase` (donde se tomó la decisión original de "string libre") explicando por qué se reabre.
+- **Nuevo CU `gestionarCatalogoGrados`** (Secretaria), paralelo al `gestionarCatalogoAsignaturas` de M5. Sin él los grados solo entran por seed, y un sistema con scoping por grado necesita poder dar de alta nuevos grados en runtime. Se ejecuta natural junto a M5.
+
+### 02-diseño
+- Nueva entidad `Grado` con `id, codigo, nombre, facultad`. La `facultad` migra desde `Asignatura.facultad` hacia `Grado.facultad` (un grado pertenece a una facultad; reducir duplicación).
+- Cambios en `Asignatura`: quitar `plan_estudios` y `facultad`, añadir `grado_id` FK.
+- Cambios en `Matricula`: añadir `grado_id` FK (cierra la "decisión derivada en API" que hoy infiere facultad/plan_estudios desde las asignaturas matriculadas).
+- Cambios en `DirectorDeGrado` y `SecretariaAcademica`: añadir `grado_id` FK.
+- `PoliticaDirector.puede_ver` y `obtener_listado`: filtrar dispensas donde `dispensa.asignatura_matriculada.asignatura.grado_id == director.grado_id`.
+- `PoliticaSecretaria`: cascada completa — filtra por grado en dispensas, alumnos y matrículas. Coherente con el SDR (`Matricula → Grado : Pertenece a`, `Grado → SecretariaAcademica : Gestionado por`). Sin la cascada, `secretaria1` seguiría viendo alumnos y matrículas de otros grados, lo que contradice el modelo.
+- Migración limpia de `Asignatura.facultad` a `Grado.facultad` (un solo lugar). El CSV de import de asignaturas, cuando entre, no requerirá `facultad` — se infiere del grado.
+- Documentar en `crearSesionClase` README que la decisión "string libre" queda revertida.
+
+### 03-desarrollo
+
+**Backend (modelos):**
+- `models/grado.py` nuevo: `Grado(Base)` con id, codigo (unique), nombre, facultad.
+- `models/asignatura.py`: quitar `plan_estudios` y `facultad`, añadir `grado_id: Mapped[int] = mapped_column(ForeignKey("grados.id"))` + relación `grado: Mapped[Grado]`.
+- `models/matricula.py`: añadir `grado_id` FK + relación.
+- `models/usuario.py`: añadir `grado_id` a `DirectorDeGrado` y `SecretariaAcademica`. Como es STI, las columnas viven en `usuarios` y son NULL para los otros subtipos. Alternativa: usar `polymorphic_load="inline"` y `concrete=False` para mantener limpio.
+
+**Backend (schemas):**
+- `schemas/grados.py` nuevo: `GradoOut`, `CrearGradoRequest`, `EditarGradoRequest`.
+- `schemas/asignaturas.py`: `AsignaturaOut.grado: GradoOut` en lugar de `plan_estudios` + `facultad`.
+- `schemas/usuarios.py`:
+  - `CrearUsuarioRequest`: añadir `grado_id: int | None`. Validador: obligatorio si `tipo in {"director","secretaria"}`.
+  - `EditarUsuarioRequest`: añadir `grado_id` opcional.
+  - `UsuarioDetalleOut`: añadir `grado: GradoOut | None`.
+- `schemas/matriculas.py`: añadir `grado` a los `Out`.
+
+**Backend (servicios y políticas):**
+- `services/politica_acceso.py`:
+  - `PoliticaDirector.puede_ver(solicitud, usuario)` → `solicitud.asignatura_matriculada.asignatura.grado_id == usuario.grado_id`.
+  - `PoliticaDirector.obtener_listado(...)` → filtra por grado en lugar de devolver todas.
+  - `PoliticaSecretaria` análogo en dispensas, alumnos y matrículas (cascada completa).
+- `services/alumno_service.listar_*`: filtro por grado de la Secretaria. El Profesor sigue sin grado (puede impartir en varios).
+- `services/matricula_service.listar`: filtro por grado de la Secretaria.
+- Imports masivos (`importarListasAlumnos`, `importarMatriculas`): los alumnos/matrículas importados se asignan al grado de la Secretaria que importa.
+
+**Backend (seed):**
+- Crear **al menos 2 `Grado`**: "INF" (Ingeniería Informática, Escuela Politécnica Superior) y "ADE" (Administración y Dirección de Empresas, Facultad de Económicas). Dos grados son necesarios para que las pruebas manuales del scoping puedan ver el efecto real (un solo grado oculta el filtrado).
+- `director1`, `secretaria1` y `alumno1` quedan en INF. Sembrar adicionalmente `director2`, `secretaria2` y `alumno2` en ADE para que las pruebas crucen.
+- Las asignaturas seed (`IYA*`) van todas a INF. Añadir 1–2 asignaturas seed de ADE para que `alumno2` tenga matrícula no vacía.
+- Matrículas: una para `alumno1` en INF (ya existe), otra para `alumno2` en ADE.
+
+**Frontend:**
+- `types/grados.ts` nuevo.
+- `services/gradosService.ts` nuevo: `listar()` para los selectores; `crear()`, `actualizar()`, `borrar()` para el CU `gestionarCatalogoGrados`.
+- `pages/CrearUsuarioPage.tsx`: cuando `tipo` es director o secretaria, mostrar `<select>` de grados (poblado con `gradosService.listar()`).
+- `pages/EditarUsuarioPage.tsx`: idem para edición.
+- `pages/ConsultarUsuarioPage.tsx`: mostrar el grado del Director/Secretaria.
+- Listados que muestran `plan_estudios` o `facultad` de asignatura: cambiar a `grado.nombre` / `grado.facultad`. Buscar referencias antes (probablemente `ConsultarDetalleMatriculaPage`, `MatriculasPage`).
+- Nueva pantalla `GradosPage` (CRUD por Secretaria) para el CU `gestionarCatalogoGrados`. Acceso desde el nav de Secretaria.
+
+**BD:** borrar `cgu.db` y re-ejecutar `seed.py`. La migración no es declarativa (cambios de schema en SQLite).
+
+**Pruebas manuales clave:**
+- Loguearse como `director1` (INF) y `director2` (ADE) y verificar que cada uno ve solo las dispensas de su grado.
+- Como `secretaria1` (INF), las dispensas, alumnos y matrículas que ve son solo de INF; misma comprobación cruzada con `secretaria2` (ADE).
+- Como `profesor1` (sin grado): sigue viendo solo dispensas de sus asignaturas (PoliticaProfesor existente). No se rompe.
+- `crearUsuario` rechaza alta de Director/Secretaria sin `grado_id` (422).
+- `gestionarCatalogoGrados`: la Secretaria puede crear un tercer grado y darle de alta personal y asignaturas.
+
+---
+
 ## Lo que cambia en el denominador "26 CUs"
 
-Si se ejecuta el plan completo: 26 → **29 CUs** (M4 + dos en M5). Actualizar el README principal y `CLAUDE.md` (sección "Medida de progreso") al terminar.
+Si se ejecuta el plan completo: 26 → **30 CUs**.
+- M4 añade 1 (`crearAlumno`).
+- M5 añade 2 (`gestionarCatalogoAsignaturas`, `asignarAsignaturasAProfesor`).
+- M7 añade 1 (`gestionarCatalogoGrados`).
+- M6 no añade — refina la cardinalidad de un CU existente (`crearSesionClase`).
+
+Actualizar el README principal y `CLAUDE.md` (sección "Medida de progreso") al terminar.

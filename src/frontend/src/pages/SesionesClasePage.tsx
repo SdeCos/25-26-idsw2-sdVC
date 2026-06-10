@@ -26,6 +26,7 @@ export const SesionesClasePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [asigExport, setAsigExport] = useState<number | null>(null);
+  const [asigFiltro, setAsigFiltro] = useState<number | null>(null);
   const [exportando, setExportando] = useState(false);
 
   useEffect(() => {
@@ -70,17 +71,21 @@ export const SesionesClasePage: React.FC = () => {
           </Link>
           {asignaturas.length > 0 && (
             <>
-              <select
-                value={asigExport ?? ''}
-                onChange={(e) => setAsigExport(Number(e.target.value))}
-                aria-label="asignatura a exportar"
-              >
-                {asignaturas.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.codigo}
-                  </option>
-                ))}
-              </select>
+              <label style={{ fontSize: '0.875rem', color: '#6e6e73' }}>
+                Exportar:
+                <select
+                  value={asigExport ?? ''}
+                  onChange={(e) => setAsigExport(Number(e.target.value))}
+                  aria-label="asignatura a exportar"
+                  style={{ marginLeft: '0.25rem' }}
+                >
+                  {asignaturas.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.codigo}
+                    </option>
+                  ))}
+                </select>
+              </label>
               <button type="button" onClick={exportar} disabled={exportando}>
                 {exportando ? 'Exportando…' : 'Exportar historial CSV'}
               </button>
@@ -98,6 +103,28 @@ export const SesionesClasePage: React.FC = () => {
         </p>
       )}
 
+      {!loading && !error && sesiones.length > 0 && asignaturas.length > 0 && (
+        <div style={{ margin: '1rem 0' }}>
+          <label style={{ fontSize: '0.875rem' }}>
+            Filtrar por asignatura:
+            <select
+              value={asigFiltro ?? ''}
+              onChange={(e) =>
+                setAsigFiltro(e.target.value === '' ? null : Number(e.target.value))
+              }
+              style={{ marginLeft: '0.5rem' }}
+            >
+              <option value="">Todas</option>
+              {asignaturas.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.codigo}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      )}
+
       {!loading && !error && sesiones.length > 0 && (
         <table className="data-table">
           <thead>
@@ -105,7 +132,7 @@ export const SesionesClasePage: React.FC = () => {
               <th>Fecha</th>
               <th>Hora</th>
               <th>Asignatura</th>
-              <th>Grupo</th>
+              <th>Grupos</th>
               <th>Aula</th>
               <th>Tema</th>
               <th>Estado</th>
@@ -113,7 +140,9 @@ export const SesionesClasePage: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {sesiones.map((s) => (
+            {sesiones
+              .filter((s) => asigFiltro === null || s.asignatura.id === asigFiltro)
+              .map((s) => (
               <tr key={s.id}>
                 <td>{fmtFecha(s.fecha)}</td>
                 <td>
@@ -122,7 +151,7 @@ export const SesionesClasePage: React.FC = () => {
                 <td>
                   {s.asignatura.codigo} · {s.asignatura.nombre}
                 </td>
-                <td>{s.grupo}</td>
+                <td>{s.grupos.join(', ')}</td>
                 <td>{s.aula}</td>
                 <td>{s.tema}</td>
                 <td>

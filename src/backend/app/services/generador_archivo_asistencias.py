@@ -18,7 +18,7 @@ class GeneradorArchivoAsistencias:
     CABECERAS = [
         "fecha",
         "asignatura_codigo",
-        "grupo",
+        "grupos",
         "aula",
         "alumno_username",
         "alumno_nombre",
@@ -39,7 +39,7 @@ class GeneradorArchivoAsistencias:
                 [
                     s.fecha.isoformat() if s.fecha else "",
                     asignatura_codigo,
-                    s.grupo,
+                    ", ".join(s.grupos or []),
                     s.aula,
                     a.alumno.username,
                     a.alumno.nombre,

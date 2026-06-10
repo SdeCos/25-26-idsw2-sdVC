@@ -17,7 +17,7 @@ end box
 
 database "SQLite" as DB
 
-P  -> CP  : asignatura, grupo, aula, fecha, hora, tema
+P  -> CP  : asignatura, grupos, aula, fecha, hora, tema
 CP -> SS  : crear(datos)
 SS -> SR  : POST /sesiones-clase (Bearer)
 SR -> RR  : autorizar "profesor"

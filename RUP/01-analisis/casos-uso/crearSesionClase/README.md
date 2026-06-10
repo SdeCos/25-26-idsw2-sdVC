@@ -15,7 +15,9 @@
 
 ## propósito
 
-Análisis del caso de uso `crearSesionClase()` mediante diagrama de colaboración MVC. Apertura del bloque Profesor: el Profesor configura una nueva sesión de clase (asignatura, grupo, aula, fecha, hora, tema) y al confirmarla el sistema pasa a estado `SESION_ASISTENCIA_ABIERTA`, donde podrá pasar lista mediante [[registrarTomaAsistencia]].
+Análisis del caso de uso `crearSesionClase()` mediante diagrama de colaboración MVC. Apertura del bloque Profesor: el Profesor configura una nueva sesión de clase (asignatura, grupos, aula, fecha, hora, tema) y al confirmarla el sistema pasa a estado `SESION_ASISTENCIA_ABIERTA`, donde podrá pasar lista mediante [[registrarTomaAsistencia]].
+
+> **Evolución post-base.** En la versión inicial del análisis `grupo` era cardinal 1 (string libre). Tras detectar que una sesión puede servir a varios grupos simultáneamente (típico de asignaturas transversales como Inglés con varias titulaciones), se actualizó a `grupos: list[str]`. Las menciones del análisis a "grupo" singular en las secciones de refactor histórico (Long Parameter List) se preservan tal como fueron escritas. Detalles y decisión completa en [`RUP/PLAN-MEJORAS.md`](/RUP/PLAN-MEJORAS.md) (ítem M6).
 
 Es la primera entidad del proyecto cuyo CU de creación **no termina en un listado** sino en un **nuevo estado activo** (la sesión de clase abierta). Esto rompe con el patrón "crear → editar (siempre) → listado" del bloque Administrador y Alumno.
 
@@ -46,8 +48,8 @@ El análisis adopta **`iniciarSesionClase()`** como nombre canónico para esta t
 
 | Clase | Responsabilidad | Trazabilidad |
 |-|-|-|
-| **SesionDeClase** | Entidad de dominio: representa una clase concreta con su contexto (asignatura, grupo, aula, fecha, hora, tema) y profesor responsable | **Nueva** — primera vez que aparece en el análisis |
-| **DatosSesionClase** | **Value Object** / DTO sin identidad: agrupa los 6 campos de configuración de la sesión antes de existir como entidad (asignatura, grupo, aula, fecha, hora, tema) | **Nueva** — introducida para resolver smell "Long Parameter List" (ver sección dedicada abajo) |
+| **SesionDeClase** | Entidad de dominio: representa una clase concreta con su contexto (asignatura, grupos, aula, fecha, hora, tema) y profesor responsable | **Nueva** — primera vez que aparece en el análisis |
+| **DatosSesionClase** | **Value Object** / DTO sin identidad: agrupa los 6 campos de configuración de la sesión antes de existir como entidad (asignatura, grupos, aula, fecha, hora, tema) | **Nueva** — introducida para resolver smell "Long Parameter List" (ver sección dedicada abajo) |
 | **SesionDeClaseRepository** | Persiste y recupera sesiones de clase | **Nuevo** |
 
 ### clases view (azul #629EF9)

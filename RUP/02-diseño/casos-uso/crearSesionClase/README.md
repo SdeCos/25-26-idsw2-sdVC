@@ -29,7 +29,7 @@
 
 | Participante | Rol |
 |---|---|
-| **CrearSesionClasePage** (React, ruta `/sesiones-clase/nuevo`) | Form con selector de Asignatura (dropdown contra `GET /asignaturas`), grupo, aula, fecha, hora inicio/fin y tema |
+| **CrearSesionClasePage** (React, ruta `/sesiones-clase/nuevo`) | Form con selector de Asignatura (dropdown contra `GET /asignaturas`), grupos (multi, chips), aula, fecha, hora inicio/fin y tema |
 | **sesionesClaseService** (axios) | Método `crear(datos)` — `POST /sesiones-clase` con body único (Parameter Object del análisis materializado como schema Pydantic) |
 | **SesionesClaseRouter** (FastAPI) | Endpoint `POST /sesiones-clase` con `require_rol(["profesor"])` a nivel router |
 | **require_rol** (dependency) | Autoriza solo `"profesor"` — única guard del CU (sin Strategy, ver decisiones) |
@@ -43,7 +43,7 @@
 |---|---|
 | `:Asistencias Abierto → CrearSesionClaseView : crearSesionClase()` | Click "+ Nueva sesión" en `SesionesClasePage` (listado del Profesor) → `/sesiones-clase/nuevo` |
 | `validarDatosIniciales(datos) : boolean` | Validación cliente-side (campos obligatorios, hora_fin > hora_inicio) + revalidación en `SesionClaseService` antes de persistir. Sin endpoint dedicado. |
-| `crearSesionClase(datos) : SesionDeClase` | `POST /sesiones-clase` con body `{asignatura_id, grupo, aula, fecha, hora_inicio, hora_fin, tema}` |
+| `crearSesionClase(datos) : SesionDeClase` | `POST /sesiones-clase` con body `{asignatura_id, grupos, aula, fecha, hora_inicio, hora_fin, tema}` |
 | `crear(profesor, datos) : SesionDeClase` | El Service auto-puebla `profesor_id = current_user.id` (defensa: si el cliente lo mandara, se descarta por `extra="ignore"` en el schema) |
 | Transición `iniciarSesionClase(sesion)` → `:Sesion Asistencia Abierta` | `estado = ABIERTA` se persiste en el INSERT. Tras 201, navega a `/sesiones-clase/{id}` (vista de la sesión activa, que en el próximo CU será también la pantalla de `registrarTomaAsistencia`) |
 
@@ -54,12 +54,12 @@
   - `id` PK
   - `profesor_id` FK → `usuarios.id` (auto-poblado por Service)
   - `asignatura_id` FK → `asignaturas.id` (catálogo introducido por [importarMatriculas](/RUP/02-diseño/casos-uso/importarMatriculas/README.md))
-  - `grupo` string, `aula` string (libres, ver decisión abajo)
+  - `grupos` lista JSON de strings (libres, ver decisión abajo), `aula` string
   - `fecha` date, `hora_inicio` time, `hora_fin` time, `tema` string
   - `estado` enum `EstadoSesionClase = {ABIERTA, CERRADA}`
   - `fecha_creacion` datetime (default `now`)
   - Sin `UNIQUE` adicional — el detallado no exige unicidad (`profesor + fecha + hora` podría chocar por solapamiento real). Deuda blanda registrada.
-- **`grupo` y `aula` como strings libres** (no catálogos) — YAGNI. No hay CU de gestión administrativa para ellos. Si en el futuro entra "gestionar aulas" (alcance no contemplado en el SDR), se promueven a catálogos con FK; la migración es barata. Coherente con cómo `SolicitudDispensa` arrancó con strings antes de que entrara `AsignaturaMatriculada`.
+- **`grupos` lista de strings libres y `aula` string libre** (no catálogos) — YAGNI. No hay CU de gestión administrativa para ellos. La cardinalidad N en `grupos` se introdujo post-base tras detectar el caso real (una sesión de Inglés sirve a varias titulaciones a la vez); se modeló como JSON list en la misma columna y no como entidad `Grupo` porque "3A en IYA040" no es la misma cosa que "3A en IYA041" — son etiquetas contextuales, no entidades con identidad reusable. Si en el futuro entra "gestionar aulas" o Grupo gana atributos propios (tutor, capacidad), se promueven a catálogos con FK; la migración es barata. Coherente con cómo `SolicitudDispensa` arrancó con strings antes de que entrara `AsignaturaMatriculada`.
 - **`profesor.asignaturas_impartidas` diferida** — hoy el Profesor puede elegir **cualquier asignatura del catálogo**. El análisis identifica esta deuda en [consultarSolicitudDispensaProfesor](/RUP/01-analisis/casos-uso/consultarSolicitudDispensaProfesor/README.md); aquí la posponemos porque el CU `crearSesionClase` funciona sin esa restricción y forzarla ahora requeriría seed manual de la relación N:M sin un CU dueño. Se materializará cuando entre `consultarListaAlumnos` del Profesor (donde la relación es crítica para el filtrado de alumnos por asignatura impartida).
 - **Sin `PoliticaAcceso` para `SesionDeClase`** — solo el Profesor opera con sesiones de clase. La Strategy del módulo `politica_acceso.py` nace en el ramillete Alumno con dos roles concretos delante; introducirla aquí con un único rol sería abstracción prematura. Coherente con la lección del polimorfismo del Controller diferido en el ramillete Director.
 - **Estado inicial `ABIERTA`** — el análisis modela la transición `crearSesionClase → SESION_ASISTENCIA_ABIERTA` como un estado activo. Lo materializamos como enum desde el día 1 (no `bool cerrada`) para alinear con la state machine de `SolicitudDispensa` y porque `cerrarSesionClase` (siguiente CU) hará `ABIERTA → CERRADA` validada en el Service.

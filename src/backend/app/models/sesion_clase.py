@@ -6,7 +6,7 @@ State machine:  ABIERTA → CERRADA  (irreversible en v1.0).
 from datetime import date, datetime, time
 from enum import Enum
 
-from sqlalchemy import Date, DateTime, ForeignKey, String, Time
+from sqlalchemy import JSON, Date, DateTime, ForeignKey, String, Time
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
@@ -28,7 +28,10 @@ class SesionDeClase(Base):
     asignatura_id: Mapped[int] = mapped_column(
         ForeignKey("asignaturas.id"), index=True
     )
-    grupo: Mapped[str] = mapped_column(String(50))
+    # Una sesión puede servir a varios grupos a la vez (p.ej. Inglés con tres
+    # titulaciones en el mismo aula). Lista de etiquetas libres serializada
+    # como JSON; no es entidad porque no tiene identidad ni atributos propios.
+    grupos: Mapped[list[str]] = mapped_column(JSON, default=list)
     aula: Mapped[str] = mapped_column(String(50))
     fecha: Mapped[date] = mapped_column(Date, index=True)
     hora_inicio: Mapped[time] = mapped_column(Time)

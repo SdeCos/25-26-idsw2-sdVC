@@ -17,7 +17,7 @@ class SesionClaseRepository:
         sesion = SesionDeClase(
             profesor_id=profesor_id,
             asignatura_id=datos.asignatura_id,
-            grupo=datos.grupo,
+            grupos=datos.grupos,
             aula=datos.aula,
             fecha=datos.fecha,
             hora_inicio=datos.hora_inicio,
@@ -68,6 +68,29 @@ class SesionClaseRepository:
         )
         result = await self.session.execute(stmt)
         return list(result.unique().scalars().all())
+
+    async def grupos_distintos(
+        self, profesor_id: int, asignatura_id: int
+    ) -> list[str]:
+        """Grupos distintos que el profesor ha usado en esa asignatura.
+
+        `grupos` es una lista JSON por fila — aplano en Python (escala
+        pequeña, queries específicas a JSON_EACH añadirían acoplamiento al
+        dialecto sin retorno aquí).
+        """
+        stmt = (
+            select(SesionDeClase.grupos)
+            .where(
+                SesionDeClase.profesor_id == profesor_id,
+                SesionDeClase.asignatura_id == asignatura_id,
+            )
+        )
+        result = await self.session.execute(stmt)
+        vistos: set[str] = set()
+        for (lista,) in result.all():
+            for g in lista or []:
+                vistos.add(g)
+        return sorted(vistos)
 
     async def actualizar(
         self, sesion: SesionDeClase, cambios: dict

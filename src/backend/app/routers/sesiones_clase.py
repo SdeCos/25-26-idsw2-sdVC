@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -52,6 +52,21 @@ async def crear_sesion(
         return await service.crear(req, usuario)
     except SesionClaseInvalida as exc:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, str(exc)) from exc
+
+
+@router.get("/grupos", response_model=list[str])
+async def grupos_usados(
+    asignatura_id: int = Query(..., ge=1),
+    usuario: Usuario = Depends(_require_profesor),
+    db: AsyncSession = Depends(get_db),
+) -> list[str]:
+    """Grupos distintos que el profesor logueado ha usado en `asignatura_id`.
+
+    Alimenta el desplegable de "Grupo" en `CrearSesionClasePage`. Si está vacío,
+    el frontend mostrará solo la opción "Nuevo grupo…".
+    """
+    repo = SesionClaseRepository(db)
+    return await repo.grupos_distintos(usuario.id, asignatura_id)
 
 
 @router.get("/{sesion_id}", response_model=SesionDeClaseOut)

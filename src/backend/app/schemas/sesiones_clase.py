@@ -20,7 +20,7 @@ class SesionDeClaseOut(BaseModel):
     id: int
     profesor: ProfesorMinOut
     asignatura: AsignaturaOut
-    grupo: str
+    grupos: list[str]
     aula: str
     fecha: date
     hora_inicio: time
@@ -40,7 +40,7 @@ class CrearSesionClaseRequest(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     asignatura_id: int
-    grupo: str
+    grupos: list[str]
     aula: str
     fecha: date
     hora_inicio: time
@@ -52,7 +52,7 @@ class EditarSesionClaseRequest(BaseModel):
     """PATCH unificado — edición de campos editables o transición de estado.
 
     Invariantes de edición materializadas por contrato:
-    - `asignatura_id`, `grupo`, `profesor_id` ausentes → descartados por
+    - `asignatura_id`, `grupos`, `profesor_id` ausentes → descartados por
       `extra="ignore"` si llegan.
     - `estado` solo admite transición a CERRADA (cierre); el Service valida.
     """

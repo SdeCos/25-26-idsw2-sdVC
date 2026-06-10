@@ -1982,4 +1982,87 @@ Verificación: `GET /alumnos/3` (alumno1) devuelve 4 asistencias con orden corre
 
 **Decisión:** M1 marcado como `hecho (2026-06-10)` en `RUP/PLAN-MEJORAS.md`. Siguiente: M2 cuando el usuario lo indique.
 
+## [10:15] M2 (hecho) + M3 (en revisión por bug de layout)
+
+**Prompt:** "haz las mejoras 2 y 3, que son aparentemente sencillas y no requieren mucho tiempo".
+
+**Resultado:**
+
+- **M2 — Filtro en `/sesiones-clase`:** un único archivo `SesionesClasePage.tsx`. Etiqueta "Exportar:" delante del selector existente, nuevo `<select>` "Filtrar por asignatura:" sobre la tabla con opción "Todas" por defecto, `.filter()` aplicado al `.map()` del `<tbody>`. Confirmado por el usuario.
+- **M3 — Grupo derivado:** nuevo endpoint `GET /sesiones-clase/grupos?asignatura_id=N` (insertado **antes** de `GET /{sesion_id}` para que FastAPI no lo intente parsear como id), repositorio con `grupos_distintos(profesor_id, asignatura_id)` usando `SELECT DISTINCT s.grupo`. Frontend: `CrearSesionClasePage` recarga grupos al cambiar de asignatura, muestra `<select>` con valores previos + opción "+ Nuevo grupo…", o `<input>` directo si no hay previos. Verificado por curl (IYA040 → `["2a","II3201"]`, IYA041 → `["3A","prueba"]`, IYA038 → `[]`).
+
+## [10:20] Arreglo de layout en M3
+
+**Prompt:** "en m3, al seleccionar nueva sesion, el boton volver al listado de grupos aparece a la izquierda de 'Aula'".
+
+**Resultado:** Causa identificada — el `<label>` es inline; `input/select { width: 100% }` fuerza wrap a línea propia, pero el botón es `display: inline-block` por defecto, así que se quedaba al final de la línea y el `<label>` siguiente ("Aula") seguía inline a su derecha.
+
+Arreglo: envolver `<label>` y el botón en un `<div>` para aislarlos, y `display: block` explícito en el botón como defensa. Una sola edición en `CrearSesionClasePage.tsx`.
+
+**Decisión:** M2 marcado como `hecho (2026-06-10)`. M3 espera nueva confirmación del usuario tras el arreglo.
+
+## [10:21] M3 confirmado
+
+**Prompt:** "funciona, marca m3 como hecho".
+
+**Resultado:** M3 marcado como `hecho (2026-06-10)` en `RUP/PLAN-MEJORAS.md` (tabla resumen + cabecera de sección + "Resumen de la ejecución" con los 4 archivos tocados).
+
+**Decisión:** Las tres mejoras "ligeras" del plan (M1, M2, M3) están cerradas. Quedan M4 (alta individual de alumno por Secretaria, requiere 01+02+03) y M5 (catálogo de asignaturas + asignar profesor↔asignatura, requiere 01+02+03).
+
+## [10:25] M6 detectado — sesiones con múltiples grupos
+
+**Prompt:** "el m2 no es correcto del todo, porque algunas asignatura (ingles por ejemplo) pueden tener varios grupos asignados, por ejemplo en ingles acutalmente en mi universidad, estamos ADE, Ing Informatica e Ingenieria Organizacion industrial en la misma sesion".
+
+**Resultado:** Explicado que es un cambio de cardinalidad (1 → N grupos por sesión) que afecta al modelo, no solo a M2. Presentadas 3 opciones con coste (JSON list, tabla N:M, comma-separated string).
+
+**Decisión:** Tras pedir el usuario justificación de mi recomendación, expuestas las razones para JSON list sobre tabla N:M (un grupo no tiene identidad reusable cross-asignatura, no tiene atributos propios, no hay CU de gestión, la promoción posterior es barata). Usuario confirma: opción 1 (JSON list).
+
+## [10:38] M6 implementado
+
+**Resultado:** Cambios en 13 archivos (7 backend + 4 frontend + 2 RUP) + regenerado el SVG del secuencia.puml + recreada la BD (la migración de `String` a `JSON` en SQLite no la hace `Base.metadata.create_all`, así que se borró `cgu.db` y se re-ejecutó `seed.py`).
+
+Backend:
+- `models/sesion_clase.py` — `grupos: list[str]` con columna JSON.
+- `schemas/sesiones_clase.py` — `grupos: list[str]` en Out y CrearRequest; comentario de EditarRequest actualizado.
+- `services/sesion_clase_service.py` — `_normalizar_grupos` (strip + dedupe orden-preservante + exige len >= 1; lanza `SesionClaseInvalida` "indica al menos un grupo").
+- `repositories/sesion_clase_repository.py` — `crear()` con `datos.grupos`; `grupos_distintos()` aplana las listas en Python (escala pequeña, evita acoplamiento a `JSON_EACH`).
+- `services/generador_archivo_asistencias.py` y `services/asistencia_service.py` — cabecera CSV `grupo` → `grupos`, valor `", ".join(s.grupos)`.
+- `scripts/seed.py` — `grupos=["3A"]` en las dos sesiones demo.
+
+Frontend:
+- `types/sesiones_clase.ts` — `grupos: string[]` (replace_all).
+- `pages/SesionesClasePage.tsx` y `pages/SesionClaseActivaPage.tsx` — columna/etiqueta "Grupos", render con `.join(', ')`.
+- `pages/CrearSesionClasePage.tsx` — reescritura del bloque de selección: chips removibles con `×` para los grupos añadidos, `<input list="grupos-previos">` con `<datalist>` autocompletando los previos no seleccionados, botón "Añadir" (también Enter). Eliminado el flag `grupoLibre` y el botón "Volver al listado" (no aplica con chips).
+
+RUP:
+- `01-analisis/.../crearSesionClase/README.md` — actualizada la intro y las definiciones canónicas de `SesionDeClase` y `DatosSesionClase`. Añadida nota "Evolución post-base" remitiendo al plan. Sección histórica "Long Parameter List" se preserva tal cual (narrativa pedagógica, no canónica).
+- `02-diseño/.../crearSesionClase/README.md` — `participantes`, body del POST y decisión "grupos/aula strings libres" actualizados con la justificación de por qué JSON list y no entidad.
+- `02-diseño/.../crearSesionClase/secuencia.puml` — parámetro renombrado; SVG regenerado.
+- `RUP/PLAN-MEJORAS.md` — añadido M6 (marcado `hecho (2026-06-10)`) tras M3 en la tabla resumen y con sección detallada explicando síntoma, decisión de modelado y verificación.
+
+Verificación curl:
+- `GET /sesiones-clase` → `grupos` array.
+- `POST` con `grupos: []` → 422 "indica al menos un grupo".
+- `POST` con `grupos: ["ADE","INF"]` → 201.
+- `GET /sesiones-clase/grupos?asignatura_id=...` sigue funcionando con la nueva implementación que aplana JSON.
+
+**Decisión:** M6 marcado `hecho (2026-06-10)`. Falta confirmación del usuario en la UI (chips + datalist), pero la lógica está completa.
+
+## [10:48] M6 confirmado + M7 añadido al plan
+
+**Prompt:** "funciona, marca m6 como hecho, al hacer pruebas, se me ha venido a la cabeza otra duda... el director de grado, en el sistema aparentemente es generico, no pertenece a ningun grado concreto, mientras que en la realidad cada grado tiene uno...".
+
+**Resultado:** M6 confirmado por validación UI del usuario. Sobre la duda del Director: confirmado revisando `RUP/00-requisitos/ModeloDelDominio/DiagramasDeClase/ModeloCompleto.puml` que el **SDR sí modeló `Grado` como entidad** con relaciones explícitas a Director, Secretaria, Matricula y Asignatura. La implementación lo aplanó (`Asignatura.plan_estudios: str`), perdiendo el scoping. Es por tanto una **desviación del SDR**, no algo fuera de alcance.
+
+Sorpresa al revisar el modelo: `DirectorDeGrado(Profesor)` en `models/usuario.py:57` **ya hereda de Profesor**. La STI anidada del SDR ya está. Mi preocupación inicial sobre ese tema era infundada.
+
+Usuario pide implementar tal cual el SDR. Antes de codear, pide que primero se añada M7 al plan como item — la implementación irá después.
+
+**Decisión:** M7 añadido a `RUP/PLAN-MEJORAS.md`:
+- Tabla resumen: M7 entre M6 y M4, alto coste, 01+02+03, estado pendiente.
+- Sección detallada: síntoma (PoliticaDirector.puede_ver siempre True), causa raíz (SDR aplanado), decisiones, cambios por disciplina, decisiones abiertas (¿catálogo de grados como CU nuevo? ¿cascada del scoping de Secretaria a alumnos/matrículas? ¿migrar Asignatura.facultad limpio?).
+- Denominador potencial: 26 → 30 CUs si se añade `gestionarCatalogoGrados`, 29 si los grados quedan seed-only.
+
+Implementación pendiente — próximo paso.
+
 ---

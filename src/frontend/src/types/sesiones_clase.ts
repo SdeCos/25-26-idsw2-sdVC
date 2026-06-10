@@ -12,7 +12,7 @@ export interface SesionDeClase {
   id: number;
   profesor: ProfesorMin;
   asignatura: Asignatura;
-  grupo: string;
+  grupos: string[];
   aula: string;
   fecha: string; // ISO date
   hora_inicio: string; // HH:MM:SS
@@ -24,7 +24,7 @@ export interface SesionDeClase {
 
 export interface CrearSesionClaseRequest {
   asignatura_id: number;
-  grupo: string;
+  grupos: string[];
   aula: string;
   fecha: string;
   hora_inicio: string;
