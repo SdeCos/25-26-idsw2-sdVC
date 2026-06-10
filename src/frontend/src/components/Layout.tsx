@@ -56,6 +56,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
               <Link to="/matriculas" style={linkStyle}>
                 Matrículas
               </Link>
+              <Link to="/grados" style={linkStyle}>
+                Grados
+              </Link>
               <Link to="/dispensas" style={linkStyle}>
                 Dispensas
               </Link>

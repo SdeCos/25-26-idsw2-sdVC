@@ -27,7 +27,9 @@ class MatriculaRepository:
         result = await self.session.execute(stmt)
         return result.unique().scalars().first()
 
-    async def listar(self) -> list[Matricula]:
+    async def listar(self, grado_id: int | None = None) -> list[Matricula]:
+        """Lista matrículas. Si `grado_id` viene, restringe por grado de la matrícula
+        (scoping de Secretaria por grado)."""
         stmt = (
             select(Matricula)
             .options(
@@ -38,11 +40,18 @@ class MatriculaRepository:
             )
             .order_by(Matricula.fecha_importacion.desc())
         )
+        if grado_id is not None:
+            stmt = stmt.where(Matricula.grado_id == grado_id)
         result = await self.session.execute(stmt)
         return list(result.unique().scalars().all())
 
     async def get_or_create_header(
-        self, *, alumno_id: int, curso_academico: str, responsable_id: int
+        self,
+        *,
+        alumno_id: int,
+        curso_academico: str,
+        responsable_id: int,
+        grado_id: int,
     ) -> tuple[Matricula, bool]:
         """Devuelve el header (creándolo si no existe) y un flag `was_created`."""
         stmt = select(Matricula).where(
@@ -56,6 +65,7 @@ class MatriculaRepository:
             alumno_id=alumno_id,
             curso_academico=curso_academico,
             responsable_id=responsable_id,
+            grado_id=grado_id,
         )
         self.session.add(nueva)
         await self.session.flush()  # asegura nueva.id sin commit

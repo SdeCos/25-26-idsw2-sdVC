@@ -30,6 +30,7 @@ class UsuarioService:
                 nombre=datos.nombre,
                 apellidos=datos.apellidos,
                 email=datos.email,
+                grado_id=datos.grado_id,
             )
         except IntegrityError as exc:
             await self.repo.session.rollback()

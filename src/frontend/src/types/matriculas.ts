@@ -1,3 +1,5 @@
+import type { Grado } from './grados';
+
 export interface AlumnoMin {
   id: number;
   username: string;
@@ -33,8 +35,7 @@ export interface MatriculaDetalle {
   curso_academico: string;
   fecha_importacion: string;
   responsable: ResponsableMin;
-  plan_estudios: string;
-  facultad: string;
+  grado: Grado;
   asignaturas_matriculadas: AsignaturaMatriculadaDetalle[];
 }
 
@@ -42,8 +43,7 @@ export interface MatriculaListaItem {
   id: number;
   alumno: AlumnoMin;
   curso_academico: string;
-  plan_estudios: string;
-  grado: string;
+  grado: Grado;
   fecha_importacion: string;
   num_asignaturas: number;
 }

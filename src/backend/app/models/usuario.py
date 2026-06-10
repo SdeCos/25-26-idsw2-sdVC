@@ -1,11 +1,12 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from app.core.database import Base
 from app.models.asignatura import Asignatura
+from app.models.grado import Grado
 from app.models.profesor_asignatura import profesor_asignaturas
 
 
@@ -30,6 +31,13 @@ class Usuario(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True)
     activo: Mapped[bool] = mapped_column(Boolean, default=True)
     creado_en: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    # Solo significa algo para DirectorDeGrado y SecretariaAcademica. STI: la
+    # columna vive en `usuarios` y queda NULL para los demás subtipos.
+    grado_id: Mapped[int | None] = mapped_column(
+        ForeignKey("grados.id"), nullable=True, index=True
+    )
+    grado: Mapped[Grado | None] = relationship(Grado, lazy="joined")
 
     # Relación N:M con asignaturas. Solo significa algo para Profesor/Director
     # (jerarquía); los demás tipos la tienen vacía. Se define aquí para que el

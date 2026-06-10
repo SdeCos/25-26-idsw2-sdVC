@@ -76,12 +76,19 @@ class PoliticaAlumno(PoliticaAcceso):
         return {}
 
 
-class PoliticaSecretaria(PoliticaAcceso):
-    """La Secretaria es operadora global — sin filtro de propiedad.
+def _grado_de_solicitud(solicitud: SolicitudDispensa) -> int | None:
+    """Lee `grado_id` por la cadena dispensa → asignatura_matriculada → asignatura."""
+    am = solicitud.asignatura_matriculada
+    if am is None or am.asignatura is None:
+        return None
+    return am.asignatura.grado_id
 
-    Misma capacidad de edición que el Alumno (modificar campos básicos cuando
-    está PENDIENTE; cancelar) pero sobre cualquier solicitud, no solo las
-    propias. No emite veredicto (eso es del Director).
+
+class PoliticaSecretaria(PoliticaAcceso):
+    """Secretaría es un departamento colectivo — cualquier cuenta de tipo
+    secretaria opera sobre todos los grados. Misma capacidad de edición que
+    el Alumno (cancelar una pendiente) pero sobre cualquier solicitud. No
+    emite veredicto (eso es del Director, que sí está scopeado por grado).
     """
 
     _TRANSICIONES = frozenset(
@@ -110,7 +117,7 @@ class PoliticaSecretaria(PoliticaAcceso):
 
 
 class PoliticaDirector(PoliticaAcceso):
-    """El Director ve y resuelve cualquier solicitud."""
+    """El Director ve y resuelve las dispensas de su grado."""
 
     _TRANSICIONES = frozenset(
         {
@@ -122,12 +129,17 @@ class PoliticaDirector(PoliticaAcceso):
     _CAMPOS_EN_REVISION = frozenset({"observaciones"})
 
     async def obtener_listado(self, repo, usuario, alumno_id_filtro=None):
+        if usuario.grado_id is None:
+            return []
         if alumno_id_filtro is not None:
-            return await repo.obtener_por_alumno(alumno_id_filtro)
-        return await repo.obtener_todas()
+            por_alumno = await repo.obtener_por_alumno(alumno_id_filtro)
+            return [s for s in por_alumno if _grado_de_solicitud(s) == usuario.grado_id]
+        return await repo.obtener_por_grado(usuario.grado_id)
 
     def puede_ver(self, solicitud, usuario):
-        return True
+        if usuario.grado_id is None:
+            return False
+        return _grado_de_solicitud(solicitud) == usuario.grado_id
 
     def transiciones_permitidas(self):
         return self._TRANSICIONES

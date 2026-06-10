@@ -2,6 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
 
+from app.schemas.grados import GradoOut
+
 
 class AsignaturaCatalogoEmbedOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -41,15 +43,14 @@ class ResponsableMinOut(BaseModel):
 
 
 class MatriculaDetalleOut(BaseModel):
-    """Agregado completo de matrícula con sus asignaturas y datos derivados."""
+    """Agregado completo de matrícula con sus asignaturas."""
 
     id: int
     alumno: AlumnoMinOut
     curso_academico: str
     fecha_importacion: datetime
     responsable: ResponsableMinOut
-    plan_estudios: str
-    facultad: str
+    grado: GradoOut
     asignaturas_matriculadas: list[AsignaturaMatriculadaDetalleOut]
 
 
@@ -57,7 +58,6 @@ class MatriculaListaItemOut(BaseModel):
     id: int
     alumno: AlumnoMinOut
     curso_academico: str
-    plan_estudios: str
-    grado: str  # alias visible (= plan_estudios) por compatibilidad con el prototipo
+    grado: GradoOut
     fecha_importacion: datetime
     num_asignaturas: int

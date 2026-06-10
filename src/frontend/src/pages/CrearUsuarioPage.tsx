@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { isAxiosError } from 'axios';
 import { usuariosService } from '../services/usuariosService';
+import { gradosService } from '../services/gradosService';
 import type { CrearUsuarioRequest } from '../types/usuarios';
 import type { TipoUsuario } from '../types/auth';
+import type { Grado } from '../types/grados';
 
 const TIPOS: TipoUsuario[] = [
   'alumno',
@@ -12,6 +14,10 @@ const TIPOS: TipoUsuario[] = [
   'secretaria',
   'administrador',
 ];
+
+// Solo Director es individual y se scopea por grado. Secretaría es un
+// departamento colectivo (sin grado en la cuenta).
+const ROLES_CON_GRADO: TipoUsuario[] = ['director'];
 
 export const CrearUsuarioPage: React.FC = () => {
   const navigate = useNavigate();
@@ -22,22 +28,45 @@ export const CrearUsuarioPage: React.FC = () => {
     nombre: '',
     apellidos: '',
     email: '',
+    grado_id: null,
   });
+  const [grados, setGrados] = useState<Grado[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    gradosService
+      .listar()
+      .then(setGrados)
+      .catch(() => {
+        /* Si no es Secretaria, /grados devuelve 403. No bloquea el alta de
+           tipos que no requieren grado. */
+      });
+  }, []);
+
+  const necesitaGrado = ROLES_CON_GRADO.includes(form.tipo);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
     try {
-      const usuario = await usuariosService.crear(form);
+      const payload: CrearUsuarioRequest = {
+        ...form,
+        grado_id: necesitaGrado ? form.grado_id : null,
+      };
+      const usuario = await usuariosService.crear(payload);
       navigate(`/usuarios/${usuario.id}/editar`, { replace: true });
     } catch (err) {
       if (isAxiosError(err) && err.response?.status === 409) {
         setError('Ese username ya está en uso');
       } else if (isAxiosError(err) && err.response?.status === 422) {
-        setError('Revisa los campos: faltan datos o el email no es válido');
+        const detail = err.response?.data?.detail;
+        if (Array.isArray(detail) && detail[0]?.msg) {
+          setError(String(detail[0].msg));
+        } else {
+          setError('Revisa los campos: faltan datos o el email no es válido');
+        }
       } else {
         setError('No se pudo crear el usuario');
       }
@@ -48,8 +77,10 @@ export const CrearUsuarioPage: React.FC = () => {
 
   const upd =
     <K extends keyof CrearUsuarioRequest>(key: K) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
-      setForm({ ...form, [key]: e.target.value });
+    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+      const v = e.target.value;
+      setForm({ ...form, [key]: v });
+    };
 
   return (
     <div className="page">
@@ -61,7 +92,18 @@ export const CrearUsuarioPage: React.FC = () => {
       <form onSubmit={handleSubmit} className="form-card">
         <div className="field">
           <label htmlFor="tipo">Tipo</label>
-          <select id="tipo" value={form.tipo} onChange={upd('tipo')} required>
+          <select
+            id="tipo"
+            value={form.tipo}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                tipo: e.target.value as TipoUsuario,
+                grado_id: null,
+              })
+            }
+            required
+          >
             {TIPOS.map((t) => (
               <option key={t} value={t}>
                 {t}
@@ -69,6 +111,31 @@ export const CrearUsuarioPage: React.FC = () => {
             ))}
           </select>
         </div>
+        {necesitaGrado && (
+          <div className="field">
+            <label htmlFor="grado_id">Grado</label>
+            <select
+              id="grado_id"
+              value={form.grado_id ?? ''}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  grado_id: e.target.value ? Number(e.target.value) : null,
+                })
+              }
+              required
+            >
+              <option value="" disabled>
+                — selecciona —
+              </option>
+              {grados.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.codigo} · {g.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div className="field">
           <label htmlFor="username">Username</label>
           <input id="username" value={form.username} onChange={upd('username')} required autoFocus />

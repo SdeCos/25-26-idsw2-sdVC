@@ -1,3 +1,5 @@
+import type { Grado } from './grados';
+
 export type EstadoSolicitud =
   | 'pendiente'
   | 'en_revision'
@@ -31,8 +33,7 @@ export interface AsignaturaEmbed {
   ects: number;
   caracter: 'OB' | 'OP' | 'FB';
   curso_plan: number;
-  plan_estudios: string;
-  facultad: string;
+  grado: Grado;
 }
 
 export interface AsignaturaMatriculadaEmbed {

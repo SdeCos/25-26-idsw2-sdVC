@@ -1,5 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 
+from app.schemas.grados import GradoOut
+
 
 class AsignaturaOut(BaseModel):
     """Asignatura del catálogo — lectura por GET /asignaturas y /profesores/yo."""
@@ -12,5 +14,4 @@ class AsignaturaOut(BaseModel):
     ects: float
     caracter: str
     curso_plan: int
-    plan_estudios: str
-    facultad: str
+    grado: GradoOut

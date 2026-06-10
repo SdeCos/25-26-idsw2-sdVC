@@ -1,9 +1,10 @@
 from enum import Enum
 
-from sqlalchemy import Float, Integer, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Float, ForeignKey, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+from app.models.grado import Grado
 
 
 class CaracterAsignatura(str, Enum):
@@ -21,5 +22,6 @@ class Asignatura(Base):
     ects: Mapped[float] = mapped_column(Float)
     caracter: Mapped[str] = mapped_column(String(2))
     curso_plan: Mapped[int] = mapped_column(Integer)
-    plan_estudios: Mapped[str] = mapped_column(String(150))
-    facultad: Mapped[str] = mapped_column(String(150))
+    grado_id: Mapped[int] = mapped_column(ForeignKey("grados.id"), index=True)
+
+    grado: Mapped[Grado] = relationship(Grado, lazy="joined")

@@ -49,10 +49,10 @@ export const ConsultarDetalleMatriculaPage: React.FC = () => {
         </dd>
         <dt>Curso académico</dt>
         <dd>{matricula.curso_academico}</dd>
-        <dt>Plan de estudios</dt>
-        <dd>{matricula.plan_estudios || '—'}</dd>
+        <dt>Grado</dt>
+        <dd>{matricula.grado.codigo} · {matricula.grado.nombre}</dd>
         <dt>Facultad</dt>
-        <dd>{matricula.facultad || '—'}</dd>
+        <dd>{matricula.grado.facultad}</dd>
         <dt>Fecha de importación</dt>
         <dd>{fmtFecha(matricula.fecha_importacion)}</dd>
         <dt>Responsable</dt>

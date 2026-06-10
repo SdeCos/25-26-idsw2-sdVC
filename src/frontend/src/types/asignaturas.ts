@@ -1,3 +1,5 @@
+import type { Grado } from './grados';
+
 export interface Asignatura {
   id: number;
   codigo: string;
@@ -5,6 +7,5 @@ export interface Asignatura {
   ects: number;
   caracter: 'OB' | 'OP' | 'FB';
   curso_plan: number;
-  plan_estudios: string;
-  facultad: string;
+  grado: Grado;
 }

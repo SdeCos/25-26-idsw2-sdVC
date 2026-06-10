@@ -6,15 +6,17 @@ from sqlalchemy.sql import func
 
 from app.core.database import Base
 from app.models.asignatura import Asignatura
+from app.models.grado import Grado
 from app.models.usuario import Usuario
 
 
 class Matricula(Base):
     """Header del agregado Matrícula.
 
-    Una matrícula = (alumno, curso académico). Agrupa las asignaturas que el
-    alumno cursa en ese año académico. `facultad` y `plan_estudios` se derivan
-    en la API tomándolos de las asignaturas matriculadas (decisión de diseño).
+    Una matrícula = (alumno, curso académico, grado). Agrupa las asignaturas
+    que el alumno cursa en ese año académico. `grado_id` es FK al catálogo
+    `grados` (restaurado del SDR); las asignaturas de la matrícula deben
+    pertenecer al mismo grado (validación en service).
     """
 
     __tablename__ = "matriculas"
@@ -25,6 +27,7 @@ class Matricula(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     alumno_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"), index=True)
     curso_academico: Mapped[str] = mapped_column(String(20))
+    grado_id: Mapped[int] = mapped_column(ForeignKey("grados.id"), index=True)
     responsable_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"))
     fecha_importacion: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now()
@@ -36,6 +39,7 @@ class Matricula(Base):
     responsable: Mapped[Usuario] = relationship(
         Usuario, foreign_keys=[responsable_id], lazy="joined"
     )
+    grado: Mapped[Grado] = relationship(Grado, lazy="joined")
     asignaturas_matriculadas: Mapped[list["AsignaturaMatriculada"]] = relationship(
         "AsignaturaMatriculada",
         back_populates="matricula",

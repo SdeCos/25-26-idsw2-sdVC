@@ -89,7 +89,7 @@ async def listar_alumnos(
             items=salida, total=total, page=page, size=size
         )
 
-    # Secretaria: comportamiento original
+    # Secretaria: sin scoping. Es un departamento colectivo, ve todos los alumnos.
     if asignatura_id is not None:
         items, total = await repo.buscar_por_asignatura(asignatura_id, page, size)
     else:

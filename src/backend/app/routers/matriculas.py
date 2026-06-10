@@ -6,6 +6,7 @@ from app.dependencies import require_rol
 from app.models.matricula import Matricula
 from app.models.usuario import Usuario
 from app.repositories.matricula_repository import MatriculaRepository
+from app.schemas.grados import GradoOut
 from app.schemas.matriculas import (
     AlumnoMinOut,
     AsignaturaCatalogoEmbedOut,
@@ -23,23 +24,14 @@ router = APIRouter(prefix="/matriculas", tags=["matriculas"])
 _require_secretaria = require_rol(["secretaria"])
 
 
-def _derivar_plan_facultad(m: Matricula) -> tuple[str, str]:
-    if not m.asignaturas_matriculadas:
-        return "", ""
-    asig = m.asignaturas_matriculadas[0].asignatura
-    return asig.plan_estudios, asig.facultad
-
-
 def _a_detalle(m: Matricula) -> MatriculaDetalleOut:
-    plan, facultad = _derivar_plan_facultad(m)
     return MatriculaDetalleOut(
         id=m.id,
         alumno=AlumnoMinOut.model_validate(m.alumno),
         curso_academico=m.curso_academico,
         fecha_importacion=m.fecha_importacion,
         responsable=ResponsableMinOut.model_validate(m.responsable),
-        plan_estudios=plan,
-        facultad=facultad,
+        grado=GradoOut.model_validate(m.grado),
         asignaturas_matriculadas=[
             AsignaturaMatriculadaDetalleOut(
                 id=am.id,
@@ -52,13 +44,11 @@ def _a_detalle(m: Matricula) -> MatriculaDetalleOut:
 
 
 def _a_item(m: Matricula) -> MatriculaListaItemOut:
-    plan, _ = _derivar_plan_facultad(m)
     return MatriculaListaItemOut(
         id=m.id,
         alumno=AlumnoMinOut.model_validate(m.alumno),
         curso_academico=m.curso_academico,
-        plan_estudios=plan,
-        grado=plan,
+        grado=GradoOut.model_validate(m.grado),
         fecha_importacion=m.fecha_importacion,
         num_asignaturas=len(m.asignaturas_matriculadas),
     )
@@ -84,7 +74,9 @@ async def importar_matriculas(
     for a in archivos:
         contenidos.append((a.filename or "matriculas.csv", await a.read()))
     try:
-        return await MatriculaService(db).importar(contenidos, responsable_id=usuario.id)
+        return await MatriculaService(db).importar(
+            contenidos, responsable_id=usuario.id
+        )
     except CabeceraInvalida as exc:
         raise HTTPException(
             status.HTTP_422_UNPROCESSABLE_ENTITY,

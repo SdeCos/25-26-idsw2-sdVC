@@ -2105,4 +2105,84 @@ CUs derivados que no se reescriben (importarMatriculas, consultarDetalleMatricul
 
 **Decisión:** Siguiente paso: 03-desarrollo cuando el usuario lo indique (modelo `Grado`, FKs, políticas, schemas, frontend, seed, BD reseed).
 
+## [12:17] M7 — 03-desarrollo hecho
+
+**Prompt:** "vamos con el desarrollo".
+
+**Resultado:** M7 implementado completo, tasks #1-#8 cerradas.
+
+Backend:
+- `models/grado.py` nuevo (`Grado` con codigo único). FKs añadidas en `Asignatura.grado_id` (sustituye `plan_estudios`/`facultad`), `Matricula.grado_id`, y `Usuario.grado_id` (nullable a nivel STI; solo aplica a Director/Secretaria).
+- `schemas/grados.py` (GradoOut, CrearGradoRequest, EditarGradoRequest), `schemas/asignaturas.py` (`grado: GradoOut`), `schemas/usuarios.py` (`grado_id: int | None` con `model_validator` que exige grado_id para tipo ∈ {director, secretaria} y lo prohíbe en los demás; `UsuarioDetalleOut.grado: GradoOut | None`), `schemas/dispensas.py` y `schemas/matriculas.py` (mismo cambio).
+- `repositories/grado_repository.py` (CRUD + `referencias` que comprueba asignaturas/matriculas/usuarios). `services/grado_service.py` con `CodigoEnUso`, `GradoNoEncontrado`, `GradoConReferencias`. `routers/grados.py` con CRUD bajo `require_rol(["secretaria"])` registrado en `main.py`.
+- `UsuarioService.crear` propaga `grado_id`. `UsuarioRepository.crear` también.
+- `PoliticaDirector.puede_ver` y `obtener_listado` filtran por grado vía nuevo `SolicitudDispensaRepository.obtener_por_grado` (JOIN asignaturas_matriculadas + asignaturas). `PoliticaSecretaria` análogo (cascada completa: dispensas, alumnos, matrículas).
+- `UsuarioRepository.buscar_alumnos` acepta `grado_id` opcional → subquery sobre `Matricula.grado_id`. `MatriculaRepository.listar` y `get_or_create_header` también. Routers de alumnos y matrículas pasan `usuario.grado_id`. `MatriculaService.importar` exige `grado_id`. `consultar_detalle_matricula` rechaza con 403 si la matrícula no es del grado del usuario.
+- `seed.py` rehecho: 2 grados (INF, ADE), 2 directores (`director1`/INF, `director2`/ADE), 2 secretarias (`secretaria1`/INF, `secretaria2`/ADE), 2 alumnos (`alumno1`/INF, `alumno2`/ADE) con matrículas cruzadas (4 asignaturas IYA* en INF, 2 ADE* en ADE) y 1 dispensa adicional en ADE para verificar el scoping cross-grado. Mantiene idempotencia.
+
+Verificación curl tras `rm cgu.db && start.sh`:
+- `director1` ve 3 dispensas (todas INF); `director2` ve 1 (ADE). ✓
+- `secretaria1` ve 1 alumno (alumno1); `secretaria2` ve 1 (alumno2). ✓
+- `POST /grados {codigo: INF}` → 409 "Código de grado en uso". ✓
+- `POST /grados` con nuevo MED → 201. ✓
+- `DELETE /grados/1` → 409 "tiene referencias en ['asignaturas', 'matriculas', 'usuarios']". ✓
+- `POST /usuarios {tipo: "director", ...}` sin grado_id → 422 con mensaje de validador. ✓
+
+Frontend:
+- `types/grados.ts`, `services/gradosService.ts` (CRUD).
+- `pages/GradosPage.tsx` con tabla + form inline (alta/edición) + delete con confirm. Maneja 409 mostrando el `detail` del backend.
+- Ruta `/grados` en `App.tsx` con `secretariaOnly`. Link "Grados" en el nav de Secretaria en `Layout.tsx`.
+- `types/asignaturas.ts`, `types/matriculas.ts`, `types/dispensas.ts`, `types/usuarios.ts`: `plan_estudios`/`facultad` → `grado: Grado`. `UsuarioDetalle.grado: Grado | null`. Requests con `grado_id?: number | null`.
+- `CrearUsuarioPage.tsx`: select de grado condicional (visible solo si tipo ∈ {director, secretaria}); carga grados al montar; muestra el `detail.msg` del 422 si llega.
+- `EditarUsuarioPage.tsx`: idem; lee `original.grado?.id` en el `FormState`; el `diff()` incluye `grado_id` solo si el usuario tiene rol scopable.
+- `ConsultarUsuarioPage.tsx`: muestra el grado en la ficha si existe.
+- `ConsultarDispensaPage.tsx`: "Plan / facultad" → "Grado: nombre — facultad".
+- `ConsultarDetalleMatriculaPage.tsx`: "Plan de estudios"/"Facultad" → "Grado: codigo · nombre"/"Facultad" (ambos desde `matricula.grado`).
+- `MatriculasPage.tsx`: columna Grado renderea `m.grado.codigo`.
+- `tsc --noEmit` pasa sin errores.
+
+**Decisión:** M7 funcional. Falta confirmación visual del usuario en la UI. App corriendo en http://localhost:5173 y :8000.
+
+## [13:18] M7 corrección: Secretaría como departamento colectivo
+
+**Prompt:** "porque secretaria esta dividida en inf y ade, no deberia ser la misma? ... creo que es un problema de gramatica, el SDR se refería a secretaría (el departamento completo), no a una en concreto".
+
+**Resultado:** Reinterpretación correcta del SDR. La relación `Grado --> SecretariaAcademica : Gestionado por` lee como "gestionado por (el departamento de) Secretaría Académica", no "por una secretaria concreta". Coherente con que `Dispensa --> SecretariaAcademica : Gestionada por` significa "tramitada por Secretaría", no por una cuenta específica.
+
+Mantenido el scoping del Director (es individual: cada grado tiene **su** Director). Revertido el scoping de la Secretaria.
+
+Cambios:
+- `schemas/usuarios.py` — `_ROLES_CON_GRADO = {"director"}` (era `{"director","secretaria"}`). El validador exige `grado_id` solo para Director y lo rechaza para Secretaria (y los demás).
+- `services/politica_acceso.py::PoliticaSecretaria` — `puede_ver` vuelve a `True`; `obtener_listado` vuelve a `obtener_todas` / `obtener_por_alumno` (sin filtro de grado).
+- `routers/alumnos.py::listar_alumnos` — la Secretaria no pasa `grado_id` (ve todos los alumnos).
+- `routers/matriculas.py::listar_matriculas`, `consultar_detalle_matricula`, `importar_matriculas` — quita el filtro y la guarda 403 por grado.
+- `services/matricula_service.py::importar` — refactorizado para **derivar el grado de la matrícula desde sus asignaturas**: agrupa filas por `(alumno, curso_academico)`, comprueba que todas las asignaturas del header pertenecen al mismo grado (si no, error inline) y usa ese grado para la fila de Matricula.
+- `scripts/seed.py` — una sola Secretaría (`secretaria1`, sin grado). `secretaria2` eliminada. Las dos matrículas (alumno1/INF, alumno2/ADE) tienen a `secretaria1` como responsable.
+- Frontend `CrearUsuarioPage.tsx` y `EditarUsuarioPage.tsx` — `ROLES_CON_GRADO` reducido a `['director']`. El selector de grado desaparece para Secretaria.
+
+Verificación curl tras reseed:
+- `director1` ve 3 dispensas (INF), `director2` ve 1 (ADE). ✓
+- `secretaria1` (sin grado) ve **todos**: 2 alumnos, 2 matrículas (INF+ADE), 4 dispensas. ✓
+- `POST /usuarios` con `tipo: "secretaria"` + `grado_id` → 422 "`grado_id` no aplica cuando tipo='secretaria'". ✓
+- Sin `grado_id` → 201 con `grado: null`. ✓
+- `tsc --noEmit` pasa.
+
+**Decisión:** Modelo final: Director scopeado por grado (relación 1:1 con identidad), Secretaría global (departamento colectivo). Coherente con la lectura natural del SDR.
+
+## [13:21] Cierre de sesión
+
+**Prompt:** "finaliza la sesion".
+
+**Resultado:** Servidores en background parados (`uvicorn` y `vite`). BD en estado seed limpio tras la última reescritura del scoping. Cambios sin commitear, listos para que el usuario haga `git commit` con uno de los títulos sugeridos (recomendado: "implementacion cdu gestionarCatalogoGrados + scoping director por grado"). 41 archivos pendientes — 7 nuevos + 34 modificados.
+
+**Decisión:** Cierre formal de la sesión 2026-06-10. Resumen del día:
+
+- M1 (asistencias en ficha del alumno), M2 (filtro en /sesiones-clase), M3 (grupos derivados del historial) — implementados, validados y marcados hechos.
+- M6 (sesiones con N grupos en JSON list) — implementado tras detectar el caso real de Inglés con varios grados.
+- M7 (entidad Grado del SDR restaurada + scoping del Director por grado) — implementado completo en las tres disciplinas RUP. La Secretaría queda como departamento colectivo (sin scoping) tras revisión lingüística del SDR.
+- 1 CU nuevo añadido al sistema: `gestionarCatalogoGrados` (CRUD por Secretaría sobre el catálogo de grados). Total: 26 → 27 CUs.
+- Plan de mejoras (`RUP/PLAN-MEJORAS.md`) ya solo lo usa el usuario como tracking personal; las referencias en RUP están limpias (grep confirma 0).
+
+Estado del proyecto al cierre: M1, M2, M3, M6 y M7 cerrados. Quedan en el plan personal del usuario M4 (alta individual de alumno por Secretaria) y M5 (catálogo de asignaturas + asignar profesor↔asignatura).
+
 ---

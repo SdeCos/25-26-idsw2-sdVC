@@ -22,6 +22,7 @@ import { CrearSesionClasePage } from './pages/CrearSesionClasePage';
 import { SesionClaseActivaPage } from './pages/SesionClaseActivaPage';
 import { ListaAlumnosPage } from './pages/ListaAlumnosPage';
 import { DetalleAlumnoPage } from './pages/DetalleAlumnoPage';
+import { GradosPage } from './pages/GradosPage';
 import { Layout } from './components/Layout';
 import { RequireAuth } from './components/RequireAuth';
 import { useAuth } from './context/AuthContext';
@@ -67,6 +68,9 @@ export const App: React.FC = () => (
     <Route path="/alumnos" element={profesorOSecretariaOAlumnosPage()} />
     <Route path="/alumnos/importar" element={secretariaOnly(<ImportarListasAlumnosPage />)} />
     <Route path="/alumnos/:id" element={profesorOSecretaria(<DetalleAlumnoPage />)} />
+
+    {/* Grados — Secretaria (catálogo global) */}
+    <Route path="/grados" element={secretariaOnly(<GradosPage />)} />
 
     {/* Matrículas — Secretaria */}
     <Route path="/matriculas" element={secretariaOnly(<MatriculasPage />)} />

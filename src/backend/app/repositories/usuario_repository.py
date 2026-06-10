@@ -56,9 +56,27 @@ class UsuarioRepository:
         return {a.username: a for a in result.scalars().all()}
 
     async def buscar_alumnos(
-        self, page: int, size: int, q: str | None = None
+        self,
+        page: int,
+        size: int,
+        q: str | None = None,
+        grado_id: int | None = None,
     ) -> tuple[list[Alumno], int]:
+        """Lista paginada de alumnos.
+
+        Si `grado_id` viene, restringe a alumnos con alguna matrícula en ese
+        grado (scoping de Secretaria por grado). `q` filtra por username,
+        nombre, apellidos o email.
+        """
         stmt = select(Alumno)
+        if grado_id is not None:
+            subq_alumno_ids = (
+                select(Matricula.alumno_id)
+                .where(Matricula.grado_id == grado_id)
+                .distinct()
+                .subquery()
+            )
+            stmt = stmt.where(Alumno.id.in_(select(subq_alumno_ids.c.alumno_id)))
         if q:
             patron = f"%{q.lower()}%"
             stmt = stmt.where(
@@ -152,6 +170,7 @@ class UsuarioRepository:
         nombre: str,
         apellidos: str,
         email: str,
+        grado_id: int | None = None,
     ) -> Usuario:
         cls = TIPO_A_CLASE.get(tipo)
         if cls is None:
@@ -162,6 +181,7 @@ class UsuarioRepository:
             nombre=nombre,
             apellidos=apellidos,
             email=email,
+            grado_id=grado_id,
         )
         self.session.add(usuario)
         await self.session.commit()

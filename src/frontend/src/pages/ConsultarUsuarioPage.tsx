@@ -63,6 +63,14 @@ export const ConsultarUsuarioPage: React.FC = () => {
         <dd>{usuario.email}</dd>
         <dt>Activo</dt>
         <dd>{usuario.activo ? 'Sí' : 'No'}</dd>
+        {usuario.grado && (
+          <>
+            <dt>Grado</dt>
+            <dd>
+              {usuario.grado.codigo} · {usuario.grado.nombre} — {usuario.grado.facultad}
+            </dd>
+          </>
+        )}
       </dl>
     </div>
   );

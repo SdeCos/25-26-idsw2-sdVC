@@ -118,9 +118,9 @@ export const ConsultarDispensaPage: React.FC = () => {
         </dd>
         <dt>Convocatoria</dt>
         <dd>{solicitud.asignatura_matriculada.n_matricula}ª</dd>
-        <dt>Plan / facultad</dt>
+        <dt>Grado</dt>
         <dd>
-          {asig.plan_estudios} — {asig.facultad}
+          {asig.grado.nombre} — {asig.grado.facultad}
         </dd>
         <dt>Motivo</dt>
         <dd>{solicitud.motivo || '—'}</dd>

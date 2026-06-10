@@ -1,4 +1,5 @@
 import type { TipoUsuario } from './auth';
+import type { Grado } from './grados';
 
 export interface UsuarioDetalle {
   id: number;
@@ -8,6 +9,7 @@ export interface UsuarioDetalle {
   apellidos: string;
   email: string;
   activo: boolean;
+  grado: Grado | null;
 }
 
 export interface CrearUsuarioRequest {
@@ -17,6 +19,7 @@ export interface CrearUsuarioRequest {
   nombre: string;
   apellidos: string;
   email: string;
+  grado_id?: number | null;
 }
 
 export interface EditarUsuarioRequest {
@@ -26,4 +29,5 @@ export interface EditarUsuarioRequest {
   apellidos?: string;
   email?: string;
   activo?: boolean;
+  grado_id?: number | null;
 }

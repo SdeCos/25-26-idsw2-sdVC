@@ -3,6 +3,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
 from app.models.solicitud_dispensa import EstadoSolicitud
+from app.schemas.grados import GradoOut
 
 
 class AlumnoMinOut(BaseModel):
@@ -35,8 +36,7 @@ class AsignaturaEmbedOut(BaseModel):
     ects: float
     caracter: str
     curso_plan: int
-    plan_estudios: str
-    facultad: str
+    grado: GradoOut
 
 
 class AsignaturaMatriculadaEmbedOut(BaseModel):

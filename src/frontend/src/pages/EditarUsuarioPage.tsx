@@ -2,7 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { isAxiosError } from 'axios';
 import { usuariosService } from '../services/usuariosService';
+import { gradosService } from '../services/gradosService';
 import type { EditarUsuarioRequest, UsuarioDetalle } from '../types/usuarios';
+import type { Grado } from '../types/grados';
+
+// Solo Director es individual y se scopea por grado. Secretaría es colectivo.
+const ROLES_CON_GRADO = new Set(['director']);
 
 interface FormState {
   username: string;
@@ -11,6 +16,7 @@ interface FormState {
   apellidos: string;
   email: string;
   activo: boolean;
+  grado_id: number | null;
 }
 
 const desdeUsuario = (u: UsuarioDetalle): FormState => ({
@@ -20,6 +26,7 @@ const desdeUsuario = (u: UsuarioDetalle): FormState => ({
   apellidos: u.apellidos,
   email: u.email,
   activo: u.activo,
+  grado_id: u.grado?.id ?? null,
 });
 
 export const EditarUsuarioPage: React.FC = () => {
@@ -27,6 +34,7 @@ export const EditarUsuarioPage: React.FC = () => {
   const navigate = useNavigate();
   const [original, setOriginal] = useState<UsuarioDetalle | null>(null);
   const [form, setForm] = useState<FormState | null>(null);
+  const [grados, setGrados] = useState<Grado[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -45,6 +53,12 @@ export const EditarUsuarioPage: React.FC = () => {
           setError('No se pudo cargar el usuario');
         }
       });
+    gradosService
+      .listar()
+      .then(setGrados)
+      .catch(() => {
+        /* Si Admin no tiene acceso a /grados, lo dejamos sin cargar. */
+      });
   }, [id]);
 
   const diff = (): EditarUsuarioRequest => {
@@ -56,6 +70,10 @@ export const EditarUsuarioPage: React.FC = () => {
     if (form.apellidos !== original.apellidos) cambios.apellidos = form.apellidos;
     if (form.email !== original.email) cambios.email = form.email;
     if (form.activo !== original.activo) cambios.activo = form.activo;
+    if (ROLES_CON_GRADO.has(original.tipo)) {
+      const originalGradoId = original.grado?.id ?? null;
+      if (form.grado_id !== originalGradoId) cambios.grado_id = form.grado_id;
+    }
     return cambios;
   };
 
@@ -112,6 +130,31 @@ export const EditarUsuarioPage: React.FC = () => {
             El tipo se fija en el alta y no se puede modificar.
           </small>
         </div>
+        {ROLES_CON_GRADO.has(original.tipo) && (
+          <div className="field">
+            <label htmlFor="grado_id">Grado</label>
+            <select
+              id="grado_id"
+              value={form.grado_id ?? ''}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  grado_id: e.target.value ? Number(e.target.value) : null,
+                })
+              }
+              required
+            >
+              <option value="" disabled>
+                — selecciona —
+              </option>
+              {grados.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.codigo} · {g.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div className="field">
           <label htmlFor="username">Username</label>
           <input

@@ -4,6 +4,7 @@ from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
+from app.models.asignatura import Asignatura
 from app.models.matricula import AsignaturaMatriculada, Matricula
 from app.models.solicitud_dispensa import EstadoSolicitud, SolicitudDispensa
 
@@ -55,6 +56,24 @@ class SolicitudDispensaRepository:
                 == SolicitudDispensa.asignatura_matriculada_id,
             )
             .where(AsignaturaMatriculada.asignatura_id.in_(ids))
+        )
+        result = await self.session.execute(stmt)
+        return list(result.unique().scalars().all())
+
+    async def obtener_por_grado(self, grado_id: int) -> list[SolicitudDispensa]:
+        """Dispensas cuya asignatura pertenece al grado dado.
+
+        Usado por `PoliticaDirector` y `PoliticaSecretaria` (scoping por grado).
+        """
+        stmt = (
+            self._eager()
+            .join(
+                AsignaturaMatriculada,
+                AsignaturaMatriculada.id
+                == SolicitudDispensa.asignatura_matriculada_id,
+            )
+            .join(Asignatura, Asignatura.id == AsignaturaMatriculada.asignatura_id)
+            .where(Asignatura.grado_id == grado_id)
         )
         result = await self.session.execute(stmt)
         return list(result.unique().scalars().all())

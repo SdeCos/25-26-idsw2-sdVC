@@ -57,7 +57,7 @@ export const MatriculasPage: React.FC = () => {
                 </td>
                 <td>{m.alumno.username}</td>
                 <td>{m.curso_academico}</td>
-                <td>{m.grado || '—'}</td>
+                <td>{m.grado.codigo}</td>
                 <td>{m.num_asignaturas}</td>
                 <td>{fmtFecha(m.fecha_importacion)}</td>
                 <td>
