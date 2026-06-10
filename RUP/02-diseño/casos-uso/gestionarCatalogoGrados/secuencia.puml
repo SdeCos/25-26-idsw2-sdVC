@@ -1,0 +1,45 @@
+@startuml
+title Diseño — gestionarCatalogoGrados() — flujo de alta
+
+actor Secretaria as S
+
+box "Frontend (React + TS)" #E8F0FE
+    participant "GradosPage" as GP
+    participant "gradosService" as GS
+end box
+
+box "Backend (FastAPI)" #FFF4E0
+    participant "GradosRouter\nPOST /grados" as GR
+    participant "require_rol" as RR
+    participant "GradoService" as GSv
+    participant "GradoRepository" as GRe
+end box
+
+database "SQLite" as DB
+
+S   -> GP   : codigo, nombre, facultad
+GP  -> GS   : crear(datos)
+GS  -> GR   : POST /grados (Bearer)
+GR  -> RR   : autorizar "secretaria"
+RR  --> GR  : Secretaria | 403
+GR  -> GSv  : crear(datos)
+GSv -> GRe  : crear(codigo, nombre, facultad)
+GRe -> DB   : INSERT
+
+alt codigo libre
+    DB  --> GRe : Grado
+    GRe --> GSv : Grado
+    GSv --> GR  : GradoOut
+    GR  --> GS  : 201
+    GS  --> GP  : grado creado
+    GP  --> S   : refresca listado
+else codigo en uso
+    DB  --> GRe : IntegrityError
+    GRe --> GSv : raise CodigoEnUso
+    GSv --> GR  : raise
+    GR  --> GS  : 409
+    GS  --> GP  : error
+    GP  --> S   : "ese código ya existe"
+end
+
+@enduml

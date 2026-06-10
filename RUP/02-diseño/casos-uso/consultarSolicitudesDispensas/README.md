@@ -13,6 +13,8 @@
 - **Versión**: 1.0
 - **Fecha**: 2026-05-30
 
+> **Nota — scoping por grado.** Una revisión posterior restauró la entidad `Grado` del SDR. La materialización del mensaje del análisis `obtenerTodas()` (ver tabla más abajo) deja de devolver "todas las solicitudes del sistema" y filtra por `dispensa.asignatura_matriculada.asignatura.grado_id == current_user.grado_id`. El método del repositorio se renombra a `obtener_por_grado(grado_id)` y la `PoliticaDirector` deja de devolver `True` siempre en `puede_ver`. Estructura de la secuencia inalterada; cambia el WHERE de las queries. Detalle en [[gestionarCatalogoGrados]].
+
 ## diagrama de secuencia
 
 <div align=center>

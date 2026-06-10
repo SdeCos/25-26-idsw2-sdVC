@@ -2083,4 +2083,26 @@ CUs derivados que no se reescriben (importarMatriculas, consultarDetalleMatricul
 
 **Decisión:** Siguiente paso: 02-diseño cuando el usuario lo indique.
 
+## [11:10] Limpieza del análisis tras feedback
+
+**Prompt:** "no los dividas a post-base ... quita todas las referencias al archivo de plan de mejoras ... el diagrama de colaboración me parece muchísimo más complejo que el de el resto de cdu, es necesario o se puede simplificar?".
+
+**Resultado:**
+- **Diagrama simplificado**: el `colaboracion.puml` de `gestionarCatalogoGrados` pasó de 6 cajas + 14 flechas a 4 cajas (`GradosView`, `GradoController`, `GradoRepository`, `Grado`) + 6 flechas, mismo orden visual que `crearUsuario`. SVG bajó de 18KB a 8KB.
+- **README del CU nuevo rehecho**: una sola `GradosView` (las 3 sub-vistas — listado/formulario/ficha — quedan para 02-diseño). Quitada toda mención a M7 y al `PLAN-MEJORAS.md`. Cabecera "información del artefacto" sin "Origen".
+- **4 notas de evolución reescritas**: en `consultarSolicitudesDispensas`, `editarSolicitudDispensaDirector`, `consultarListaAlumnosSecretaria` y `crearSesionClase`. Sin marcadores M6/M7, sin enlaces al plan. Explican el cambio sustantivo de comportamiento de forma autosuficiente.
+- **Índice de disciplina** (`01-analisis/casos-uso/README.md`): nuevo CU integrado como una fila más (`27/27 ✅`). Eliminadas sección "Post-base" y lista de CUs con cambio de comportamiento.
+
+`grep -rln "PLAN-MEJORAS" RUP/` confirma cero referencias.
+
+## [11:17] M7 — 02-diseño hecho
+
+**Resultado:** Diseño de M7 cerrado siguiendo el mismo patrón que el análisis (un CU nuevo + 4 notas + índice):
+
+- **Nuevo CU `gestionarCatalogoGrados`** en `RUP/02-diseño/casos-uso/gestionarCatalogoGrados/` — `secuencia.puml` mostrando el flujo de **alta** (operación más representativa, con la validación `UNIQUE(codigo)` → 409, mismo patrón que `crearUsuario`/`username`), README con participantes (`GradosPage`, `gradosService`, `GradosRouter`, `require_rol`, `GradoService`, `GradoRepository`, `SQLite`), tabla de materialización que mapea las 4 operaciones del análisis a `GET/POST/PATCH/DELETE /grados`, y 7 decisiones de diseño (CU agregado en un solo endpoint base, `GradoService` aunque la lógica sea fina, validación de unicidad sin pre-check, validación de referencias en service, `codigo` no editable post-creación, `require_rol(["secretaria"])` sin scoping, `GradosPage` única con sub-vistas).
+- **4 notas "Nota — scoping por grado" / "Nota — Asignatura promovida con FK a Grado"** insertadas entre "información del artefacto" y "diagrama de secuencia" (no hay `## propósito` en diseño) en `consultarSolicitudesDispensas`, `editarSolicitudDispensaDirector`, `consultarListaAlumnosSecretaria` y `crearSesionClase`. Cada una concreta qué cambia a nivel de diseño (renombrado de método de repo, guarda adicional en service, WHERE en queries, FK `grado_id` en lugar de `plan_estudios`/`facultad`).
+- **Índice de disciplina** (`02-diseño/casos-uso/README.md`) actualizado a `27/27 ✅` con el CU nuevo como fila adicional.
+
+**Decisión:** Siguiente paso: 03-desarrollo cuando el usuario lo indique (modelo `Grado`, FKs, políticas, schemas, frontend, seed, BD reseed).
+
 ---

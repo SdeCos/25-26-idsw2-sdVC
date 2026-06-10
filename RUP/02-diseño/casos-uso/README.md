@@ -32,5 +32,6 @@ Diagramas de secuencia por caso de uso. Cada CU lleva los participantes concreto
 | [editarSolicitudDispensa() (Secretaria)](editarSolicitudDispensaSecretaria/README.md)       | Secretaria      | ✅     |
 | [consultarSolicitudDispensa() (Secretaria)](consultarSolicitudDispensaSecretaria/README.md) | Secretaria      | ✅     |
 | [exportarDispensas()](exportarDispensas/README.md)                                          | Secretaria      | ✅     |
+| [gestionarCatalogoGrados()](gestionarCatalogoGrados/README.md)                              | Secretaria      | ✅     |
 
-**Progreso:** 26/26 ✅
+**Progreso:** 27/27 ✅

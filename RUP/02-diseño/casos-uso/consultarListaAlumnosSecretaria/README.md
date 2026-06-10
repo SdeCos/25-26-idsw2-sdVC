@@ -13,6 +13,8 @@
 - **Versión**: 1.0
 - **Fecha**: 2026-06-01
 
+> **Nota — scoping por grado.** Una revisión posterior restauró la entidad `Grado` del SDR. `GET /alumnos` ahora filtra por `matricula.grado_id == current_user.grado_id` cuando el `current_user.tipo == "secretaria"`. La cascada del scoping aplica también a `GET /matriculas` y `GET /dispensas` con el mismo filtro. El `AlumnoRepository.buscar_alumnos(...)` añade el WHERE; `AlumnoService` lo orquesta inyectando el grado del usuario. Estructura de la secuencia inalterada. Detalle en [[gestionarCatalogoGrados]].
+
 ## diagrama de secuencia
 
 <div align=center>

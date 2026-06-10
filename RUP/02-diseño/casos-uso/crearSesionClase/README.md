@@ -13,6 +13,8 @@
 - **Versión**: 1.0
 - **Fecha**: 2026-06-02
 
+> **Nota — Asignatura promovida con FK a `Grado`.** Una revisión posterior restauró la entidad `Grado` del SDR. En este CU el cambio se manifiesta en la tabla `sesiones_clase` solo de forma indirecta — la sesión no toca grado, pero su `asignatura_id` apunta a una `Asignatura` que ahora ya no tiene `plan_estudios` ni `facultad` como strings libres, sino una FK `grado_id`. El `AsignaturaOut` que devuelve `GET /sesiones-clase/{id}` y `POST /sesiones-clase` lleva el `grado` anidado. Diagrama y decisiones de la sesión, intactos. Detalle en [[gestionarCatalogoGrados]].
+
 ## diagrama de secuencia
 
 <div align=center>

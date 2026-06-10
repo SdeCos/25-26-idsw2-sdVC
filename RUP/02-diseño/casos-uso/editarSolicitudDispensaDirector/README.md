@@ -13,6 +13,8 @@
 - **Versión**: 1.0
 - **Fecha**: 2026-05-30
 
+> **Nota — scoping por grado.** Una revisión posterior restauró la entidad `Grado` del SDR. El `PATCH /dispensas/{id}` ahora valida en service `solicitud.asignatura_matriculada.asignatura.grado_id == current_user.grado_id` antes de aceptar el veredicto; si no coincide, 403. `PoliticaDirector.puede_ver` deja de devolver `True` siempre. Estructura de la secuencia inalterada; el cambio es una guarda adicional en `SolicitudDispensaService.actualizar`. Detalle en [[gestionarCatalogoGrados]].
+
 ## diagrama de secuencia
 
 <div align=center>
