@@ -1958,4 +1958,28 @@ El proyecto cierra el día — y la disciplina RUP — al **100% en análisis, d
 
 **Decisión:** El plan documenta las decisiones, no se ejecuta todavía. Espera confirmación del usuario sobre la corrección en M4 (mover alta de alumno individual a Secretaria) antes de empezar.
 
+## [09:58] Mover el plan a la raíz de RUP
+
+**Prompt:** "como veo que varios de estos puntos requiren modificacion de analisis y diseno a parte de desarrollo, mueve el archivo de desarrollo a la raiz, u otra carpeta mas apropiada".
+
+**Resultado:** Movido a `RUP/PLAN-MEJORAS.md` (sibling de las cuatro disciplinas). El plan atraviesa 01/02/03 en M4 y M5, así que no pertenece a ninguna disciplina concreta.
+
+**Decisión:** Confirmado por el usuario implícitamente al pasar a ejecutar M1.
+
+## [10:10] M1 — Asistencias en la ficha del alumno (hecho)
+
+**Prompt:** "vamos a empezar con la mejora 1, que por lo que veo en el readme, solo requiere modificacion de 03 diseno, no?".
+
+**Resultado:** Corrección de nomenclatura (03 es desarrollo, no diseño; diseño es 02). Tras leer el código se descubrió que el plan tenía un error menor: dije que el frontend "ya pintaba asistencias si venían rellenas", pero `DetalleAlumnoPage.tsx:87-98` solo tenía rama para `length === 0`. M1 toca también frontend.
+
+Cambios:
+- `repositories/asistencia_repository.py` — nuevo `listar_por_alumno(alumno_id)` con JOIN a `sesiones_clase`, ordenado por fecha desc + hora_inicio desc.
+- `routers/alumnos.py` — usa el repositorio en `obtener_alumno`, construye `AsistenciaEnFichaOut` por fila (con `fecha=...isoformat()` y `asignatura_codigo` desde `sesion_clase.asignatura.codigo`), borra el comentario "Se rellenará cuando…".
+- `schemas/alumnos.py` — quita la nota de placeholder del docstring de `AsistenciaEnFichaOut`.
+- `frontend/pages/DetalleAlumnoPage.tsx` — añade tabla (Fecha · Asignatura · Estado con `estado-badge`) para el caso `length > 0`.
+
+Verificación: `GET /alumnos/3` (alumno1) devuelve 4 asistencias con orden correcto (2 de hoy 2026-06-10 en IYA040/IYA041 ABIERTAS + 2 de fechas anteriores en IYA040). UI confirmada por el usuario.
+
+**Decisión:** M1 marcado como `hecho (2026-06-10)` en `RUP/PLAN-MEJORAS.md`. Siguiente: M2 cuando el usuario lo indique.
+
 ---

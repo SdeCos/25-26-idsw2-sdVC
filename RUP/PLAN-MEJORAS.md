@@ -6,21 +6,21 @@ Tras la primera ronda de pruebas manuales sobre el sistema base (26 CUs implemen
 
 ## Resumen
 
-| # | Item | Alcance RUP | Coste estimado |
-|---|------|-------------|----------------|
-| M1 | Asistencias en la ficha del alumno | 03 (solo backend) | bajo |
-| M2 | Filtro de asignatura en `/sesiones-clase` | 03 (solo frontend) | bajo |
-| M3 | Grupo en sesión: desplegable derivado del historial | 03 (solo frontend) | bajo |
-| M4 | Alta individual de alumno por Secretaria; el Administrador deja de poder crear alumnos | 01 + 02 + 03 | medio |
-| M5 | Catálogo de asignaturas + asignar profesor↔asignatura por Secretaria | 01 + 02 + 03 | alto |
+| # | Item | Alcance RUP | Coste estimado | Estado |
+|---|------|-------------|----------------|--------|
+| M1 | Asistencias en la ficha del alumno | 03 (backend + pequeño frontend) | bajo | hecho (2026-06-10) |
+| M2 | Filtro de asignatura en `/sesiones-clase` | 03 (solo frontend) | bajo | pendiente |
+| M3 | Grupo en sesión: desplegable derivado del historial | 03 (backend + frontend) | bajo | pendiente |
+| M4 | Alta individual de alumno por Secretaria; el Administrador deja de poder crear alumnos | 01 + 02 + 03 | medio | pendiente |
+| M5 | Catálogo de asignaturas + asignar profesor↔asignatura por Secretaria | 01 + 02 + 03 | alto | pendiente |
 
 Orden recomendado: M1 → M2 → M3 → M4 → M5. Los tres primeros son arreglos contenidos que no tocan diseño; M4 y M5 son CUs nuevos y siguen el ciclo RUP completo.
 
 ---
 
-## M1 — Asistencias en la ficha del alumno
+## M1 — Asistencias en la ficha del alumno  ·  **hecho (2026-06-10)**
 
-**Síntoma.** En `/alumnos/:id`, la sección "Asistencias" siempre muestra `(0) Sin asistencias registradas`, aun cuando hay asistencias persistidas tras cerrar sesiones de clase.
+**Síntoma.** En `/alumnos/:id`, la sección "Asistencias" siempre mostraba `(0) Sin asistencias registradas`, aun cuando había asistencias persistidas tras cerrar sesiones de clase.
 
 **Causa raíz.** `src/backend/app/routers/alumnos.py:214-224` devuelve `asistencias=[]` hardcodeado, con un comentario explícito de que está pendiente conectarse a la entidad `Asistencia`. Las asistencias **sí se persisten** correctamente al cerrar sesión.
 
@@ -31,9 +31,17 @@ Orden recomendado: M1 → M2 → M3 → M4 → M5. Los tres primeros son arreglo
 4. Borrar el comentario "Se rellenará cuando el ramillete conecte…".
 5. Probar manualmente con `profesor1`: abrir una sesión, marcar a `alumno1` como presente, cerrar la sesión, ir a `/alumnos/{id}` como Secretaria o Profesor y confirmar que aparece.
 
-**Sin cambios en frontend** (la página ya pinta `asistencias` si vienen rellenas).
+**Cambios en frontend:** la página `DetalleAlumnoPage.tsx` tenía solo rama para `asistencias.length === 0`. Se añadió la tabla para el caso `length > 0` (columnas Fecha, Asignatura, Estado con `estado-badge`).
 
 **Sin tocar 01/02:** es un fix de implementación de un CU ya analizado/diseñado (`consultarDetalleAlumno`).
+
+**Resumen de la ejecución.** Cambios en 4 archivos:
+- `src/backend/app/repositories/asistencia_repository.py` — nuevo método `listar_por_alumno`.
+- `src/backend/app/routers/alumnos.py` — usa el repositorio, construye `AsistenciaEnFichaOut` por fila, borra el comentario "placeholder".
+- `src/backend/app/schemas/alumnos.py` — quita la nota de placeholder del docstring de `AsistenciaEnFichaOut`.
+- `src/frontend/src/pages/DetalleAlumnoPage.tsx` — añade la tabla cuando hay asistencias.
+
+Verificado con `curl` (4 asistencias devueltas para `alumno1`, ordenadas por fecha desc) y con la UI (tabla rendizada en la ficha del alumno).
 
 ---
 

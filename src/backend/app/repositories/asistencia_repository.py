@@ -55,6 +55,21 @@ class AsistenciaRepository:
         )
         return list(result.unique().scalars().all())
 
+    async def listar_por_alumno(self, alumno_id: int) -> list[Asistencia]:
+        """Historial de asistencias de un alumno, más recientes primero.
+
+        `sesion_clase` y `sesion_clase.asignatura` vienen cargados por el
+        `lazy="joined"` declarado en los modelos.
+        """
+        stmt = (
+            select(Asistencia)
+            .join(SesionDeClase, Asistencia.sesion_clase_id == SesionDeClase.id)
+            .where(Asistencia.alumno_id == alumno_id)
+            .order_by(SesionDeClase.fecha.desc(), SesionDeClase.hora_inicio.desc())
+        )
+        result = await self.session.execute(stmt)
+        return list(result.unique().scalars().all())
+
     async def obtener_por_rango(
         self,
         asignatura_id: int,

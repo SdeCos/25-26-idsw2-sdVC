@@ -7,12 +7,14 @@ from app.core.database import get_db
 from app.dependencies import require_rol
 from app.models.matricula import AsignaturaMatriculada, Matricula
 from app.models.usuario import Alumno, Usuario
+from app.repositories.asistencia_repository import AsistenciaRepository
 from app.repositories.usuario_repository import UsuarioRepository
 from app.schemas.alumnos import (
     AlumnoDetalleOut,
     AlumnoEnAsignaturaOut,
     AlumnoListaItemOut,
     AsignaturaMatriculadaDelAlumnoOut,
+    AsistenciaEnFichaOut,
 )
 from app.schemas.paginacion import (
     InformeImportacionAlumnosOut,
@@ -211,8 +213,19 @@ async def obtener_alumno(
                 )
             )
 
-    # `asistencias`: vacío hoy. Se rellenará cuando el ramillete conecte
-    # `consultarDetalleAlumno` con `Asistencia` persistida real.
+    asistencia_repo = AsistenciaRepository(db)
+    asistencias_raw = await asistencia_repo.listar_por_alumno(alumno_id)
+    asistencias_out = [
+        AsistenciaEnFichaOut(
+            id=a.id,
+            sesion_clase_id=a.sesion_clase_id,
+            asignatura_codigo=a.sesion_clase.asignatura.codigo,
+            fecha=a.sesion_clase.fecha.isoformat(),
+            estado=a.estado,
+        )
+        for a in asistencias_raw
+    ]
+
     return AlumnoDetalleOut(
         id=alumno.id,
         username=alumno.username,
@@ -221,5 +234,5 @@ async def obtener_alumno(
         email=alumno.email,
         activo=alumno.activo,
         asignaturas_matriculadas=am_list,
-        asistencias=[],
+        asistencias=asistencias_out,
     )

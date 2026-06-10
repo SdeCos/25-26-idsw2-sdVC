@@ -50,11 +50,7 @@ class AlumnoEnAsignaturaOut(BaseModel):
 
 
 class AsistenciaEnFichaOut(BaseModel):
-    """Referencia mínima de una asistencia para mostrar en la ficha del Alumno.
-
-    Placeholder hoy — la lista se devuelve vacía hasta que la consulta de
-    detalle del Alumno se conecte con `Asistencia` (ramillete pendiente).
-    """
+    """Referencia mínima de una asistencia para mostrar en la ficha del Alumno."""
 
     model_config = ConfigDict(from_attributes=True)
 

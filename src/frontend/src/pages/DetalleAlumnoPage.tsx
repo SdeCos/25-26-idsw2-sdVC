@@ -95,6 +95,30 @@ export const DetalleAlumnoPage: React.FC = () => {
             Sin asistencias registradas.
           </p>
         )}
+        {expanded.asistencias && alumno.asistencias.length > 0 && (
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Asignatura</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {alumno.asistencias.map((a) => (
+                <tr key={a.id}>
+                  <td>{a.fecha}</td>
+                  <td>{a.asignatura_codigo}</td>
+                  <td>
+                    <span className={`estado-badge estado-${a.estado}`}>
+                      {a.estado}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </section>
     </div>
   );
