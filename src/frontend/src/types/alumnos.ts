@@ -1,3 +1,11 @@
+export interface CrearAlumnoRequest {
+  username: string;
+  password: string;
+  nombre: string;
+  apellidos: string;
+  email: string;
+}
+
 export interface AlumnoListaItem {
   id: number;
   username: string;

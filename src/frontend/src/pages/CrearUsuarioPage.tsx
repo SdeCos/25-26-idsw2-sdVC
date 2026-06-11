@@ -7,8 +7,9 @@ import type { CrearUsuarioRequest } from '../types/usuarios';
 import type { TipoUsuario } from '../types/auth';
 import type { Grado } from '../types/grados';
 
+// El alta de alumno la opera Secretaria por el canal POST /alumnos; aquí solo
+// se gestionan cuentas de personal. El backend además rechaza tipo='alumno' con 422.
 const TIPOS: TipoUsuario[] = [
-  'alumno',
   'profesor',
   'director',
   'secretaria',
@@ -22,7 +23,7 @@ const ROLES_CON_GRADO: TipoUsuario[] = ['director'];
 export const CrearUsuarioPage: React.FC = () => {
   const navigate = useNavigate();
   const [form, setForm] = useState<CrearUsuarioRequest>({
-    tipo: 'alumno',
+    tipo: 'profesor',
     username: '',
     password: '',
     nombre: '',

@@ -35,6 +35,11 @@ async def listar_usuarios(db: AsyncSession = Depends(get_db)) -> list[Usuario]:
 async def crear_usuario(
     req: CrearUsuarioRequest, db: AsyncSession = Depends(get_db)
 ) -> Usuario:
+    if req.tipo == "alumno":
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            "El alta de alumno corresponde a Secretaría (POST /alumnos).",
+        )
     service = UsuarioService(UsuarioRepository(db))
     try:
         return await service.crear(req)

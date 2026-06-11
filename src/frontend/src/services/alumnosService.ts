@@ -4,9 +4,11 @@ import type {
   AlumnoEnAsignatura,
   AlumnoListaItem,
   AsignaturaMatriculadaDelAlumno,
+  CrearAlumnoRequest,
 } from '../types/alumnos';
 import type { InformeImportacionAlumnos } from '../types/paginacion';
 import type { PaginaOut } from '../types/paginacion';
+import type { UsuarioDetalle } from '../types/usuarios';
 
 export const alumnosService = {
   /** Listado de Secretaria (paginado + búsqueda libre). */
@@ -30,6 +32,11 @@ export const alumnosService = {
     const { data } = await api.get<PaginaOut<AlumnoEnAsignatura>>('/alumnos', {
       params: { asignatura_id: asignaturaId, page, size },
     });
+    return data;
+  },
+
+  async crear(datos: CrearAlumnoRequest): Promise<UsuarioDetalle> {
+    const { data } = await api.post<UsuarioDetalle>('/alumnos', datos);
     return data;
   },
 

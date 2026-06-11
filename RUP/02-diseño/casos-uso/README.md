@@ -28,10 +28,11 @@ Diagramas de secuencia por caso de uso. Cada CU lleva los participantes concreto
 | [consultarDetalleMatricula()](consultarDetalleMatricula/README.md)                | Secretaria      | ✅     |
 | [importarListasAlumnos()](importarListasAlumnos/README.md)                        | Secretaria      | ✅     |
 | [importarMatriculas()](importarMatriculas/README.md)                              | Secretaria      | ✅     |
+| [crearAlumno()](crearAlumno/README.md)                                            | Secretaria      | ✅     |
 | [crearSolicitudDispensa() (Secretaria)](crearSolicitudDispensaSecretaria/README.md)         | Secretaria      | ✅     |
 | [editarSolicitudDispensa() (Secretaria)](editarSolicitudDispensaSecretaria/README.md)       | Secretaria      | ✅     |
 | [consultarSolicitudDispensa() (Secretaria)](consultarSolicitudDispensaSecretaria/README.md) | Secretaria      | ✅     |
 | [exportarDispensas()](exportarDispensas/README.md)                                          | Secretaria      | ✅     |
 | [gestionarCatalogoGrados()](gestionarCatalogoGrados/README.md)                              | Secretaria      | ✅     |
 
-**Progreso:** 27/27 ✅
+**Progreso:** 28/28 ✅

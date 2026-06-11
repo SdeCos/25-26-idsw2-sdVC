@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { alumnosService } from '../services/alumnosService';
+import { useAuth } from '../context/AuthContext';
 import type { AlumnoListaItem } from '../types/alumnos';
 import type { PaginaOut } from '../types/paginacion';
 
 export const AlumnosPage: React.FC = () => {
+  const { usuario } = useAuth();
+  const esSecretaria = usuario?.tipo === 'secretaria';
   const [pagina, setPagina] = useState<PaginaOut<AlumnoListaItem> | null>(null);
   const [page, setPage] = useState(1);
   const [size] = useState(25);
@@ -34,9 +37,16 @@ export const AlumnosPage: React.FC = () => {
     <div className="page">
       <header className="page-header">
         <h1>Alumnos</h1>
-        <Link to="/alumnos/importar">
-          <button type="button">Importar listas</button>
-        </Link>
+        {esSecretaria && (
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <Link to="/alumnos/nuevo">
+              <button type="button">+ Nuevo alumno</button>
+            </Link>
+            <Link to="/alumnos/importar">
+              <button type="button">Importar listas</button>
+            </Link>
+          </div>
+        )}
       </header>
 
       <form

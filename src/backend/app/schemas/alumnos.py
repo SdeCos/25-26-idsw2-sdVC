@@ -1,4 +1,20 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, EmailStr
+
+
+class CrearAlumnoRequest(BaseModel):
+    """Alta individual de Alumno por Secretaria (POST /alumnos).
+
+    Materializa el value object `DatosPersonalesAlumno` del análisis. El
+    `tipo` no aparece — está fijo en "alumno" y lo aplica el router antes de
+    delegar en `UsuarioService.crear`. El alta usa el canal `/alumnos` (no
+    `/usuarios`) para reforzar el reparto Administrador↔Secretaria.
+    """
+
+    username: str
+    password: str
+    nombre: str
+    apellidos: str
+    email: EmailStr
 
 
 class AlumnoListaItemOut(BaseModel):

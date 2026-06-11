@@ -15,7 +15,7 @@
 
 ## propósito
 
-Análisis del caso de uso `crearUsuario()` mediante diagrama de colaboración MVC. El Administrador da de alta un nuevo `Usuario` del sistema eligiendo su tipo concreto (Alumno, Profesor, Secretaria, DirectorDeGrado, Administrador); la captura del resto de datos personales se delega a `editarUsuario()` vía `<<include>>`.
+Análisis del caso de uso `crearUsuario()` mediante diagrama de colaboración MVC. El Administrador da de alta un nuevo `Usuario` del sistema eligiendo su tipo concreto (Profesor, Secretaria, DirectorDeGrado, Administrador); la captura del resto de datos personales se delega a `editarUsuario()` vía `<<include>>`.
 
 ## diagrama de colaboración
 

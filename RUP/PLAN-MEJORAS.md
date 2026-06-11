@@ -12,8 +12,8 @@ Tras la primera ronda de pruebas manuales sobre el sistema base (26 CUs implemen
 | M2 | Filtro de asignatura en `/sesiones-clase` | 03 (solo frontend) | bajo | hecho (2026-06-10) |
 | M3 | Grupo en sesión: desplegable derivado del historial | 03 (backend + frontend) | bajo | hecho (2026-06-10) |
 | M6 | Sesiones con múltiples grupos (cardinalidad 1 → N) | 01 + 02 + 03 | medio | hecho (2026-06-10) |
-| M7 | Restaurar `Grado` como entidad y scoping de Director/Secretaria por grado | 01 + 02 + 03 | alto | pendiente |
-| M4 | Alta individual de alumno por Secretaria; el Administrador deja de poder crear alumnos | 01 + 02 + 03 | medio | pendiente |
+| M7 | Restaurar `Grado` como entidad y scoping de Director/Secretaria por grado | 01 + 02 + 03 | alto | hecho (2026-06-10) |
+| M4 | Alta individual de alumno por Secretaria; el Administrador deja de poder crear alumnos | 01 + 02 + 03 | medio | hecho (2026-06-11) |
 | M5 | Catálogo de asignaturas + asignar profesor↔asignatura por Secretaria | 01 + 02 + 03 | alto | pendiente |
 
 Orden recomendado: M1 → M2 → M3 → M6 → M7 → M4 → M5. Los tres primeros son arreglos contenidos que no tocan diseño; M6, M7, M4 y M5 atraviesan las tres disciplinas.
@@ -94,7 +94,15 @@ Verificado con `curl` (4 asistencias devueltas para `alumno1`, ordenadas por fec
 
 ---
 
-## M4 — Alta individual de alumno por Secretaria
+## M4 — Alta individual de alumno por Secretaria  ·  **hecho (2026-06-11)**
+
+**Resumen de la ejecución.** Implementado completo en 01 + 02 + 03:
+- 01-analisis y 02-diseño: nuevo CU `crearAlumno` (espejo de `crearUsuario` con actor Secretaria y `tipo` fijo). En el análisis se aplicó "Introduce Parameter Object" (Fowler) con `DatosPersonalesAlumno`, consumiendo parte de la deuda blanda que dejó `crearSesionClase` para refactorizar `crear*` con ≥4 parámetros. En el diseño se materializa como `CrearAlumnoRequest` (Pydantic).
+- 03-desarrollo: nuevo `POST /alumnos` bajo `require_rol(["secretaria"])`, que reutiliza `UsuarioService.crear` con `tipo="alumno"` fijado por el router (polimorfismo single-source en `UsuarioRepository`). Doble defensa: `POST /usuarios` rechaza `tipo="alumno"` con 422 y `CrearUsuarioPage` retira la opción del `<select>`. Nueva página `CrearAlumnoPage` (`/alumnos/nuevo`, secretariaOnly) y botón "+ Nuevo alumno" en `/alumnos` visible solo para Secretaria.
+- **Divergencia respecto al diseño:** sin campo `telefono` (no existe en el modelo `Usuario`; el alta queda con 5 campos en lugar de los 6 del diseño).
+- Total CUs: 27 → 28.
+
+
 
 **Decisión.** Coherencia con el principio del plan: el alta individual de alumnos (incorporación a mitad de curso, becarios tardíos, etc.) es operación académica, le toca a Secretaria. El Administrador deja de poder crear alumnos desde su formulario; queda restringido a cuentas de personal.
 
@@ -198,7 +206,15 @@ Coherente con la decisión original de 02-diseño de mantener `grupo` como strin
 
 ---
 
-## M7 — Restaurar `Grado` como entidad y scoping de Director/Secretaria
+## M7 — Restaurar `Grado` como entidad y scoping de Director/Secretaria  ·  **hecho (2026-06-10)**
+
+**Resumen de la ejecución.** Implementado completo en 01 + 02 + 03:
+- 01-analisis y 02-diseño: nuevo CU `gestionarCatalogoGrados` (CRUD por Secretaria) + 4 notas de evolución en `consultarSolicitudesDispensas`, `editarSolicitudDispensaDirector`, `consultarListaAlumnosSecretaria` y `crearSesionClase`.
+- 03-desarrollo: entidad `Grado` con `codigo` único; FKs en `Asignatura.grado_id` (sustituye `plan_estudios`/`facultad`), `Matricula.grado_id` y `Usuario.grado_id`; políticas con scoping; router `/grados` bajo Secretaria; frontend `GradosPage` + selectores condicionales en alta/edición de usuarios.
+- **Corrección lingüística del SDR durante implementación:** la relación `Grado --> SecretariaAcademica : Gestionado por` se lee como "gestionado por (el departamento de) Secretaría Académica", no por una cuenta concreta. Por tanto el scoping por grado se aplica **solo al Director** (relación 1:1 con identidad); la Secretaría queda como departamento colectivo sin scoping. El seed final tiene `secretaria1` sin grado vinculada a las matrículas de ambos grados.
+- Total CUs: 26 → 27.
+
+
 
 **Síntoma.** En la realidad académica cada Grado tiene su propio Director (el de ADE no resuelve dispensas de Informática) y su propia Secretaria (idem). En el sistema actual `DirectorDeGrado` y `SecretariaAcademica` son globales: cualquiera ve y resuelve cualquier cosa. `services/politica_acceso.py:130` materializa la pifia: `PoliticaDirector.puede_ver` devuelve literalmente `True` siempre.
 

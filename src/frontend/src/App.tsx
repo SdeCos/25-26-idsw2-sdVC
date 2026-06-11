@@ -12,6 +12,7 @@ import { EmitirVeredictoPage } from './pages/EmitirVeredictoPage';
 import { CrearSolicitudPage } from './pages/CrearSolicitudPage';
 import { EditarSolicitudPage } from './pages/EditarSolicitudPage';
 import { AlumnosPage } from './pages/AlumnosPage';
+import { CrearAlumnoPage } from './pages/CrearAlumnoPage';
 import { ImportarListasAlumnosPage } from './pages/ImportarListasAlumnosPage';
 import { MatriculasPage } from './pages/MatriculasPage';
 import { ImportarMatriculasPage } from './pages/ImportarMatriculasPage';
@@ -66,6 +67,7 @@ export const App: React.FC = () => (
 
     {/* Alumnos — Secretaria (listado paginado) y Profesor (por asignatura) */}
     <Route path="/alumnos" element={profesorOSecretariaOAlumnosPage()} />
+    <Route path="/alumnos/nuevo" element={secretariaOnly(<CrearAlumnoPage />)} />
     <Route path="/alumnos/importar" element={secretariaOnly(<ImportarListasAlumnosPage />)} />
     <Route path="/alumnos/:id" element={profesorOSecretaria(<DetalleAlumnoPage />)} />
 

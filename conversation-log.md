@@ -2186,3 +2186,108 @@ Verificación curl tras reseed:
 Estado del proyecto al cierre: M1, M2, M3, M6 y M7 cerrados. Quedan en el plan personal del usuario M4 (alta individual de alumno por Secretaria) y M5 (catálogo de asignaturas + asignar profesor↔asignatura).
 
 ---
+
+### Sesión 2026-06-11
+
+## [10:18] Apertura + corrección de PLAN-MEJORAS
+
+**Prompt:** "vamos a empezar con la siguiente mejora de las propuestas anteriormente, imagino que me recomiendes empezar por la m7, no?, y como veo que involucra todas las etapas de RUP, vamos a empezar por el analisis".
+
+**Resultado:** Aviso de que M7 quedó hecha ayer; la siguiente en el orden recomendado del plan (M1→M2→M3→M6→M7→M4→M5) es **M4 — alta individual de alumno por Secretaria**. Al ver que el archivo no reflejaba M7 como hecha, el usuario pidió arreglarlo. En `RUP/PLAN-MEJORAS.md`:
+- Fila de la tabla resumen: M7 marcada `hecho (2026-06-10)`.
+- Título de la sección M7: añadido `· **hecho (2026-06-10)**` (mismo formato que M1/M2/M3/M6).
+- Resumen de ejecución de M7 insertado en la sección: bloque enumerando análisis/diseño/desarrollo + la corrección lingüística del SDR (Secretaría como departamento colectivo, scoping solo para Director).
+
+**Decisión:** Arrancamos M4 por la disciplina 01-analisis. Antes de redactar, dos preguntas zanjadas con el usuario:
+1. Forma del CU `crearAlumno` → **espejo literal de `crearUsuario`** (mismo flujo, actor Secretaria, tipo fijo `alumno`).
+2. CU `crearUsuario` tras M4 → **mantener el nombre** con una nota de evolución que recorta su alcance (excluye `tipo=alumno`).
+
+## [10:21] M4 — 01-analisis hecho
+
+**Resultado:** Análisis de M4 cerrado siguiendo [[feedback_scope_minimo_disciplinas]] (un CU nuevo + una nota de evolución + índice):
+
+- **Nuevo CU `crearAlumno`** en `RUP/01-analisis/casos-uso/crearAlumno/` — `colaboracion.puml` con 4 cajas (`CrearAlumnoView`, `AlumnoController`, `UsuarioRepository`, `Alumno`) + 5 mensajes (mismo esqueleto que `crearUsuario` pero sin el `<<include>> editarUsuario`: como el `tipo` está fijo y los campos personales son pocos, se capturan todos en el formulario único). README explicando por qué se reutiliza `AlumnoController` (Controller por entidad ya consolidado en consultarListaAlumnos / consultarDetalleAlumno / importarListasAlumnos), por qué la persistencia sigue en `UsuarioRepository` (mantener ahí el punto único de despacho polimórfico establecido en `crearUsuario`) y formalizando el reparto Administrador (cuentas de personal) ↔ Secretaria (datos académicos) como principio subyacente al plan post-base.
+- **Nota "Nota — alcance"** insertada al principio del `## propósito` de `crearUsuario`: el dominio del parámetro `tipo` se reduce (ya no admite `alumno`), Profesor/DirectorDeGrado/Secretaria/Administrador siguen. Sin marcadores M4 ni enlaces al plan, autosuficiente (mismo patrón que las notas de M7).
+- **Índice de la disciplina** (`01-analisis/casos-uso/README.md`): fila de `crearAlumno` añadida bajo el bloque de Secretaria; progreso `27/27` → `28/28`.
+
+**Decisión:** Siguiente paso: 02-diseño cuando el usuario lo indique.
+
+## [10:29] M4 análisis — limpieza tras feedback
+
+**Prompt:** "elimina la nota que has puesto en crearUsuario, no son necesarias y lo unico que hacen es complicar las cosas, y, en crear alumno, veo un code smell de demasiados parametros de un metodo, no? se podria arreglar o es intrinseco al sistema?".
+
+**Resultado:**
+- **Nota de alcance eliminada** del `## propósito` de [[crearUsuario]]. La enumeración del propósito ya refleja sólo {Profesor, Secretaria, DirectorDeGrado, Administrador}; eso basta como reflejo del estado actual. Política reafirmada: el análisis se lee como verdad presente, no como diario de cambios. (Para cambios sustantivos de comportamiento sí queda nota, como las de M7 — la diferencia es que en M4 `crearUsuario` no cambia su flujo MVC, solo se reduce el dominio del parámetro.)
+- **Smell "Long Parameter List" confirmado** en `crearAlumno` (6 parámetros). No es intrínseco — el proyecto ya tiene precedente: [[crearSesionClase]] aplicó "Introduce Parameter Object" (Fowler) con `DatosSesionClase` para el mismo smell, y dejó registrada como "deuda blanda" la extensión a otros CUs con ≥4 parámetros. `crearAlumno` consume parte de esa deuda.
+- **Refactor aplicado** en `crearAlumno`: nuevo value object `DatosPersonalesAlumno` agrupa los 4 campos personales (nombre, apellidos, email, teléfono). Las credenciales (login, contraseña) quedan **fuera del DTO** para preservar la simetría con [[crearUsuario]] (donde auth y datos personales también van separados, vía `<<include>> editarUsuario`). Firmas resultantes: mensaje 4 `crearAlumno(login, contraseña, datos) : Alumno` (3 params); mensaje 5 `crear(tipo, login, contraseña, datos) : Alumno` (4 params).
+- **Diagrama actualizado** (5 cajas + DatosPersonalesAlumno) y **sección "refactor Introduce Parameter Object"** añadida al README con tabla antes/después, qué entra/no entra en el DTO y un cuadro de alcance comparando los 4 `crear*` del proyecto.
+
+**Decisión:** 01-analisis de M4 cerrado limpio. Esperando luz verde para 02-diseño.
+
+## [10:39] M4 — 02-diseño hecho
+
+**Prompt:** "perfecto, vamos con el diseno".
+
+**Resultado:** Diseño de M4 cerrado:
+
+- **Nuevo CU `crearAlumno`** en `RUP/02-diseño/casos-uso/crearAlumno/` — `secuencia.puml` con frontend (`CrearAlumnoPage`, `alumnosService`), backend (`AlumnosRouter POST /alumnos`, `require_rol`, `UsuarioService`, `UsuarioRepository`) y SQLite; rama `alt` para login libre / login en uso (mismo patrón que `crearUsuario`). README con participantes, tabla de materialización del análisis (5 mensajes) y 7 decisiones de diseño:
+  - **Canal HTTP separado**: `POST /alumnos` (no `/usuarios`); `POST /usuarios` rechaza `tipo="alumno"` con 422.
+  - **`UsuarioService.crear` reutilizado** con `tipo="alumno"` fijado por el router; el polimorfismo de instanciación sigue siendo single-source en `UsuarioRepository`. Justificado el preferir reuse vs. nuevo `AlumnoService` (a diferencia de `GradoService` donde no había alternativa).
+  - **`require_rol(["secretaria"])` sin scoping por grado** (la Secretaría es departamento colectivo desde [[gestionarCatalogoGrados]]; el grado del alumno se deriva luego desde sus matrículas).
+  - **`DatosPersonalesAlumno` se materializa como `CrearAlumnoRequest` (Pydantic)**, viaja aplanado en el wire por ergonomía del formulario pero se pasa como unidad entre service y repository. Precedente: `crearSesionClase` con `CrearSesionClaseRequest`.
+  - **Ruta `/alumnos/nuevo`** (no modal), coherencia con `/usuarios/nuevo`.
+  - **Validación de unicidad sin pre-check** (UNIQUE+IntegrityError → 409), mismo patrón.
+  - **Doble defensa cliente+servidor** al retirar `alumno` del `<select>` de `CrearUsuarioPage`.
+- **Índice de la disciplina** (`02-diseño/casos-uso/README.md`): fila de `crearAlumno` añadida; progreso `27/27` → `28/28`.
+
+**Decisión:** Siguiente paso: 03-desarrollo cuando el usuario lo indique.
+
+## [11:18] M4 — 03-desarrollo hecho
+
+**Prompt:** "perfecto, vamos por ultimo con el desarrollo".
+
+**Resultado:** M4 implementado completo. Tasks #4–#9 cerradas.
+
+Backend (3 archivos tocados):
+- `schemas/alumnos.py` — nuevo `CrearAlumnoRequest` (username, password, nombre, apellidos, email). Sin `telefono` porque el modelo `Usuario` no lo tiene; añadirlo excede el alcance del CU (registrado como divergencia en el README de 03-desarrollo).
+- `routers/alumnos.py` — nuevo `POST /alumnos` protegido por `require_rol(["secretaria"])`. Construye internamente un `CrearUsuarioRequest` con `tipo="alumno"` fijo + `grado_id=None` y delega en `UsuarioService.crear`. El polimorfismo de instanciación queda single-source en `UsuarioRepository.crear`.
+- `routers/usuarios.py` — guarda en `crear_usuario` que rechaza `tipo="alumno"` con 422 ("El alta de alumno corresponde a Secretaría (POST /alumnos).") antes de invocar al service. Doble defensa.
+
+Frontend (5 archivos tocados):
+- `types/alumnos.ts` — `CrearAlumnoRequest` añadida.
+- `services/alumnosService.ts` — método `crear(datos)` → `POST /alumnos` devuelve `UsuarioDetalle`.
+- `pages/CrearAlumnoPage.tsx` — nueva página. Form con 5 campos, maneja 409 (username en uso) y 422 (validación), `navigate("/alumnos")` al éxito.
+- `App.tsx` — ruta `/alumnos/nuevo` con `secretariaOnly`. Import del nuevo componente.
+- `pages/AlumnosPage.tsx` — botón "+ Nuevo alumno" añadido al header, visible solo cuando `usuario.tipo === 'secretaria'` (vía `useAuth`). El botón "Importar listas" sigue donde estaba, también gated.
+- `pages/CrearUsuarioPage.tsx` — `'alumno'` retirado de `TIPOS`; `tipo` por defecto cambiado a `'profesor'`. Comentario explicando que el alta de alumno la opera Secretaria por `/alumnos`.
+
+Verificación curl (`secretaria1`/`secre123`, `admin`/`admin123`):
+- `POST /alumnos` con datos válidos → 201 + `{id, tipo:"alumno", grado:null, …}`. ✓
+- `POST /alumnos` con username duplicado → 409 "El username ya está en uso". ✓
+- `POST /usuarios` con `tipo="alumno"` → 422 con mensaje explícito. ✓
+- `POST /alumnos` con token de admin → 403 "No autorizado para esta operación". ✓
+- `POST /usuarios` con `tipo="profesor"` → 201 (no regresión). ✓
+- `GET /alumnos?q=alumno9` → el alumno recién creado aparece. ✓
+- `tsc --noEmit` pasa sin errores.
+
+Documentación:
+- Nuevo README en `RUP/03-desarrollo/casos-uso/crearAlumno/` con trazabilidad código↔diseño, una divergencia documentada (sin teléfono) y verificación.
+- Índice de la disciplina actualizado a `27/27 ✅` (faltaba reflejar también el `gestionarCatalogoGrados` de M7 — deuda menor del cierre anterior; no se toca ahora para no mezclar mejoras).
+
+**Decisión:** M4 funcional. App corriendo en http://localhost:5173 y :8000 para la confirmación visual del usuario.
+
+**Guion de prueba manual sugerido:**
+1. Login como `secretaria1`/`secre123`. Navegar a `/alumnos`. Confirmar que aparecen los botones "+ Nuevo alumno" e "Importar listas".
+2. Click "+ Nuevo alumno" → pantalla `/alumnos/nuevo` con form de 5 campos.
+3. Crear `alumno10` con datos cualesquiera. Tras el alta, vuelve al listado y el alumno aparece (puede requerir search por nombre).
+4. Repetir el alta con el mismo username → mensaje "Ese username ya está en uso" inline.
+5. Logout. Login como `admin`/`admin123`. Navegar a `/usuarios/nuevo`. El `<select>` de tipo ya no muestra "alumno"; el resto sigue.
+6. Logout. Login como `profesor1`/`profe123`. Navegar a `/alumnos?asignatura_id=1`. El botón "+ Nuevo alumno" NO debe aparecer (solo Secretaria).
+
+## [11:21] Deuda menor de M7 saldada — README de gestionarCatalogoGrados
+
+**Prompt:** "ahora que lo veo del apartado 03 desarrollo falta gestionar catalogo grado, no?, solo falta en el 03 de RUP o tambien falta el codigo? ... sí, redáctalo".
+
+**Resultado:** Confirmado por inspección que el código de `gestionarCatalogoGrados` está completo desde M7 (backend: `models/grado.py`, `schemas/grados.py`, `repositories/grado_repository.py`, `services/grado_service.py`, `routers/grados.py`; frontend: `types/grados.ts`, `services/gradosService.ts`, `pages/GradosPage.tsx`, ruta `/grados` en `App.tsx:75`, enlace "Grados" en `Layout.tsx:59`). Solo faltaba la documentación. Añadido `RUP/03-desarrollo/casos-uso/gestionarCatalogoGrados/README.md` con trazabilidad código↔diseño, divergencia documentada (`PoliticaSecretaria` sin scoping por la revisión lingüística del SDR de ayer) y tabla de verificación curl. Índice de 03-desarrollo a `28/28 ✅`.
+
+**Decisión:** Deuda saldada sin tocar código. Las tres disciplinas RUP ahora cuadran (`28/28` en 01-analisis, 02-diseño y 03-desarrollo).

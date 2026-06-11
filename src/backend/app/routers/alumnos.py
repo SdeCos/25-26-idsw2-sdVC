@@ -15,16 +15,19 @@ from app.schemas.alumnos import (
     AlumnoListaItemOut,
     AsignaturaMatriculadaDelAlumnoOut,
     AsistenciaEnFichaOut,
+    CrearAlumnoRequest,
 )
 from app.schemas.paginacion import (
     InformeImportacionAlumnosOut,
     PaginaOut,
 )
+from app.schemas.usuarios import CrearUsuarioRequest, UsuarioDetalleOut
 from app.services.alumno_service import (
     AlumnoNoEncontrado,
     AlumnoService,
     ProfesorNoCompetente,
 )
+from app.services.usuario_service import UsernameEnUso, UsuarioService
 from app.services.validador_archivo_listas_alumnos import CabeceraInvalida
 
 router = APIRouter(prefix="/alumnos", tags=["alumnos"])
@@ -120,6 +123,41 @@ async def _cursos_por_alumno(
     )
     result = await db.execute(stmt)
     return {row[0]: row[1] for row in result.all()}
+
+
+@router.post(
+    "",
+    response_model=UsuarioDetalleOut,
+    status_code=status.HTTP_201_CREATED,
+)
+async def crear_alumno(
+    req: CrearAlumnoRequest,
+    _: Usuario = Depends(_require_secretaria),
+    db: AsyncSession = Depends(get_db),
+) -> Usuario:
+    """Alta individual de Alumno por Secretaria.
+
+    Canal separado de `POST /usuarios` (Administrador) — el reparto
+    Administrador↔Secretaria también vive en la superficie HTTP. El polimorfismo
+    de instanciación se delega en `UsuarioService.crear` con `tipo="alumno"`
+    fijado aquí; el cliente no lo envía.
+    """
+    usuario_req = CrearUsuarioRequest(
+        tipo="alumno",
+        username=req.username,
+        password=req.password,
+        nombre=req.nombre,
+        apellidos=req.apellidos,
+        email=req.email,
+        grado_id=None,
+    )
+    service = UsuarioService(UsuarioRepository(db))
+    try:
+        return await service.crear(usuario_req)
+    except UsernameEnUso as exc:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, "El username ya está en uso"
+        ) from exc
 
 
 @router.post(

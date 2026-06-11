@@ -1,0 +1,27 @@
+@startuml crearAlumno-analisis
+skinparam linetype polyline
+
+rectangle #CDEBA5 ":Alumnos Abierto" as AlumnosAbierto
+
+package crearAlumno as "crearAlumno()" {
+    rectangle #629EF9 CrearAlumnoView
+    rectangle #b5bd68 AlumnoController
+    rectangle #F2AC4E UsuarioRepository
+    rectangle #F2AC4E DatosPersonalesAlumno
+    rectangle #F2AC4E Alumno
+}
+
+AlumnosAbierto -r-> CrearAlumnoView         : crearAlumno()
+
+CrearAlumnoView -d-> AlumnoController       : validarUnicidad(login) : boolean
+
+AlumnoController --> UsuarioRepository      : existeLogin(login) : boolean
+
+CrearAlumnoView --> AlumnoController        : crearAlumno(login, contraseña, datos) : Alumno
+
+AlumnoController --> UsuarioRepository      : crear(tipo="alumno", login, contraseña, datos) : Alumno
+
+UsuarioRepository -- Alumno
+UsuarioRepository -- DatosPersonalesAlumno
+
+@enduml
