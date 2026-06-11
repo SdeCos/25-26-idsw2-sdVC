@@ -33,7 +33,7 @@ export interface AsignaturaEmbed {
   ects: number;
   caracter: 'OB' | 'OP' | 'FB';
   curso_plan: number;
-  grado: Grado;
+  grados: Grado[];
 }
 
 export interface AsignaturaMatriculadaEmbed {

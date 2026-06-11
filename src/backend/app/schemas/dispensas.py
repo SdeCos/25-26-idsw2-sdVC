@@ -36,7 +36,7 @@ class AsignaturaEmbedOut(BaseModel):
     ects: float
     caracter: str
     curso_plan: int
-    grado: GradoOut
+    grados: list[GradoOut]
 
 
 class AsignaturaMatriculadaEmbedOut(BaseModel):

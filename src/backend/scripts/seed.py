@@ -18,6 +18,7 @@ from app.models.asignatura import Asignatura
 from app.models.asistencia import Asistencia, EstadoAsistencia
 from app.models.grado import Grado
 from app.models.matricula import AsignaturaMatriculada, Matricula
+from app.models.profesor_asignatura import AsignaturaImpartida
 from app.models.sesion_clase import EstadoSesionClase, SesionDeClase
 from app.models.solicitud_dispensa import EstadoSolicitud, SolicitudDispensa
 from app.models.usuario import (
@@ -65,6 +66,9 @@ ASIGNATURAS_SEED: list[dict] = [
      "caracter": "FB", "curso_plan": 1, "grado_codigo": "ADE"},
     {"codigo": "ADE202", "nombre": "Contabilidad financiera", "ects": 6.0,
      "caracter": "OB", "curso_plan": 2, "grado_codigo": "ADE"},
+    # Multi-grado — Inglés se imparte simultáneamente a INF + ADE
+    {"codigo": "IDIO1", "nombre": "Inglés I", "ects": 3.0,
+     "caracter": "FB", "curso_plan": 1, "grado_codigo": ["INF", "ADE"]},
 ]
 
 
@@ -128,6 +132,12 @@ def _construir_usuarios_seed(grados: dict[str, Grado]) -> list[Usuario]:
 async def _seed_asignaturas(
     session, grados: dict[str, Grado]
 ) -> dict[str, Asignatura]:
+    """Las asignaturas seed van a un grado cada una excepto IDIO1 ("Inglés"),
+    que se imparte a INF + ADE simultáneamente — caso canónico multi-grado."""
+    secretaria1 = await session.scalar(
+        select(SecretariaAcademica).where(SecretariaAcademica.username == "secretaria1")
+    )
+    responsable_id = secretaria1.id if secretaria1 is not None else None
     mapa: dict[str, Asignatura] = {}
     for datos in ASIGNATURAS_SEED:
         ya_existe = await session.scalar(
@@ -135,10 +145,15 @@ async def _seed_asignaturas(
         )
         if ya_existe is None:
             data = {k: v for k, v in datos.items() if k != "grado_codigo"}
-            data["grado_id"] = grados[datos["grado_codigo"]].id
+            grados_codigos = datos["grado_codigo"]
+            if isinstance(grados_codigos, str):
+                grados_codigos = [grados_codigos]
+            data["grados"] = [grados[c] for c in grados_codigos]
+            data["responsable_id"] = responsable_id
             a = Asignatura(**data)
             session.add(a)
-            print(f"+ asignatura {datos['codigo']} ({datos['nombre']}) → {datos['grado_codigo']}")
+            etiqueta = "+".join(grados_codigos)
+            print(f"+ asignatura {datos['codigo']} ({datos['nombre']}) → {etiqueta}")
             mapa[datos["codigo"]] = a
         else:
             mapa[datos["codigo"]] = ya_existe
@@ -280,7 +295,13 @@ async def _seed_dispensas(
 async def _seed_profesor_asignaturas(
     session, asignaturas: dict[str, Asignatura]
 ) -> None:
-    """Asocia profesor1 → IYA038, IYA040, IYA041 (3 asignaturas que imparte)."""
+    """Asocia profesor1 → IYA038, IYA040, IYA041 (3 asignaturas que imparte).
+
+    Inserta filas en `AsignaturaImpartida` directamente. La `relationship`
+    `Usuario.asignaturas_impartidas` es `viewonly=True` (decisión de M5: las
+    escrituras deben pasar por el repositorio para registrar `responsable_id`).
+    Aquí, en el seed, lo escribimos a mano replicando el patrón del repo.
+    """
     profesor = await session.scalar(
         select(Profesor)
         .where(Profesor.username == "profesor1")
@@ -290,13 +311,24 @@ async def _seed_profesor_asignaturas(
         print("! no se puede sembrar profesor_asignaturas sin profesor1")
         return
 
+    secretaria1 = await session.scalar(
+        select(SecretariaAcademica).where(SecretariaAcademica.username == "secretaria1")
+    )
+    responsable_id = secretaria1.id if secretaria1 is not None else None
+
     codigos_imparte = ["IYA038", "IYA040", "IYA041"]
     existentes = {a.codigo for a in profesor.asignaturas_impartidas}
     for codigo in codigos_imparte:
         if codigo in existentes:
             print(f"= profesor1 ya imparte {codigo}")
             continue
-        profesor.asignaturas_impartidas.append(asignaturas[codigo])
+        session.add(
+            AsignaturaImpartida(
+                profesor_id=profesor.id,
+                asignatura_id=asignaturas[codigo].id,
+                responsable_id=responsable_id,
+            )
+        )
         print(f"+ profesor1 imparte {codigo}")
 
 

@@ -1,0 +1,45 @@
+@startuml
+title Diseño — asignarAsignaturasAProfesor() — flujo de asignar (click en checkbox sin marcar)
+
+actor Secretaria as S
+
+box "Frontend (React + TS)" #E8F0FE
+    participant "AsignarAsignaturasProfesorPage" as AP
+    participant "usuariosService" as US
+end box
+
+box "Backend (FastAPI)" #FFF4E0
+    participant "UsuariosRouter\nPOST /usuarios/{pid}/asignaturas-impartidas/{aid}" as UR
+    participant "require_rol" as RR
+    participant "UsuarioService" as USv
+    participant "UsuarioRepository" as URe
+end box
+
+database "SQLite" as DB
+
+S   -> AP   : click checkbox sin marcar
+AP  -> US   : asignarImpartida(profesorId, asignaturaId)
+US  -> UR   : POST /usuarios/{pid}/asignaturas-impartidas/{aid} (Bearer)
+UR  -> RR   : autorizar "secretaria"
+RR  --> UR  : Secretaria | 403
+UR  -> USv  : asignar(pid, aid, responsable=Secretaria)
+USv -> URe  : crearImparte(pid, aid, responsable_id)
+URe -> DB   : INSERT INTO profesor_asignaturas
+
+alt no existía
+    DB  --> URe : row created
+    URe --> USv : AsignaturaImpartida
+    USv --> UR  : AsignaturaImpartidaOut
+    UR  --> US  : 201
+    US  --> AP  : asignación creada
+    AP  --> S   : checkbox marcado
+else ya existía (PK duplicada — idempotente)
+    DB  --> URe : IntegrityError
+    URe --> USv : AsignaturaImpartida (la existente)
+    USv --> UR  : AsignaturaImpartidaOut
+    UR  --> US  : 200
+    US  --> AP  : sin cambios (ya estaba)
+    AP  --> S   : checkbox marcado
+end
+
+@enduml

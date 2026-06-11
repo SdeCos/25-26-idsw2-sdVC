@@ -1,7 +1,10 @@
 from sqlalchemy.exc import IntegrityError
 
 from app.core.security import hash_password
-from app.models.usuario import Usuario
+from app.models.asignatura import Asignatura
+from app.models.profesor_asignatura import AsignaturaImpartida
+from app.models.usuario import Profesor, Usuario
+from app.repositories.asignatura_repository import AsignaturaRepository
 from app.repositories.usuario_repository import (
     TipoUsuarioInvalido,
     UsuarioRepository,
@@ -14,6 +17,14 @@ class UsernameEnUso(Exception):
 
 
 class UsuarioNoEncontrado(Exception):
+    pass
+
+
+class NoEsProfesor(Exception):
+    pass
+
+
+class AsignaturaNoEncontrada(Exception):
     pass
 
 
@@ -54,3 +65,34 @@ class UsuarioService:
         except IntegrityError as exc:
             await self.repo.session.rollback()
             raise UsernameEnUso(cambios.get("username", "")) from exc
+
+    async def _exigir_profesor(self, profesor_id: int) -> Profesor:
+        usuario = await self.repo.obtener_por_id(profesor_id)
+        if usuario is None:
+            raise UsuarioNoEncontrado(profesor_id)
+        if not isinstance(usuario, Profesor):
+            # Profesor incluye DirectorDeGrado (jerarquía). El resto no.
+            raise NoEsProfesor(profesor_id)
+        return usuario
+
+    async def obtener_impartidas(self, profesor_id: int) -> list[Asignatura]:
+        await self._exigir_profesor(profesor_id)
+        return await self.repo.obtener_impartidas(profesor_id)
+
+    async def asignar(
+        self,
+        profesor_id: int,
+        asignatura_id: int,
+        responsable_id: int,
+        asignatura_repo: AsignaturaRepository,
+    ) -> tuple[AsignaturaImpartida, bool]:
+        await self._exigir_profesor(profesor_id)
+        if not await asignatura_repo.obtener_por_id(asignatura_id):
+            raise AsignaturaNoEncontrada(asignatura_id)
+        return await self.repo.crear_imparte(
+            profesor_id, asignatura_id, responsable_id
+        )
+
+    async def desasignar(self, profesor_id: int, asignatura_id: int) -> bool:
+        await self._exigir_profesor(profesor_id)
+        return await self.repo.eliminar_imparte(profesor_id, asignatura_id)

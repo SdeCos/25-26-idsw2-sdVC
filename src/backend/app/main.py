@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import get_settings
 from app.core.database import Base, engine
 from app.routers import alumnos as alumnos_router
+from app.routers import asignaciones as asignaciones_router
 from app.routers import asignaturas as asignaturas_router
 from app.routers import asistencias as asistencias_router
 from app.routers import auth as auth_router
@@ -42,6 +43,7 @@ app.add_middleware(
 
 app.include_router(auth_router.router)
 app.include_router(usuarios_router.router)
+app.include_router(asignaciones_router.router)
 app.include_router(alumnos_router.router)
 app.include_router(asignaturas_router.router)
 app.include_router(matriculas_router.router)

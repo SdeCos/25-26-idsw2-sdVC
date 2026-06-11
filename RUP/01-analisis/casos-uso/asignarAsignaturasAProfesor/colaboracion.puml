@@ -1,0 +1,27 @@
+@startuml asignarAsignaturasAProfesor-analisis
+skinparam linetype polyline
+
+rectangle #CDEBA5 ":Asignaciones Abierto" as AsignacionesAbierto
+
+package asignarAsignaturasAProfesor as "asignarAsignaturasAProfesor()" {
+    rectangle #629EF9 AsignarAsignaturasProfesorView
+    rectangle #b5bd68 UsuarioController
+    rectangle #b5bd68 AsignaturaController
+    rectangle #F2AC4E UsuarioRepository
+    rectangle #F2AC4E AsignaturaRepository
+    rectangle #F2AC4E AsignaturaImpartida
+}
+
+AsignacionesAbierto -r-> AsignarAsignaturasProfesorView   : asignarAsignaturasAProfesor()
+
+AsignarAsignaturasProfesorView --> AsignaturaController   : listar() : list<Asignatura>
+AsignarAsignaturasProfesorView --> UsuarioController      : obtenerImpartidas(profesorId) : list<Asignatura>
+AsignarAsignaturasProfesorView --> UsuarioController      : asignar(profesorId, asignaturaId) : AsignaturaImpartida
+AsignarAsignaturasProfesorView --> UsuarioController      : desasignar(profesorId, asignaturaId)
+
+AsignaturaController  --> AsignaturaRepository            : obtenerTodos()
+UsuarioController     --> UsuarioRepository               : obtenerImpartidas / crearImparte / eliminarImparte (con validación)
+
+UsuarioRepository -- AsignaturaImpartida
+
+@enduml

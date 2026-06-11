@@ -76,12 +76,17 @@ class PoliticaAlumno(PoliticaAcceso):
         return {}
 
 
-def _grado_de_solicitud(solicitud: SolicitudDispensa) -> int | None:
-    """Lee `grado_id` por la cadena dispensa → asignatura_matriculada → asignatura."""
+def _grados_de_solicitud(solicitud: SolicitudDispensa) -> set[int]:
+    """Conjunto de `grado_id` a los que pertenece la asignatura de la dispensa.
+
+    Tras la migración a `Asignatura ↔ Grado` N:M, una asignatura puede estar en
+    varios grados. La política devuelve todos los grados implicados — si el
+    grado del Director está entre ellos, ve la dispensa.
+    """
     am = solicitud.asignatura_matriculada
     if am is None or am.asignatura is None:
-        return None
-    return am.asignatura.grado_id
+        return set()
+    return {g.id for g in am.asignatura.grados}
 
 
 class PoliticaSecretaria(PoliticaAcceso):
@@ -133,13 +138,16 @@ class PoliticaDirector(PoliticaAcceso):
             return []
         if alumno_id_filtro is not None:
             por_alumno = await repo.obtener_por_alumno(alumno_id_filtro)
-            return [s for s in por_alumno if _grado_de_solicitud(s) == usuario.grado_id]
+            return [
+                s for s in por_alumno
+                if usuario.grado_id in _grados_de_solicitud(s)
+            ]
         return await repo.obtener_por_grado(usuario.grado_id)
 
     def puede_ver(self, solicitud, usuario):
         if usuario.grado_id is None:
             return False
-        return _grado_de_solicitud(solicitud) == usuario.grado_id
+        return usuario.grado_id in _grados_de_solicitud(solicitud)
 
     def transiciones_permitidas(self):
         return self._TRANSICIONES

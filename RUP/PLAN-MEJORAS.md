@@ -14,7 +14,7 @@ Tras la primera ronda de pruebas manuales sobre el sistema base (26 CUs implemen
 | M6 | Sesiones con múltiples grupos (cardinalidad 1 → N) | 01 + 02 + 03 | medio | hecho (2026-06-10) |
 | M7 | Restaurar `Grado` como entidad y scoping de Director/Secretaria por grado | 01 + 02 + 03 | alto | hecho (2026-06-10) |
 | M4 | Alta individual de alumno por Secretaria; el Administrador deja de poder crear alumnos | 01 + 02 + 03 | medio | hecho (2026-06-11) |
-| M5 | Catálogo de asignaturas + asignar profesor↔asignatura por Secretaria | 01 + 02 + 03 | alto | pendiente |
+| M5 | Catálogo de asignaturas + asignar profesor↔asignatura por Secretaria | 01 + 02 + 03 | alto | hecho (2026-06-11) |
 
 Orden recomendado: M1 → M2 → M3 → M6 → M7 → M4 → M5. Los tres primeros son arreglos contenidos que no tocan diseño; M6, M7, M4 y M5 atraviesan las tres disciplinas.
 
@@ -129,7 +129,17 @@ Verificado con `curl` (4 asistencias devueltas para `alumno1`, ordenadas por fec
 
 ---
 
-## M5 — Catálogo de asignaturas + asignar profesor↔asignatura
+## M5 — Catálogo de asignaturas + asignar profesor↔asignatura  ·  **hecho (2026-06-11)**
+
+**Resumen de la ejecución.** Implementado completo en 01 + 02 + 03 con dos CUs nuevos:
+- **`gestionarCatalogoAsignaturas`**: CRUD sobre `Asignatura` con `responsable_id` (auditoría), pre-validación iterativa de `grado_ids` en service vs captura de `IntegrityError` (mensaje útil al primer id inválido), validación de no-referencias antes del DELETE (matrículas/sesiones/dispensas/profesores que imparten).
+- **`asignarAsignaturasAProfesor`**: relación N:M `profesor_asignaturas` reificada como **Association Object** `AsignaturaImpartida` con `responsable_id`. Endpoints anidados `POST/DELETE /usuarios/{pid}/asignaturas-impartidas/{aid}`. POST idempotente con 201 (nueva) o 200 (ya existía); DELETE idempotente con 204. Validación de subtipo `isinstance(usuario, Profesor)` en service. Frontend con UI optimista (revierte el checkbox al fallar).
+- **Extensión multi-grado en la misma sesión**: detectado en pruebas que "Inglés" se imparte a varios grados simultáneamente. Promoción de `Asignatura.grado_id` (1:N) a `Asignatura.grados[]` (N:M vía nueva tabla `asignatura_grados`). Mismo movimiento que M6 con `SesionDeClase.grupo`. `PoliticaDirector` adaptada (`director.grado_id in {g.id for g in asignatura.grados}`): si "Inglés" se imparte a INF + ADE, ambos directores ven sus respectivas dispensas. Frontend con multi-select de checkboxes.
+- **Sorpresa SQLAlchemy resuelta en marcha**: al añadir `responsable_id` como segunda FK a `usuarios` en `profesor_asignaturas`, el ORM no podía inferir el join — resuelto con `primaryjoin`/`secondaryjoin` explícitos en `Usuario.asignaturas_impartidas` (`viewonly=True`).
+- **Decisión clave**: `Usuario.asignaturas_impartidas` queda `viewonly=True` para que las escrituras pasen obligatoriamente por `UsuarioRepository` y se registre el `responsable_id` — un `usuario.asignaturas_impartidas.append(asignatura)` se saltaría la auditoría.
+- Total CUs: 28 → 30.
+
+
 
 **Decisión.** La gestión del catálogo de asignaturas (alta/edición/baja) y la asignación de qué profesor imparte qué pasan a ser responsabilidad de la Secretaria. Hoy ambas cosas las hace el `seed.py` y no son editables en runtime — limitación seria del sistema.
 

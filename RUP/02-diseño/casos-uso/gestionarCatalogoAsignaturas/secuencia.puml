@@ -1,0 +1,45 @@
+@startuml
+title Diseño — gestionarCatalogoAsignaturas() — flujo de alta
+
+actor Secretaria as S
+
+box "Frontend (React + TS)" #E8F0FE
+    participant "AsignaturasPage" as AP
+    participant "asignaturasService" as AS
+end box
+
+box "Backend (FastAPI)" #FFF4E0
+    participant "AsignaturasRouter\nPOST /asignaturas" as AR
+    participant "require_rol" as RR
+    participant "AsignaturaService" as ASv
+    participant "AsignaturaRepository" as ARe
+end box
+
+database "SQLite" as DB
+
+S   -> AP   : codigo, nombre, ects, caracter, grado_ids[]
+AP  -> AS   : crear(datos)
+AS  -> AR   : POST /asignaturas (Bearer)
+AR  -> RR   : autorizar "secretaria"
+RR  --> AR  : Secretaria | 403
+AR  -> ASv  : crear(datos, responsable=Secretaria)
+
+note over ASv: pre-valida cada grado_id\n(SELECT 1 FROM grados WHERE id=?)\ny deduplica antes de delegar
+
+alt todos los grado_ids existen
+    ASv -> ARe  : crear(codigo, …, grados[], responsable_id)
+    ARe -> DB   : INSERT asignatura + N x asignatura_grados
+    DB  --> ARe : Asignatura
+    ARe --> ASv : Asignatura
+    ASv --> AR  : AsignaturaOut con grados[]
+    AR  --> AS  : 201
+    AS  --> AP  : asignatura creada
+    AP  --> S   : refresca listado
+else algún grado_id no existe
+    ASv --> AR  : raise GradoNoEncontrado(gid)
+    AR  --> AS  : 422
+    AS  --> AP  : error
+    AP  --> S   : "el grado N no existe"
+end
+
+@enduml

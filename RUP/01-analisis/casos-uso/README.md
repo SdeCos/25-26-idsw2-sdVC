@@ -34,5 +34,7 @@ Diagramas de colaboración MVC por caso de uso.
 | [consultarSolicitudDispensa()](consultarSolicitudDispensaSecretaria/README.md) (Secretaria) | Secretaria | ✅ |
 | [exportarDispensas()](exportarDispensas/README.md) | Secretaria | ✅ |
 | [gestionarCatalogoGrados()](gestionarCatalogoGrados/README.md) | Secretaria | ✅ |
+| [gestionarCatalogoAsignaturas()](gestionarCatalogoAsignaturas/README.md) | Secretaria | ✅ |
+| [asignarAsignaturasAProfesor()](asignarAsignaturasAProfesor/README.md) | Secretaria | ✅ |
 
-**Progreso:** 28/28 ✅
+**Progreso:** 30/30 ✅

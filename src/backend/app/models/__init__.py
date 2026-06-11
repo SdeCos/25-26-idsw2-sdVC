@@ -1,4 +1,5 @@
 from app.models.asignatura import Asignatura, CaracterAsignatura
+from app.models.asignatura_grado import asignatura_grados
 from app.models.asistencia import Asistencia, EstadoAsistencia
 from app.models.grado import Grado
 from app.models.matricula import AsignaturaMatriculada, Matricula
@@ -24,6 +25,7 @@ __all__ = [
     "SolicitudDispensa",
     "EstadoSolicitud",
     "Asignatura",
+    "asignatura_grados",
     "CaracterAsignatura",
     "Grado",
     "Matricula",

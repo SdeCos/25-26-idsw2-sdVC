@@ -2291,3 +2291,204 @@ Documentación:
 **Resultado:** Confirmado por inspección que el código de `gestionarCatalogoGrados` está completo desde M7 (backend: `models/grado.py`, `schemas/grados.py`, `repositories/grado_repository.py`, `services/grado_service.py`, `routers/grados.py`; frontend: `types/grados.ts`, `services/gradosService.ts`, `pages/GradosPage.tsx`, ruta `/grados` en `App.tsx:75`, enlace "Grados" en `Layout.tsx:59`). Solo faltaba la documentación. Añadido `RUP/03-desarrollo/casos-uso/gestionarCatalogoGrados/README.md` con trazabilidad código↔diseño, divergencia documentada (`PoliticaSecretaria` sin scoping por la revisión lingüística del SDR de ayer) y tabla de verificación curl. Índice de 03-desarrollo a `28/28 ✅`.
 
 **Decisión:** Deuda saldada sin tocar código. Las tres disciplinas RUP ahora cuadran (`28/28` en 01-analisis, 02-diseño y 03-desarrollo).
+
+## [11:32] M5 — 01-analisis hecho
+
+**Prompt:** "perfecto, vamos con la ultima mejora" + "haz unicamente el analisis".
+
+**Resultado:** Análisis de M5 cerrado. Decisiones de fondo zanjadas antes de redactar: (a) **dos CUs separados** y (b) **auditoría `responsable_id` en ambas (entidad y N:M)**, respetando [[feedback_auditoria_coherente_por_entidad]] y la coherencia con `Matricula`/`SolicitudDispensa`.
+
+- **Nuevo CU `gestionarCatalogoAsignaturas`** en `RUP/01-analisis/casos-uso/gestionarCatalogoAsignaturas/` — espejo limpio de [[gestionarCatalogoGrados]] (mismas 4 cajas, mismos 4 mensajes, sub-vistas para 02-diseño). README con justificación de por qué la asignación profesor↔asignatura queda fuera (opera sobre la relación, no sobre la entidad; el punto de entrada UX es el profesor; mezclar contaminaría). Auditoría con `responsable_id` auto-poblado por el Controller desde `Sesion.usuario`, sin pasar como parámetro de la vista. `grado_id` FK obligatoria validada en el Controller (apoyado en [[gestionarCatalogoGrados]]). Catálogo global, no scoped (Secretaría colectiva, coherente con la corrección lingüística de M7).
+
+- **Nuevo CU `asignarAsignaturasAProfesor`** en `RUP/01-analisis/casos-uso/asignarAsignaturasAProfesor/` — colaboración con 6 cajas: View + 2 Controllers (UsuarioController y AsignaturaController) + 2 Repos + entidad **`AsignaturaImpartida`** (la relación N:M reificada por ganar `responsable_id`). README justifica:
+  - Por qué se reifica la relación: `Matricula` hizo el mismo movimiento cuando la N:M `Alumno ↔ Asignatura` ganó atributos. Aquí es más ligera (solo `responsable_id`) pero la lógica es la misma.
+  - Por qué `UsuarioController` es el principal: el sujeto gramatical de la operación es el Profesor ("qué imparte X"). Precedente: en [[consultarListaAlumnos]] y [[crearSesionClase]] la asignatura es objeto, no sujeto, de las operaciones del Profesor.
+  - Por qué toggle inmediato sin "Guardar" final: atomicidad por fila, latencia mental baja, evita el "cierro pestaña sin guardar".
+  - Deuda blanda: si se quisiera auditoría de bajas (`desasignadoPor`), habría que mover a borrado lógico.
+
+- **Índice de la disciplina** (`01-analisis/casos-uso/README.md`): 2 filas nuevas; progreso `28/28` → `30/30 ✅`.
+
+**Decisión:** 01-analisis de M5 cerrado. Esperando luz verde para 02-diseño.
+
+## [11:36] M5 — 02-diseño hecho
+
+**Prompt:** "perfecto, vamos con el diseno".
+
+**Resultado:** Diseño de M5 cerrado, dos CUs nuevos en `RUP/02-diseño/casos-uso/`:
+
+- **`gestionarCatalogoAsignaturas`** — `secuencia.puml` con el flujo de **alta** y 3 ramas `alt` (codigo libre / codigo en uso → 409 / grado_id inexistente → 422). README con participantes, tabla de materialización del análisis (4 endpoints + 3 choice points) y 8 decisiones de diseño. Las clave:
+  - **Pre-validación del `grado_id` en service** vs captura de `IntegrityError` para `codigo`: el `IntegrityError` por FK en SQLite es opaco; una consulta `SELECT 1 FROM grados WHERE id=?` da un 422 con mensaje útil.
+  - **`responsable_id` auto-poblado en service** desde `current_user.id`, no entra como parámetro del cliente. Defensa anti-falseo.
+  - **Lectura `GET /asignaturas` abierta**, `require_rol(secretaria)` solo en POST/PATCH/DELETE.
+
+- **`asignarAsignaturasAProfesor`** — `secuencia.puml` con el flujo de **asignar** (POST idempotente) y 4 ramas: nueva → 201, ya existía → 200, asignatura inexistente → 404, no es Profesor → 422. README con 9 decisiones de diseño. Las clave:
+  - **Migración de la N:M de `Table` desnudo a `AsignaturaImpartida` (Association Object)**: hoy `profesor_asignaturas` no tiene atributos; al añadir `responsable_id` se reifica como modelo declarativo. Recomendación: `relationship(viewonly=True)` + escrituras explícitas por repository, para que `usuario.asignaturas_impartidas.append(asignatura)` no pueda escribir saltándose la auditoría.
+  - **Endpoints anidados** `POST/DELETE /usuarios/{pid}/asignaturas-impartidas/{aid}` materializando la asimetría sujeto/objeto del análisis.
+  - **POST idempotente con 201/200, DELETE idempotente con 204** — 409 quedó descartado para "ya existía" porque complicaría la UI (que tendría que distinguir 409 "ya estaba" de 409 "error real").
+  - **Validación de subtipo en service**: `isinstance(usuario, Profesor)` → 422 si falla. La BD no puede expresar esta constraint.
+  - **UI optimista con revert**: el frontend marca el checkbox antes de la respuesta y lo revierte si la promesa rechaza.
+
+- **Índice de la disciplina** (`02-diseño/casos-uso/README.md`): 2 filas nuevas; progreso `28/28` → `30/30 ✅`.
+
+**Decisión:** 02-diseño de M5 cerrado. Esperando luz verde para 03-desarrollo.
+
+## [11:41] M5 diseño — simplificación del diagrama de asignarAsignaturasAProfesor
+
+**Prompt:** "gestionar catalogo perfecto, pero asignar asignaturas a profesor, es demasiado grande el diagrama".
+
+**Resultado:** Reducido el `secuencia.puml` de `asignarAsignaturasAProfesor` de 4 ramas anidadas (`es Profesor` vs `no es Profesor`, con `no existía`/`ya existía`/`asignatura no existe` dentro) a **2 ramas planas**: `no existía → 201` y `ya existía (PK duplicada) → 200`. Es lo que distingue este CU del resto (idempotencia explícita). Las otras dos ramas (`NoEsProfesor → 422`, `AsignaturaNoEncontrada → 404`) quedan documentadas en la tabla de materialización del análisis + nueva nota explicando que siguen patrones ya cubiertos en otros CUs ([[crearUsuario]] para validación en service, [[gestionarCatalogoGrados]] para FK error). SVG bajó a 26KB. Caption del diagrama ajustado.
+
+**Decisión:** Diagrama listo. Esperando luz verde para 03-desarrollo.
+
+## [11:53] M5 — 03-desarrollo hecho
+
+**Prompt:** "vamos con el desarrollo".
+
+**Resultado:** M5 implementado completo (los dos CUs). Tasks #16–#22 cerradas.
+
+Backend (12 archivos):
+- **gestionarCatalogoAsignaturas**:
+  - `models/asignatura.py` — `responsable_id` añadido (nullable para backfill suave del seed antiguo).
+  - `schemas/asignaturas.py` — `CrearAsignaturaRequest`, `EditarAsignaturaRequest` con `Literal["FB","OB","OP"]` y `Field(gt=0)` para ECTS.
+  - `repositories/asignatura_repository.py` — `crear`, `actualizar`, `referencias` (cuenta matrículas/sesiones/dispensas/profesores que imparten), `eliminar`.
+  - `services/asignatura_service.py` nuevo — pre-valida `grado_id` con `GradoRepository.obtener_por_id` antes del INSERT, captura `IntegrityError` por UNIQUE → `CodigoEnUso`, comprueba `referencias` antes de borrar → `AsignaturaConReferencias`. Resuelve `responsable_id` desde el router (que lo lee de `current_user.id`).
+  - `routers/asignaturas.py` — añade POST/GET-id/PATCH/DELETE bajo `require_rol(["secretaria"])`. GET sigue abierto a cualquier autenticado.
+
+- **asignarAsignaturasAProfesor**:
+  - `models/profesor_asignatura.py` — `Table` desnudo migrado a modelo declarativo `AsignaturaImpartida` con `responsable_id`. Alias `profesor_asignaturas = AsignaturaImpartida.__table__` para compatibilidad con código existente.
+  - `models/usuario.py` — `Usuario.asignaturas_impartidas` con `viewonly=True` (impide `append`/`remove` sin auditoría) + `primaryjoin`/`secondaryjoin` explícitos (SQLAlchemy no podía inferir el join con dos FKs a `usuarios` en la tabla secundaria).
+  - `repositories/usuario_repository.py` — `obtener_impartidas`, `crear_imparte` (devuelve `(fila, creada: bool)`, idempotente), `eliminar_imparte` (idempotente).
+  - `services/usuario_service.py` — `_exigir_profesor` (con `isinstance(usuario, Profesor)`, cubre la jerarquía Profesor+DirectorDeGrado), `obtener_impartidas`, `asignar`, `desasignar`. Excepciones `NoEsProfesor`, `AsignaturaNoEncontrada`.
+  - `routers/asignaciones.py` nuevo (no en `usuarios.py` porque ese está blindado por `require_rol(["administrador"])` a nivel de router). Comparte prefijo `/usuarios`; los endpoints comparten path con merge en `include_router`. POST devuelve 201 si `creada=True`, 200 si ya existía (idempotencia explícita en el router).
+  - `routers/profesores.py` — añadido `GET /profesores` bajo `require_rol(["secretaria"])` (selector de profesor para la UI de asignaciones).
+  - `schemas/asignaturas.py` — `AsignaturaImpartidaOut`.
+
+- **seed.py** — `_seed_asignaturas` resuelve `secretaria1.id` y atribuye `responsable_id` en cada alta. `_seed_profesor_asignaturas` reescrito para insertar `AsignaturaImpartida` directamente (no por `relationship.append`, que viewonly bloquea), con `responsable_id` desde `secretaria1`.
+
+- **main.py** — `include_router(asignaciones_router.router)`.
+
+Frontend (5 archivos):
+- `types/asignaturas.ts` — `CrearAsignaturaRequest`, `EditarAsignaturaRequest`, `CaracterAsignatura`.
+- `services/asignaturasService.ts` — `crear`, `actualizar`, `eliminar`.
+- `services/profesoresService.ts` — `listar`, `impartidas`, `asignarImpartida`, `desasignarImpartida`.
+- `pages/AsignaturasPage.tsx` — CRUD con form inline + tabla, mismo patrón que `GradosPage`. Selector de `grado_id` y `caracter`. Manejo de error 409/422 mostrando `detail` del backend.
+- `pages/AsignarAsignaturasProfesorPage.tsx` — selector de profesor + tabla de asignaturas con checkboxes. Toggle inmediato con UI optimista (actualiza el `Set<number>` antes del await; revierte al fallar).
+- `App.tsx` — rutas `/asignaturas` y `/asignaciones` con `secretariaOnly`.
+- `components/Layout.tsx` — links "Asignaturas" y "Asignaciones" en el nav de Secretaria.
+
+Verificación curl tras `rm cgu.db && seed`:
+
+gestionarCatalogoAsignaturas (9 tests, todos verdes):
+- `GET /asignaturas` como Profesor → 200 + 7 del seed. ✓
+- `POST` válido → 201. ✓
+- `POST` codigo duplicado → 409 "Código de asignatura en uso: IYA038". ✓
+- `POST` `grado_id=99999` → 422 "El grado 99999 no existe" (pre-validación en service). ✓
+- `POST` `ects=0` → 422 Pydantic. ✓
+- `POST` `caracter='XX'` → 422 Pydantic. ✓
+- `POST` como Profesor → 403. ✓
+- `DELETE` con referencias → 409 `['profesores_que_imparten']`. ✓
+- `DELETE` sin referencias → 204. ✓
+
+asignarAsignaturasAProfesor (9 tests, todos verdes):
+- `GET impartidas` profesor1 → `['IYA038','IYA040','IYA041']`. ✓
+- `POST asignar` IYA020 nueva → 201 + `{responsable_id: 3}`. ✓
+- `POST asignar` IYA020 repetida → 200 (idempotente). ✓
+- `POST asignar` a alumno1 → 422 "Ese usuario no es Profesor". ✓
+- `POST asignar` con `asignatura_id=99999` → 404. ✓
+- `DELETE` → 204. ✓
+- `DELETE` repetido → 204 (idempotente). ✓
+- `GET` final refleja el estado. ✓
+- `POST` como Administrador → 403. ✓
+
+`tsc --noEmit` limpio.
+
+Documentación:
+- 2 nuevos READMEs en `RUP/03-desarrollo/casos-uso/` con trazabilidad código↔diseño y divergencias documentadas:
+  - `responsable_id` nullable en ambos (backfill suave del seed antiguo).
+  - `primaryjoin`/`secondaryjoin` explícitos en el relationship (SQLAlchemy no podía inferir con dos FKs).
+- Índice de la disciplina a `30/30 ✅`.
+
+**Decisión:** M5 funcional. App corriendo en http://localhost:5173 y :8000.
+
+**Guion de prueba manual sugerido:**
+1. Login como `secretaria1`/`secre123`. Verás dos nuevos links en el nav: "Asignaturas" y "Asignaciones".
+2. `/asignaturas` → lista de 7. Click "+ Nueva asignatura" → form. Crear `TEST001` en INF con 6 ECTS / OB / curso 1. Aparece. Editar nombre. Aparece editada. Eliminar. Desaparece.
+3. Intentar eliminar `IYA038` → mensaje "tiene referencias en ['profesores_que_imparten']".
+4. `/asignaciones` → selector con `profesor1`. Checkboxes: IYA038, IYA040, IYA041 marcadas. Marcar IYA020 → checkbox queda marcado al instante. Desmarcar IYA038 → idem. Refrescar la página: estado persiste.
+5. Logout. Login como `profesor1`/`profe123` → `/sesiones-clase/nuevo` → ahora también IYA020 aparece como opción (las asignaturas impartidas son las que se acaban de tocar).
+
+## [12:11] M5 extensión — asignaturas multi-grado (cardinalidad N:M)
+
+**Prompt:** "algunas asignaturas, como por ejemplo ingles, juntan a mas de un grado, como podriamos solucionar eso?".
+
+**Resultado:** Identificada limitación del modelo de M5: `Asignatura.grado_id` (1:N) no permitía la realidad "Inglés impartido a INF + ADE + Org. Industrial simultáneamente". Misma forma del problema que M6 con `SesionDeClase.grupo` (singular → plural). Aplicada la solución análoga: promoción a N:M `Asignatura ↔ Grado` vía tabla nueva `asignatura_grados`. Decisiones zanjadas antes: **alcance 01+02+03 completo** y **multi-select con checkboxes** (vs `<select multiple>` nativo, que no descubre).
+
+Backend (8 archivos):
+- `models/asignatura_grado.py` nuevo — `Table` desnudo `(asignatura_id, grado_id)` con FKs a `asignaturas` y `grados`.
+- `models/asignatura.py` — `grado_id` desaparece; `grados: Mapped[list[Grado]]` vía `secondary=asignatura_grados, lazy="joined"`.
+- `models/__init__.py` — registra `asignatura_grados` para que `Base.metadata` lo conozca.
+- `schemas/asignaturas.py` — `AsignaturaOut.grados: list[GradoOut]`. `CrearAsignaturaRequest.grado_ids: list[int] = Field(min_length=1)`. `EditarAsignaturaRequest.grado_ids: list[int] | None = Field(min_length=1)`.
+- `schemas/dispensas.py` — `AsignaturaEmbedOut.grado` → `grados: list[GradoOut]`.
+- `repositories/asignatura_repository.py` — `crear` y `actualizar` aceptan/asignan `list[Grado]`. Añadido `.unique()` al `obtener_todas` (necesario al `joinedload` por la N:M, evita duplicación de filas).
+- `services/asignatura_service.py` — nuevo `_resolver_grados(grado_ids)` que **deduplica** la entrada y consulta cada id en `grado_repo`; aborta con `GradoNoEncontrado(gid)` al primer fallo. `crear` y `actualizar` lo usan; el último, si `grado_ids` viene en cambios, lo convierte a `grados` para el ORM.
+- `repositories/grado_repository.py` — `referencias` cambia el `SELECT Asignatura.id WHERE grado_id=…` por un `SELECT asignatura_grados.c.asignatura_id WHERE grado_id=…`.
+- `repositories/solicitud_dispensa_repository.py::obtener_por_grado` — JOIN extra con `asignatura_grados` para filtrar las dispensas cuyas asignaturas tocan el grado del Director.
+- `services/politica_acceso.py` — `_grado_de_solicitud` (singular) → `_grados_de_solicitud` (set). `PoliticaDirector.puede_ver` y `obtener_listado` usan `director.grado_id in _grados_de_solicitud(solicitud)`.
+
+Seed:
+- `_seed_asignaturas` admite `grado_codigo` como string (1 grado) o lista (multi). Añadida `IDIO1 "Inglés I"` con `grado_codigo=["INF","ADE"]` como caso canónico multi-grado del seed para que la UI/pruebas vean uno desde el arranque.
+
+Frontend (5 archivos):
+- `types/asignaturas.ts` — `Asignatura.grados: Grado[]`, `CrearAsignaturaRequest.grado_ids: number[]`, `EditarAsignaturaRequest.grado_ids`.
+- `types/dispensas.ts` — `AsignaturaEmbed.grado` → `grados: Grado[]`.
+- `pages/AsignaturasPage.tsx` — `FORM_VACIO.grado_ids: []`. Nueva `toggleGrado(id)` que mantiene un `Set` interno. Reemplazado el `<select>` simple por un panel con checkboxes (uno por grado disponible). Validación cliente: si `grado_ids.length === 0` al submit, mensaje "Selecciona al menos un grado" sin pegar al backend. Render del listado: `a.grados.map(g => g.codigo).join(', ')`.
+- `pages/AsignarAsignaturasProfesorPage.tsx` — render del listado: `a.grados.map(g => g.codigo).join(', ')`.
+- `pages/ConsultarDispensaPage.tsx` — label "Grado"/"Grados" según `grados.length`, render `g.nombre — g.facultad` separado por `·`.
+
+Verificación curl (`secretaria1`, `director1`, `director2`):
+- `GET /asignaturas` muestra `IDIO1 [INF+ADE]` desde el seed. ✓
+- `POST /asignaturas` con `grado_ids=[INF, ADE]` → 201 + `grados: [INF, ADE]`. ✓
+- `POST` con `grado_ids=[]` → 422 Pydantic. ✓
+- `POST` con `grado_ids=[INF, 99999]` → 422 "El grado 99999 no existe". ✓
+- `PATCH grado_ids=[INF]` reemplaza el conjunto entero (MULTI1: [INF,ADE] → [INF]). ✓
+- **Scoping multi-grado**: antes del cambio, `director1` ve IYA040/IYA041/IYA010 (INF) y `director2` ve ADE101. Tras `PATCH IYA040 grado_ids=[INF,ADE]`, `director2` empieza a ver IYA040 también (cardinalidad N:M en la query). ✓
+- `tsc --noEmit` limpio.
+
+Documentación:
+- 01-analisis `gestionarCatalogoAsignaturas/README.md`: nueva decisión **"cardinalidad `Asignatura ↔ Grado` — N:M"** con razonamiento (mismo movimiento que M6 con `SesionDeClase.grupo`), tabla "trazabilidad con modelo del dominio" pasa a mencionar la tabla N:M, sección "hacia diseño" añade implicación transversal en `PoliticaDirector`.
+- 02-diseño `gestionarCatalogoAsignaturas/README.md`: secuencia rehecha con cardinalidad N:M (validación iterativa + INSERT atómico asignatura+N:M), participantes mencionan la nueva tabla, tabla de materialización refleja `grado_ids` + nuevo choice point "grado_ids vacío", 3 decisiones de diseño nuevas (N:M sin atributos, PATCH como reemplazo de set, formulario con checkboxes).
+- 03-desarrollo `gestionarCatalogoAsignaturas/README.md`: trazabilidad amplía a `asignatura_grado.py` + `politica_acceso.py` + `solicitud_dispensa_repository.py`. Lista de "conservado del diseño" reescrita con N:M, deduplicación, PATCH reemplazante, checkboxes y scoping multi-grado. Tabla de verificación añade los 3 escenarios nuevos (multi-grado, grado_ids vacío, PATCH reemplazo, scoping multi-grado cruzado).
+
+**Decisión:** Cardinalidad N:M en producción. App corriendo en :8000 y :5173. Misma BD reseed; el seed ya trae IDIO1 multi-grado para que las pruebas visuales lo vean sin alta manual.
+
+**Guion de prueba manual:**
+1. `secretaria1`/`secre123` → `/asignaturas`. Verás IDIO1 con "INF, ADE" en la columna Grados.
+2. Click "Editar" en IDIO1 → ambos checkboxes (INF y ADE) marcados.
+3. Click "+ Nueva asignatura" → marca varios checkboxes a la vez. Guardar.
+4. Logout. Login `director2`/`director123` (ADE). Si en `secretaria1` cambiaste alguna INF a multi (INF+ADE), el director2 empezará a ver las dispensas de esa asignatura en su listado de dispensas.
+
+## [12:14] Simplificación del diagrama de gestionarCatalogoAsignaturas (diseño)
+
+**Prompt:** "perfecto, aunque veo el diseno de gestionarcatalogoasignaturas un poco demasiado granda".
+
+**Resultado:** Mismo perfil que la simplificación de [11:41] sobre `asignarAsignaturasAProfesor`: el `alt` anidado infla el diagrama. Reducidas las ramas de 3 (anidadas: "todos existen" → {codigo libre, codigo en uso}; "algún no existe") a **2 planas** (creación nueva 201 / `GradoNoEncontrado` 422). El "código en uso" (UNIQUE+409) sale del diagrama y se queda en texto en la tabla de materialización del análisis — es idéntico al patrón ya documentado en [[gestionarCatalogoGrados]]/[[crearUsuario]]. SVG bajó a ~25KB. Caption del diagrama actualizado.
+
+**Decisión:** Diagrama de diseño limpio. M5 cerrado.
+
+## [12:16] Cierre de sesión 2026-06-11
+
+**Prompt:** "perfecto, marcale como completado y finaliza la sesion de hoy".
+
+**Resultado:** `RUP/PLAN-MEJORAS.md` actualizado: M5 marcada `hecho (2026-06-11)` en la tabla resumen y en el título de la sección, con resumen de ejecución (dos CUs nuevos + extensión multi-grado detectada en pruebas + sorpresa SQLAlchemy resuelta con `primaryjoin`/`secondaryjoin` explícitos + `viewonly=True` para impedir saltarse la auditoría). Servidores en background (`uvicorn` y `vite`) parados. BD en estado seed limpio con IDIO1 multi-grado del arranque. Tareas #16–#28 del día completadas.
+
+**Decisión:** Cierre formal de la sesión 2026-06-11. Resumen del día:
+
+- **M4** (alta individual de alumno por Secretaria) — cerrada en análisis + diseño + desarrollo. 1 CU nuevo (`crearAlumno`), refactor "Introduce Parameter Object" en análisis consumiendo deuda blanda de `crearSesionClase`, doble defensa cliente+servidor en `tipo="alumno"`.
+- **Deuda menor de M7 saldada**: README en `RUP/03-desarrollo/casos-uso/gestionarCatalogoGrados/` (faltaba desde el cierre de ayer).
+- **M5** (catálogo de asignaturas + asignar profesor↔asignatura) — cerrada en las tres disciplinas. 2 CUs nuevos (`gestionarCatalogoAsignaturas`, `asignarAsignaturasAProfesor`). Patrón Association Object (`AsignaturaImpartida`) para la N:M con `responsable_id`. Endpoints idempotentes 201/200/204.
+- **M5 extensión** — promoción de `Asignatura.grado_id` (1:N) → `Asignatura.grados[]` (N:M) detectada en pruebas (caso canónico Inglés). Mismo perfil que M6. `PoliticaDirector` actualizada — el scoping del director ahora intersecta correctamente con la lista de grados de la asignatura.
+- **Simplificaciones de diagramas** tras feedback del usuario (los `alt` anidados inflan): `asignarAsignaturasAProfesor` y `gestionarCatalogoAsignaturas` de diseño reducidos a las 2 ramas distintivas; el patrón estándar "código en uso → 409" sale del diagrama y se queda en el README.
+
+Estado del proyecto al cierre: **M1 – M7 cerrados, los 7 ítems del plan**. Las tres disciplinas RUP cuadran a **30/30 CUs** (26 base + 4 añadidos por las mejoras: `gestionarCatalogoGrados`, `crearAlumno`, `gestionarCatalogoAsignaturas`, `asignarAsignaturasAProfesor`).
+
+Cambios sin commitear, listos para `git commit` por parte del usuario. 39 archivos pendientes: 33 modificados + 6 nuevos (`asignatura_grado.py`, `asignaciones.py`, `AsignaturasPage.tsx`, `AsignarAsignaturasProfesorPage.tsx`, los 2 directorios nuevos de CUs en cada disciplina).

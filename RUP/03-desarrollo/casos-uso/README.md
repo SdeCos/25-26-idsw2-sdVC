@@ -34,5 +34,7 @@ Implementación de cada caso de uso bajo [`/src`](/src/), con un README de traza
 | [consultarSolicitudDispensa() (Secretaria)](consultarSolicitudDispensaSecretaria/README.md) | Secretaria | ✅ |
 | [exportarDispensas()](exportarDispensas/README.md) | Secretaria | ✅ |
 | [gestionarCatalogoGrados()](gestionarCatalogoGrados/README.md) | Secretaria | ✅ |
+| [gestionarCatalogoAsignaturas()](gestionarCatalogoAsignaturas/README.md) | Secretaria | ✅ |
+| [asignarAsignaturasAProfesor()](asignarAsignaturasAProfesor/README.md) | Secretaria | ✅ |
 
-**Progreso:** 28/28 ✅
+**Progreso:** 30/30 ✅

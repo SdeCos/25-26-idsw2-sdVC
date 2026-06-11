@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.asignatura import Asignatura
+from app.models.asignatura_grado import asignatura_grados
 from app.models.grado import Grado
 from app.models.matricula import Matricula
 from app.models.usuario import Usuario
@@ -43,7 +43,9 @@ class GradoRepository:
         refs: dict[str, int] = {}
 
         n_asig = await self.session.scalar(
-            select(Asignatura.id).where(Asignatura.grado_id == grado_id).limit(1)
+            select(asignatura_grados.c.asignatura_id)
+            .where(asignatura_grados.c.grado_id == grado_id)
+            .limit(1)
         )
         if n_asig is not None:
             refs["asignaturas"] = 1

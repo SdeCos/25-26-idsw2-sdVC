@@ -1,8 +1,11 @@
 from sqlalchemy import func, or_, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.models.asignatura import Asignatura
 from app.models.matricula import AsignaturaMatriculada, Matricula
+from app.models.profesor_asignatura import AsignaturaImpartida
 from app.models.usuario import (
     Administrador,
     Alumno,
@@ -161,6 +164,62 @@ class UsuarioRepository:
         if prof is None:
             return set()
         return {a.id for a in prof.asignaturas_impartidas}
+
+    async def obtener_impartidas(self, profesor_id: int) -> list[Asignatura]:
+        """Lista ordenada de `Asignatura` que imparte el profesor (lectura)."""
+        result = await self.session.execute(
+            select(Asignatura)
+            .join(
+                AsignaturaImpartida,
+                AsignaturaImpartida.asignatura_id == Asignatura.id,
+            )
+            .where(AsignaturaImpartida.profesor_id == profesor_id)
+            .order_by(Asignatura.codigo)
+        )
+        return list(result.scalars().all())
+
+    async def crear_imparte(
+        self, profesor_id: int, asignatura_id: int, responsable_id: int
+    ) -> tuple[AsignaturaImpartida, bool]:
+        """Alta en la N:M con auditoría. Idempotente: si ya existía, devuelve la fila
+        existente con `creada=False`; si se acaba de crear, `creada=True`.
+        """
+        existente = await self.session.get(
+            AsignaturaImpartida, (profesor_id, asignatura_id)
+        )
+        if existente is not None:
+            return existente, False
+        ai = AsignaturaImpartida(
+            profesor_id=profesor_id,
+            asignatura_id=asignatura_id,
+            responsable_id=responsable_id,
+        )
+        self.session.add(ai)
+        try:
+            await self.session.commit()
+        except IntegrityError:
+            await self.session.rollback()
+            existente = await self.session.get(
+                AsignaturaImpartida, (profesor_id, asignatura_id)
+            )
+            if existente is not None:
+                return existente, False
+            raise
+        await self.session.refresh(ai)
+        return ai, True
+
+    async def eliminar_imparte(
+        self, profesor_id: int, asignatura_id: int
+    ) -> bool:
+        """Baja en la N:M. Idempotente: True si había fila, False si no."""
+        existente = await self.session.get(
+            AsignaturaImpartida, (profesor_id, asignatura_id)
+        )
+        if existente is None:
+            return False
+        await self.session.delete(existente)
+        await self.session.commit()
+        return True
 
     async def crear(
         self,

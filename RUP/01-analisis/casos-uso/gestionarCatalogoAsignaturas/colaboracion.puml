@@ -1,0 +1,24 @@
+@startuml gestionarCatalogoAsignaturas-analisis
+skinparam linetype polyline
+
+rectangle #CDEBA5 ":Catalogo Abierto" as CatalogoAbierto
+
+package gestionarCatalogoAsignaturas as "gestionarCatalogoAsignaturas()" {
+    rectangle #629EF9 AsignaturasView
+    rectangle #b5bd68 AsignaturaController
+    rectangle #F2AC4E AsignaturaRepository
+    rectangle #F2AC4E Asignatura
+}
+
+CatalogoAbierto -r-> AsignaturasView          : gestionarCatalogoAsignaturas()
+
+AsignaturasView      --> AsignaturaController : listar() : list<Asignatura>
+AsignaturasView      --> AsignaturaController : crear(codigo, nombre, ects, caracter, grado_ids) : Asignatura
+AsignaturasView      --> AsignaturaController : actualizar(id, cambios) : Asignatura
+AsignaturasView      --> AsignaturaController : eliminar(id)
+
+AsignaturaController --> AsignaturaRepository : obtenerTodos / crear / actualizar / eliminar (con validación)
+
+AsignaturaRepository -- Asignatura
+
+@enduml

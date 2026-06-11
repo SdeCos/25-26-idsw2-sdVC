@@ -40,11 +40,21 @@ class Usuario(Base):
     grado: Mapped[Grado | None] = relationship(Grado, lazy="joined")
 
     # Relación N:M con asignaturas. Solo significa algo para Profesor/Director
-    # (jerarquía); los demás tipos la tienen vacía. Se define aquí para que el
-    # mapper la conozca para todos los subtipos sin polimorfismo extra.
+    # (jerarquía); los demás tipos la tienen vacía. Lectura `viewonly=True` para
+    # que las escrituras pasen obligatoriamente por `UsuarioRepository` y se
+    # pueda registrar el `responsable_id` de auditoría en `AsignaturaImpartida`
+    # — un `usuario.asignaturas_impartidas.append(asignatura)` se saltaría esa
+    # auditoría, así que el camino queda deshabilitado.
+    #
+    # `primaryjoin`/`secondaryjoin` explícitos porque `profesor_asignaturas`
+    # tiene dos FKs a `usuarios` (profesor_id + responsable_id de auditoría) y
+    # SQLAlchemy no puede inferir cuál usar.
     asignaturas_impartidas: Mapped[list[Asignatura]] = relationship(
         Asignatura,
         secondary=profesor_asignaturas,
+        primaryjoin="Usuario.id == profesor_asignaturas.c.profesor_id",
+        secondaryjoin="Asignatura.id == profesor_asignaturas.c.asignatura_id",
+        viewonly=True,
         lazy="selectin",
     )
 

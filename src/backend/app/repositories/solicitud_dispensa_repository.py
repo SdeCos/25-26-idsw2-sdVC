@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
 from app.models.asignatura import Asignatura
+from app.models.asignatura_grado import asignatura_grados
 from app.models.matricula import AsignaturaMatriculada, Matricula
 from app.models.solicitud_dispensa import EstadoSolicitud, SolicitudDispensa
 
@@ -63,7 +64,10 @@ class SolicitudDispensaRepository:
     async def obtener_por_grado(self, grado_id: int) -> list[SolicitudDispensa]:
         """Dispensas cuya asignatura pertenece al grado dado.
 
-        Usado por `PoliticaDirector` y `PoliticaSecretaria` (scoping por grado).
+        Tras la migración a `Asignatura ↔ Grado` N:M (multi-grado), una
+        asignatura puede aparecer en varios grados (caso "Inglés" impartido a
+        ADE + INF). El JOIN pasa por la tabla intermedia `asignatura_grados`.
+        Usado por `PoliticaDirector` para el scoping por grado.
         """
         stmt = (
             self._eager()
@@ -73,7 +77,11 @@ class SolicitudDispensaRepository:
                 == SolicitudDispensa.asignatura_matriculada_id,
             )
             .join(Asignatura, Asignatura.id == AsignaturaMatriculada.asignatura_id)
-            .where(Asignatura.grado_id == grado_id)
+            .join(
+                asignatura_grados,
+                asignatura_grados.c.asignatura_id == Asignatura.id,
+            )
+            .where(asignatura_grados.c.grado_id == grado_id)
         )
         result = await self.session.execute(stmt)
         return list(result.unique().scalars().all())
