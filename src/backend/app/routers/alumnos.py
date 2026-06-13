@@ -8,11 +8,14 @@ from app.dependencies import require_rol
 from app.models.matricula import AsignaturaMatriculada, Matricula
 from app.models.usuario import Alumno, Usuario
 from app.repositories.asistencia_repository import AsistenciaRepository
+from app.repositories.grado_repository import GradoRepository
+from app.repositories.matricula_repository import MatriculaRepository
 from app.repositories.usuario_repository import UsuarioRepository
 from app.schemas.alumnos import (
     AlumnoDetalleOut,
     AlumnoEnAsignaturaOut,
     AlumnoListaItemOut,
+    AsignaturaMatriculadaConAsistenciaOut,
     AsignaturaMatriculadaDelAlumnoOut,
     AsistenciaEnFichaOut,
     CrearAlumnoRequest,
@@ -125,6 +128,9 @@ async def _cursos_por_alumno(
     return {row[0]: row[1] for row in result.all()}
 
 
+_CURSO_ACADEMICO_VIGENTE = "2025/2026"
+
+
 @router.post(
     "",
     response_model=UsuarioDetalleOut,
@@ -132,7 +138,7 @@ async def _cursos_por_alumno(
 )
 async def crear_alumno(
     req: CrearAlumnoRequest,
-    _: Usuario = Depends(_require_secretaria),
+    usuario: Usuario = Depends(_require_secretaria),
     db: AsyncSession = Depends(get_db),
 ) -> Usuario:
     """Alta individual de Alumno por Secretaria.
@@ -141,7 +147,18 @@ async def crear_alumno(
     Administrador↔Secretaria también vive en la superficie HTTP. El polimorfismo
     de instanciación se delega en `UsuarioService.crear` con `tipo="alumno"`
     fijado aquí; el cliente no lo envía.
+
+    Si `grado_id` viene, se crea una `Matricula` vacía para el curso vigente
+    con `responsable_id = usuario.id` (auditoría). Es opcional: si no viene,
+    el alumno queda sin matrícula y se le incorpora luego por importación.
     """
+    if req.grado_id is not None:
+        if await GradoRepository(db).obtener_por_id(req.grado_id) is None:
+            raise HTTPException(
+                status.HTTP_422_UNPROCESSABLE_ENTITY,
+                f"El grado {req.grado_id} no existe",
+            )
+
     usuario_req = CrearUsuarioRequest(
         tipo="alumno",
         username=req.username,
@@ -153,11 +170,22 @@ async def crear_alumno(
     )
     service = UsuarioService(UsuarioRepository(db))
     try:
-        return await service.crear(usuario_req)
+        nuevo = await service.crear(usuario_req)
     except UsernameEnUso as exc:
         raise HTTPException(
             status.HTTP_409_CONFLICT, "El username ya está en uso"
         ) from exc
+
+    if req.grado_id is not None:
+        await MatriculaRepository(db).get_or_create_header(
+            alumno_id=nuevo.id,
+            curso_academico=_CURSO_ACADEMICO_VIGENTE,
+            responsable_id=usuario.id,
+            grado_id=req.grado_id,
+        )
+        await db.commit()
+
+    return nuevo
 
 
 @router.post(
@@ -238,20 +266,29 @@ async def obtener_alumno(
             "No impartes ninguna asignatura de este alumno",
         ) from exc
 
-    am_list: list[AsignaturaMatriculadaDelAlumnoOut] = []
+    asistencia_repo = AsistenciaRepository(db)
+    estadisticas = await asistencia_repo.estadisticas_por_alumno(alumno_id)
+
+    am_list: list[AsignaturaMatriculadaConAsistenciaOut] = []
     for m in getattr(alumno, "matriculas_cargadas", []):
         for am in m.asignaturas_matriculadas:
+            presentes, total = estadisticas.get(am.asignatura_id, (0, 0))
+            porcentaje = (presentes / total * 100) if total > 0 else None
             am_list.append(
-                AsignaturaMatriculadaDelAlumnoOut(
+                AsignaturaMatriculadaConAsistenciaOut(
                     id=am.id,
                     codigo=am.asignatura.codigo,
                     nombre=am.asignatura.nombre,
                     curso_academico=m.curso_academico,
                     n_matricula=am.n_matricula,
+                    presentes=presentes,
+                    total_sesiones=total,
+                    porcentaje_asistencia=(
+                        round(porcentaje, 1) if porcentaje is not None else None
+                    ),
                 )
             )
 
-    asistencia_repo = AsistenciaRepository(db)
     asistencias_raw = await asistencia_repo.listar_por_alumno(alumno_id)
     asistencias_out = [
         AsistenciaEnFichaOut(

@@ -76,17 +76,20 @@ class PoliticaAlumno(PoliticaAcceso):
         return {}
 
 
-def _grados_de_solicitud(solicitud: SolicitudDispensa) -> set[int]:
-    """Conjunto de `grado_id` a los que pertenece la asignatura de la dispensa.
+def _grado_de_matricula(solicitud: SolicitudDispensa) -> int | None:
+    """`grado_id` de la matrícula del alumno solicitante.
 
-    Tras la migración a `Asignatura ↔ Grado` N:M, una asignatura puede estar en
-    varios grados. La política devuelve todos los grados implicados — si el
-    grado del Director está entre ellos, ve la dispensa.
+    Una dispensa siempre pertenece a una matrícula concreta de un alumno
+    concreto, que está vinculada a UN grado. Aunque la asignatura sea
+    multi-grado (caso "Inglés" impartido a INF + ADE), la dispensa
+    semánticamente pertenece al grado del alumno que la pide — no al conjunto
+    de grados de la asignatura. Esto evita que el Director de ADE vea la
+    dispensa de una alumna INF cuya asignatura toca también ADE.
     """
     am = solicitud.asignatura_matriculada
-    if am is None or am.asignatura is None:
-        return set()
-    return {g.id for g in am.asignatura.grados}
+    if am is None or am.matricula is None:
+        return None
+    return am.matricula.grado_id
 
 
 class PoliticaSecretaria(PoliticaAcceso):
@@ -140,14 +143,14 @@ class PoliticaDirector(PoliticaAcceso):
             por_alumno = await repo.obtener_por_alumno(alumno_id_filtro)
             return [
                 s for s in por_alumno
-                if usuario.grado_id in _grados_de_solicitud(s)
+                if _grado_de_matricula(s) == usuario.grado_id
             ]
         return await repo.obtener_por_grado(usuario.grado_id)
 
     def puede_ver(self, solicitud, usuario):
         if usuario.grado_id is None:
             return False
-        return usuario.grado_id in _grados_de_solicitud(solicitud)
+        return _grado_de_matricula(solicitud) == usuario.grado_id
 
     def transiciones_permitidas(self):
         return self._TRANSICIONES

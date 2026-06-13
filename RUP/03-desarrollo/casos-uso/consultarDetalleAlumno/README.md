@@ -23,6 +23,8 @@
 | AlumnoService.obtener_detalle (verificación competente) | [src/backend/app/services/alumno_service.py](/src/backend/app/services/alumno_service.py) |
 | UsuarioRepository.obtener_alumno_con_matricula (eager-load) | [src/backend/app/repositories/usuario_repository.py](/src/backend/app/repositories/usuario_repository.py) |
 | Schema `AlumnoDetalleOut` con `asignaturas_matriculadas` y `asistencias` | [src/backend/app/schemas/alumnos.py](/src/backend/app/schemas/alumnos.py) |
+| `AsignaturaMatriculadaConAsistenciaOut` (extiende el DTO base con `presentes`, `total_sesiones`, `porcentaje_asistencia`) | [src/backend/app/schemas/alumnos.py](/src/backend/app/schemas/alumnos.py) |
+| `AsistenciaRepository.estadisticas_por_alumno` (presentes / sesiones cerradas por asignatura) | [src/backend/app/repositories/asistencia_repository.py](/src/backend/app/repositories/asistencia_repository.py) |
 
 ## verificación end-to-end
 
@@ -40,6 +42,7 @@
 - **Verificación "Profesor competente" basada en intersección de asignaturas** entre `current_user.asignaturas_impartidas` y las matrículas del alumno.
 - **Eager-load explícito** del agregado (`selectinload(matriculas).selectinload(asignaturas_matriculadas).joinedload(asignatura)`) para evitar lazy load async.
 - **404 vs 403 distinguidos** — sin enmascaramiento por privacidad.
+- **% de asistencia por asignatura** calculado en el router (presentes / sesiones CERRADAS) y proyectado en `AsignaturaMatriculadaConAsistenciaOut`. Umbral del 70% (reglamento académico) visualizado en la columna "Asistencia" con badge verde/rojo. Sin sesiones cerradas → `porcentaje_asistencia = null` y render `—`. El DTO base `AsignaturaMatriculadaDelAlumnoOut` se conserva intacto para el resto de consumidores (selector de dispensa del Alumno y de la Secretaría).
 
 ## referencias
 

@@ -70,6 +70,39 @@ class AsistenciaRepository:
         result = await self.session.execute(stmt)
         return list(result.unique().scalars().all())
 
+    async def estadisticas_por_alumno(
+        self, alumno_id: int
+    ) -> dict[int, tuple[int, int]]:
+        """Para cada asignatura del alumno: `(presentes, total_cerradas)`.
+
+        Cuenta sesiones de clase CERRADAS en las que el alumno tiene asistencia
+        registrada (presente, ausente, justificado). Las sesiones abiertas o
+        canceladas no entran en el denominador. Usada por la ficha del alumno
+        para calcular el % de asistencia y marcar el umbral del 70%.
+        """
+        from app.models.asistencia import EstadoAsistencia
+        from app.models.sesion_clase import EstadoSesionClase
+
+        stmt = (
+            select(
+                SesionDeClase.asignatura_id,
+                Asistencia.estado,
+            )
+            .join(SesionDeClase, Asistencia.sesion_clase_id == SesionDeClase.id)
+            .where(
+                Asistencia.alumno_id == alumno_id,
+                SesionDeClase.estado == EstadoSesionClase.CERRADA.value,
+            )
+        )
+        result = await self.session.execute(stmt)
+        stats: dict[int, list[int]] = {}
+        for asignatura_id, estado in result.all():
+            datos = stats.setdefault(asignatura_id, [0, 0])
+            datos[1] += 1
+            if estado == EstadoAsistencia.PRESENTE.value:
+                datos[0] += 1
+        return {aid: (p, t) for aid, (p, t) in stats.items()}
+
     async def obtener_por_rango(
         self,
         asignatura_id: int,

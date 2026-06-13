@@ -4,8 +4,6 @@ from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
-from app.models.asignatura import Asignatura
-from app.models.asignatura_grado import asignatura_grados
 from app.models.matricula import AsignaturaMatriculada, Matricula
 from app.models.solicitud_dispensa import EstadoSolicitud, SolicitudDispensa
 
@@ -62,11 +60,14 @@ class SolicitudDispensaRepository:
         return list(result.unique().scalars().all())
 
     async def obtener_por_grado(self, grado_id: int) -> list[SolicitudDispensa]:
-        """Dispensas cuya asignatura pertenece al grado dado.
+        """Dispensas cuya MATRÍCULA pertenece al grado dado.
 
-        Tras la migración a `Asignatura ↔ Grado` N:M (multi-grado), una
-        asignatura puede aparecer en varios grados (caso "Inglés" impartido a
-        ADE + INF). El JOIN pasa por la tabla intermedia `asignatura_grados`.
+        La dispensa pertenece a un alumno-en-un-grado concreto (su matrícula).
+        Aunque la asignatura sea multi-grado (caso "Inglés" en INF + ADE), el
+        Director de ADE no debe ver la dispensa de una alumna INF: el grado
+        del solicitante es lo que decide. El filtro va contra
+        `Matricula.grado_id`, no contra `asignatura_grados`.
+
         Usado por `PoliticaDirector` para el scoping por grado.
         """
         stmt = (
@@ -76,12 +77,8 @@ class SolicitudDispensaRepository:
                 AsignaturaMatriculada.id
                 == SolicitudDispensa.asignatura_matriculada_id,
             )
-            .join(Asignatura, Asignatura.id == AsignaturaMatriculada.asignatura_id)
-            .join(
-                asignatura_grados,
-                asignatura_grados.c.asignatura_id == Asignatura.id,
-            )
-            .where(asignatura_grados.c.grado_id == grado_id)
+            .join(Matricula, Matricula.id == AsignaturaMatriculada.matricula_id)
+            .where(Matricula.grado_id == grado_id)
         )
         result = await self.session.execute(stmt)
         return list(result.unique().scalars().all())

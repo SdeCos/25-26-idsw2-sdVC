@@ -68,17 +68,37 @@ export const DetalleAlumnoPage: React.FC = () => {
                 <th>Asignatura</th>
                 <th>Curso</th>
                 <th>Convocatoria</th>
+                <th>Asistencia</th>
               </tr>
             </thead>
             <tbody>
-              {alumno.asignaturas_matriculadas.map((am) => (
-                <tr key={am.id}>
-                  <td>{am.codigo}</td>
-                  <td>{am.nombre}</td>
-                  <td>{am.curso_academico}</td>
-                  <td>{am.n_matricula}ª</td>
-                </tr>
-              ))}
+              {alumno.asignaturas_matriculadas.map((am) => {
+                const pct = am.porcentaje_asistencia;
+                const cumple = pct !== null && pct >= 70;
+                return (
+                  <tr key={am.id}>
+                    <td>{am.codigo}</td>
+                    <td>{am.nombre}</td>
+                    <td>{am.curso_academico}</td>
+                    <td>{am.n_matricula}ª</td>
+                    <td>
+                      {pct === null ? (
+                        <span style={{ color: '#6e6e73' }}>—</span>
+                      ) : (
+                        <span
+                          title={`${am.presentes} de ${am.total_sesiones} sesiones cerradas`}
+                          style={{
+                            color: cumple ? '#1d8348' : '#b03a2e',
+                            fontWeight: 600,
+                          }}
+                        >
+                          {pct}% {cumple ? '✓' : '✗'}
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}

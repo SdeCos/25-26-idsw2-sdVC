@@ -8,6 +8,11 @@ class CrearAlumnoRequest(BaseModel):
     `tipo` no aparece — está fijo en "alumno" y lo aplica el router antes de
     delegar en `UsuarioService.crear`. El alta usa el canal `/alumnos` (no
     `/usuarios`) para reforzar el reparto Administrador↔Secretaria.
+
+    `grado_id` opcional: si viene, el alta crea además una Matrícula vacía
+    para el curso académico vigente. El detalle (asignaturas) se carga después
+    por `importarMatriculas` o por edición. Si no viene, el alumno queda sin
+    matrícula y se le matricula más tarde.
     """
 
     username: str
@@ -15,6 +20,7 @@ class CrearAlumnoRequest(BaseModel):
     nombre: str
     apellidos: str
     email: EmailStr
+    grado_id: int | None = None
 
 
 class AlumnoListaItemOut(BaseModel):
@@ -43,6 +49,20 @@ class AsignaturaMatriculadaDelAlumnoOut(BaseModel):
     nombre: str
     curso_academico: str
     n_matricula: int
+
+
+class AsignaturaMatriculadaConAsistenciaOut(AsignaturaMatriculadaDelAlumnoOut):
+    """Variante para la ficha del alumno (Profesor/Secretaria).
+
+    Añade los contadores de asistencia (presentes / sesiones cerradas) y el
+    porcentaje. Frontend lo usa para mostrar un badge con el umbral del 70%.
+    `total_sesiones == 0` significa que aún no se ha pasado lista de ninguna
+    sesión cerrada en esa asignatura — el porcentaje es None.
+    """
+
+    presentes: int = 0
+    total_sesiones: int = 0
+    porcentaje_asistencia: float | None = None
 
 
 class AlumnoEnAsignaturaOut(BaseModel):
@@ -88,5 +108,5 @@ class AlumnoDetalleOut(BaseModel):
     apellidos: str
     email: str
     activo: bool
-    asignaturas_matriculadas: list[AsignaturaMatriculadaDelAlumnoOut] = []
+    asignaturas_matriculadas: list[AsignaturaMatriculadaConAsistenciaOut] = []
     asistencias: list[AsistenciaEnFichaOut] = []

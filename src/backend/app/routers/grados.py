@@ -16,11 +16,15 @@ from app.services.grado_service import (
 router = APIRouter(prefix="/grados", tags=["grados"])
 
 _require_secretaria = require_rol(["secretaria"])
+# GET es selector compartido: Secretaria lo usa en /grados, /asignaturas y
+# /alumnos/nuevo; Administrador en /usuarios/nuevo para crear directores. El
+# CRUD (POST/PATCH/DELETE) sigue siendo Secretaria.
+_require_lectura_grados = require_rol(["secretaria", "administrador"])
 
 
 @router.get("", response_model=list[GradoOut])
 async def listar_grados(
-    _: Usuario = Depends(_require_secretaria),
+    _: Usuario = Depends(_require_lectura_grados),
     db: AsyncSession = Depends(get_db),
 ) -> list[GradoOut]:
     grados = await GradoService(GradoRepository(db)).listar()

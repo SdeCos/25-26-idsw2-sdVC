@@ -166,7 +166,13 @@ class UsuarioRepository:
         return {a.id for a in prof.asignaturas_impartidas}
 
     async def obtener_impartidas(self, profesor_id: int) -> list[Asignatura]:
-        """Lista ordenada de `Asignatura` que imparte el profesor (lectura)."""
+        """Lista ordenada de `Asignatura` que imparte el profesor (lectura).
+
+        `.unique()` es necesario por el `lazy="joined"` en `Asignatura.grados`:
+        una asignatura multi-grado produce N filas en el resultset y sin la
+        deduplicación SQLAlchemy aborta. Mismo patrón ya aplicado a
+        `AsignaturaRepository.obtener_todas`.
+        """
         result = await self.session.execute(
             select(Asignatura)
             .join(
@@ -176,7 +182,7 @@ class UsuarioRepository:
             .where(AsignaturaImpartida.profesor_id == profesor_id)
             .order_by(Asignatura.codigo)
         )
-        return list(result.scalars().all())
+        return list(result.unique().scalars().all())
 
     async def crear_imparte(
         self, profesor_id: int, asignatura_id: int, responsable_id: int

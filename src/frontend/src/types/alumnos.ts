@@ -4,6 +4,7 @@ export interface CrearAlumnoRequest {
   nombre: string;
   apellidos: string;
   email: string;
+  grado_id: number | null;
 }
 
 export interface AlumnoListaItem {
@@ -21,6 +22,13 @@ export interface AsignaturaMatriculadaDelAlumno {
   nombre: string;
   curso_academico: string;
   n_matricula: number;
+}
+
+export interface AsignaturaMatriculadaConAsistencia
+  extends AsignaturaMatriculadaDelAlumno {
+  presentes: number;
+  total_sesiones: number;
+  porcentaje_asistencia: number | null;
 }
 
 export interface AlumnoEnAsignatura {
@@ -49,6 +57,6 @@ export interface AlumnoDetalle {
   apellidos: string;
   email: string;
   activo: boolean;
-  asignaturas_matriculadas: AsignaturaMatriculadaDelAlumno[];
+  asignaturas_matriculadas: AsignaturaMatriculadaConAsistencia[];
   asistencias: AsistenciaEnFicha[];
 }

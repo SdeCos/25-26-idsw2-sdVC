@@ -21,7 +21,10 @@ class AsignaturaRepository:
         result = await self.session.execute(
             select(Asignatura).where(Asignatura.codigo.in_(codigos))
         )
-        return {a.codigo: a for a in result.scalars().all()}
+        # `.unique()` por el `lazy="joined"` en `Asignatura.grados`: códigos
+        # multi-grado producirían filas duplicadas (mismo bug que
+        # `usuario_repository.obtener_impartidas`).
+        return {a.codigo: a for a in result.scalars().unique().all()}
 
     async def obtener_todas(self) -> list[Asignatura]:
         result = await self.session.execute(

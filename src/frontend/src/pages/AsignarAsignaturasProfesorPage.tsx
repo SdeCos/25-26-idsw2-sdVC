@@ -27,13 +27,29 @@ export const AsignarAsignaturasProfesorPage: React.FC = () => {
 
   useEffect(() => {
     if (profesorId === null) return;
+    // Cambiar de profesor dispara un fetch nuevo antes de que el anterior
+    // responda. Sin esta bandera, una respuesta tardía pisa el estado del
+    // profesor actual (set incorrecto) o aplica el error de uno antiguo.
+    let cancelled = false;
     setCargandoProfesor(true);
     setError(null);
     profesoresService
       .impartidas(profesorId)
-      .then((as) => setImpartidas(new Set(as.map((a) => a.id))))
-      .catch(() => setError('No se pudieron cargar las asignaturas impartidas'))
-      .finally(() => setCargandoProfesor(false));
+      .then((as) => {
+        if (cancelled) return;
+        setImpartidas(new Set(as.map((a) => a.id)));
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setError('No se pudieron cargar las asignaturas impartidas');
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setCargandoProfesor(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [profesorId]);
 
   const toggle = async (asignaturaId: number) => {

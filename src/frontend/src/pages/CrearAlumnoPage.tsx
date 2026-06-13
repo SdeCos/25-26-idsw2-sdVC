@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { isAxiosError } from 'axios';
 import { alumnosService } from '../services/alumnosService';
+import { gradosService } from '../services/gradosService';
 import type { CrearAlumnoRequest } from '../types/alumnos';
+import type { Grado } from '../types/grados';
 
 export const CrearAlumnoPage: React.FC = () => {
   const navigate = useNavigate();
@@ -12,9 +14,21 @@ export const CrearAlumnoPage: React.FC = () => {
     nombre: '',
     apellidos: '',
     email: '',
+    grado_id: null,
   });
+  const [grados, setGrados] = useState<Grado[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    gradosService
+      .listar()
+      .then(setGrados)
+      .catch(() => {
+        /* sin grados disponibles → el selector queda vacío y el alta se hace
+           sin matrícula; flujo soportado por backend. */
+      });
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,6 +44,8 @@ export const CrearAlumnoPage: React.FC = () => {
         const detail = err.response?.data?.detail;
         if (Array.isArray(detail) && detail[0]?.msg) {
           setError(String(detail[0].msg));
+        } else if (typeof detail === 'string') {
+          setError(detail);
         } else {
           setError('Revisa los campos: faltan datos o el email no es válido');
         }
@@ -98,6 +114,29 @@ export const CrearAlumnoPage: React.FC = () => {
             onChange={upd('email')}
             required
           />
+        </div>
+        <div className="field">
+          <label htmlFor="grado_id">Grado (opcional)</label>
+          <select
+            id="grado_id"
+            value={form.grado_id ?? ''}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                grado_id: e.target.value ? Number(e.target.value) : null,
+              })
+            }
+          >
+            <option value="">— sin matrícula —</option>
+            {grados.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.codigo} · {g.nombre}
+              </option>
+            ))}
+          </select>
+          <small style={{ color: '#6e6e73' }}>
+            Si lo eliges, se crea una matrícula vacía 2025/2026 para ese grado.
+          </small>
         </div>
         <button type="submit" disabled={loading}>
           {loading ? 'Creando…' : 'Crear alumno'}
