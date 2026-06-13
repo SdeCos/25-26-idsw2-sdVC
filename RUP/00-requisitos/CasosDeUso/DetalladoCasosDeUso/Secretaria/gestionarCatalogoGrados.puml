@@ -1,0 +1,91 @@
+@startuml gestionarCatalogoGrados
+title Gestionar Catálogo de Grados
+
+' --- CONFIGURACIÓN DE ESTILO ---
+skinparam nodesep 100
+skinparam ranksep 100
+skinparam linetype ortho
+skinparam Padding 10
+
+' Definición de Estados
+state SISTEMA_DISPONIBLE_INICIAL  as "SISTEMA_DISPONIBLE"
+state CATALOGO_GRADOS_COMP        as "CATALOGO_GRADOS_ABIERTO"
+state GRADO_ABIERTO_COMP          as "GRADO_ABIERTO"
+state SISTEMA_DISPONIBLE_FINAL    as "SISTEMA_DISPONIBLE"
+
+[*] -[#green]-> SISTEMA_DISPONIBLE_INICIAL
+
+' Entrada al módulo
+SISTEMA_DISPONIBLE_INICIAL -[#green]-> CATALOGO_GRADOS_COMP : abrirCatalogoGrados()
+note left on link
+    <b>Secretaria solicita</b> gestionar
+    el catálogo de grados del centro.
+    <b>Sistema permite</b> el acceso
+    al listado.
+end note
+
+' Comportamiento interno del módulo
+state CATALOGO_GRADOS_COMP {
+    state ListadoGrados   as "Listado de Grados"
+
+    [*] -[#green]-> ListadoGrados
+
+    note right of ListadoGrados
+        <b>Sistema muestra</b> los grados
+        existentes con código, nombre y facultad.
+    end note
+
+    ' Operaciones internas del CRUD
+    ListadoGrados -[#green]-> ListadoGrados : eliminarGrado()
+    note right
+        <b>Secretaria solicita</b> eliminar
+        un grado existente.
+        <b>Sistema valida</b> que no tiene
+        referencias activas (asignaturas,
+        matrículas, directores).
+    end note
+}
+
+' Entrada al sub-CU de alta/edición
+CATALOGO_GRADOS_COMP -[#green]-> GRADO_ABIERTO_COMP : crearGrado() / editarGrado()
+note left on link
+    <b>Secretaria solicita</b> dar de alta
+    o editar un grado.
+    <b>Sistema permite</b> el acceso a su ficha.
+end note
+
+state GRADO_ABIERTO_COMP {
+    state FormularioGrado as "Edición de Grado"
+
+    [*] -[#green]-> FormularioGrado
+
+    note right of FormularioGrado
+        <b>Secretaria solicita</b> introducir
+        o modificar:
+        • Código (único).
+        • Nombre del grado.
+        • Facultad a la que pertenece.
+    end note
+
+    FormularioGrado -[#green]-> [*]
+}
+
+' Salidas del sub-CU
+GRADO_ABIERTO_COMP -[#green]---> CATALOGO_GRADOS_COMP : guardarGrado()
+note left on link
+    <b>GUARDAR:</b>
+    <b>Sistema permite</b> persistir el grado
+    y vuelve al listado.
+end note
+
+GRADO_ABIERTO_COMP -[#red]---> CATALOGO_GRADOS_COMP : cancelarGrado()
+note right on link
+    <b>CANCELAR:</b>
+    <b>Sistema permite</b> descartar cambios.
+end note
+
+' Salida del módulo
+CATALOGO_GRADOS_COMP -[#green]-> SISTEMA_DISPONIBLE_FINAL : completarGestionCatalogoGrados()
+
+SISTEMA_DISPONIBLE_FINAL -[#blue]-> [*]
+@enduml

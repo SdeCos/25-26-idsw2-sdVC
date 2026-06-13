@@ -1,0 +1,92 @@
+@startuml gestionarCatalogoAsignaturas
+title Gestionar Catálogo de Asignaturas
+
+' --- CONFIGURACIÓN DE ESTILO ---
+skinparam nodesep 100
+skinparam ranksep 100
+skinparam linetype ortho
+skinparam Padding 10
+
+' Definición de Estados
+state SISTEMA_DISPONIBLE_INICIAL    as "SISTEMA_DISPONIBLE"
+state CATALOGO_ASIG_COMP            as "CATALOGO_ASIGNATURAS_ABIERTO"
+state ASIGNATURA_ABIERTA_COMP       as "ASIGNATURA_ABIERTA"
+state SISTEMA_DISPONIBLE_FINAL      as "SISTEMA_DISPONIBLE"
+
+[*] -[#green]-> SISTEMA_DISPONIBLE_INICIAL
+
+' Entrada al módulo
+SISTEMA_DISPONIBLE_INICIAL -[#green]-> CATALOGO_ASIG_COMP : abrirCatalogoAsignaturas()
+note left on link
+    <b>Secretaria solicita</b> gestionar
+    el catálogo de asignaturas.
+    <b>Sistema permite</b> el acceso al listado.
+end note
+
+' Comportamiento interno del módulo
+state CATALOGO_ASIG_COMP {
+    state ListadoAsignaturas as "Listado de Asignaturas"
+
+    [*] -[#green]-> ListadoAsignaturas
+
+    note right of ListadoAsignaturas
+        <b>Sistema muestra</b> las asignaturas
+        existentes con código, nombre, ECTS,
+        carácter (FB/OB/OP) y grado(s).
+    end note
+
+    ListadoAsignaturas -[#green]-> ListadoAsignaturas : eliminarAsignatura()
+    note right
+        <b>Secretaria solicita</b> eliminar
+        una asignatura.
+        <b>Sistema valida</b> que no tiene
+        referencias (matrículas, sesiones,
+        profesores que la imparten, dispensas).
+    end note
+}
+
+' Sub-CU de alta/edición
+CATALOGO_ASIG_COMP -[#green]-> ASIGNATURA_ABIERTA_COMP : crearAsignatura() / editarAsignatura()
+note left on link
+    <b>Secretaria solicita</b> dar de alta
+    o editar una asignatura.
+    <b>Sistema permite</b> el acceso a su ficha.
+end note
+
+state ASIGNATURA_ABIERTA_COMP {
+    state FormularioAsig as "Edición de Asignatura"
+
+    [*] -[#green]-> FormularioAsig
+
+    note right of FormularioAsig
+        <b>Secretaria solicita</b> introducir:
+        • Código (único) y nombre.
+        • ECTS y carácter (FB/OB/OP).
+        • Curso del plan.
+        • Uno o varios grados (multi-grado
+          para asignaturas compartidas
+          como "Inglés").
+    end note
+
+    FormularioAsig -[#green]-> [*]
+}
+
+' Salidas del sub-CU
+ASIGNATURA_ABIERTA_COMP -[#green]---> CATALOGO_ASIG_COMP : guardarAsignatura()
+note left on link
+    <b>GUARDAR:</b>
+    <b>Sistema permite</b> persistir la asignatura
+    con sus grados y vuelve al listado.
+end note
+
+ASIGNATURA_ABIERTA_COMP -[#red]---> CATALOGO_ASIG_COMP : cancelarAsignatura()
+note right on link
+    <b>CANCELAR:</b>
+    <b>Sistema permite</b> descartar cambios.
+end note
+
+' Salida del módulo
+CATALOGO_ASIG_COMP -[#green]-> SISTEMA_DISPONIBLE_FINAL : completarGestionCatalogoAsignaturas()
+
+SISTEMA_DISPONIBLE_FINAL -[#blue]-> [*]
+@enduml

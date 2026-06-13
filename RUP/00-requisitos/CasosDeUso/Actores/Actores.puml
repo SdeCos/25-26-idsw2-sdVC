@@ -47,7 +47,10 @@ end note
 
 note right of Secretaria
   Secretaría Académica:
-  Gestiona matrículas y listas de alumnos,
+  Gestiona matrículas y listas de alumnos
+  (alta individual e importación masiva),
+  los catálogos de grados y asignaturas,
+  las asignaciones profesor↔asignatura,
   y registra/tramita las solicitudes
   de dispensa de los alumnos.
 end note
@@ -56,7 +59,10 @@ note right of Admin
   Administrador del sistema:
   Puede hacer todo lo que hacen
   Alumno, Profesor, Director y Secretaría,
-  además de crear y gestionar usuarios
-  y la configuración general del sistema.
+  además de crear y gestionar las cuentas
+  de personal (profesores, directores,
+  secretarías y administradores). El alta
+  individual de alumnos es responsabilidad
+  de Secretaría.
 end note
 @enduml

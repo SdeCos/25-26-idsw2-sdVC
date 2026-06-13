@@ -1,0 +1,72 @@
+@startuml asignarAsignaturasAProfesor
+title Asignar Asignaturas a Profesor
+
+' --- CONFIGURACIÓN DE ESTILO ---
+skinparam nodesep 100
+skinparam ranksep 100
+skinparam linetype ortho
+skinparam Padding 10
+
+' Definición de Estados
+state SISTEMA_DISPONIBLE_INICIAL  as "SISTEMA_DISPONIBLE"
+state ASIGNACIONES_COMP           as "ASIGNACIONES_ABIERTO"
+state SISTEMA_DISPONIBLE_FINAL    as "SISTEMA_DISPONIBLE"
+
+[*] -[#green]-> SISTEMA_DISPONIBLE_INICIAL
+
+' Entrada al módulo
+SISTEMA_DISPONIBLE_INICIAL -[#green]-> ASIGNACIONES_COMP : abrirAsignaciones()
+note left on link
+    <b>Secretaria solicita</b> gestionar
+    qué profesor imparte qué asignatura.
+    <b>Sistema permite</b> el acceso a la
+    pantalla de asignaciones.
+end note
+
+' Comportamiento interno
+state ASIGNACIONES_COMP {
+    state SeleccionProfesor   as "Selección de Profesor"
+    state TablaAsignaciones   as "Tabla de Asignaciones"
+
+    [*] -[#green]-> SeleccionProfesor
+
+    note right of SeleccionProfesor
+        <b>Sistema muestra</b> el desplegable
+        con los profesores del centro.
+    end note
+
+    SeleccionProfesor -[#green]-> TablaAsignaciones : seleccionarProfesor()
+
+    note right of TablaAsignaciones
+        <b>Sistema muestra</b> el catálogo
+        completo de asignaturas con casilla
+        de verificación; las que ya imparte
+        el profesor aparecen marcadas.
+    end note
+
+    ' Operaciones internas (idempotentes)
+    TablaAsignaciones -[#green]-> TablaAsignaciones : asignarAsignatura()
+    note right
+        <b>Secretaria solicita</b> marcar una
+        asignatura para ese profesor.
+        <b>Sistema permite</b> añadir la fila
+        de auditoría a la relación.
+    end note
+
+    TablaAsignaciones -[#red]-> TablaAsignaciones : desasignarAsignatura()
+    note left
+        <b>Secretaria solicita</b> desmarcar
+        una asignatura del profesor.
+        <b>Sistema permite</b> eliminar la fila
+        de la relación.
+    end note
+
+    ' Cambiar de profesor (vuelta al desplegable)
+    TablaAsignaciones -[#green]-> SeleccionProfesor : cambiarProfesor()
+}
+
+' Salida del módulo
+ASIGNACIONES_COMP -[#green]-> SISTEMA_DISPONIBLE_FINAL : completarGestionAsignaciones()
+
+SISTEMA_DISPONIBLE_FINAL -[#blue]-> [*]
+@enduml

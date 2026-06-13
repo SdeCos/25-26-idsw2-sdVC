@@ -42,6 +42,10 @@
 | 31 | 3 | Guardar Cambios de Dispensa (Director) | Director Grado | Media | Fase 3.8 | - | 1 sp | Persistencia segura |
 | 32 | 3 | Cerrar Solicitud de Dispensa (Director) | Director Grado | Baja | Fase 3.8 | - | 1 d | Transición de estado |
 | 33 | 3 | Consultar Solicitud de Dispensa (Profesor) | Profesor | Media | Fase 2 | - | 1 sp | Filtrado básico |
+| 34 | 4 | Crear Alumno (individual) | Secretaria | Baja | Fase 1A | - | 1 d | Unicidad, alta opcional de matrícula |
+| 35 | 4 | Gestionar Catálogo de Grados | Secretaria | Media | Fase 1A | Fase 1C, 1D | 1-2 sp | Validación de referencias antes del borrado |
+| 36 | 4 | Gestionar Catálogo de Asignaturas | Secretaria | Media | Fase 1A | Fase 1C, 1D, 2 | 1-2 sp | Cardinalidad N:M con grados, validación de referencias |
+| 37 | 4 | Asignar Asignaturas a Profesor | Secretaria | Baja | Fase 1A, Fase 4 (Catálogo Asignaturas) | Fase 2 | 1 d | Idempotencia, auditoría del responsable |
 
 ---
 
@@ -54,8 +58,9 @@
 | 1D | 4-5 | Matrículas: Ver Detalle, **Importar** | 2-3 sprints | 2-3 sp | Fase 1C |
 | 2 | 6-8 | Asistencias: Crear Sesión, **Registrar**, Cerrar, **Exportar Historial** | 3 sprints | 3 sp | Fase 1D |
 | 3 | 9-12 | Dispensas: Alumno (5), Secretaria (5), Director (4), Profesor (1) | 4 sprints | 4 sp | Fase 2 |
+| 4 | 13-14 | Catálogos y alta individual: Crear Alumno, Catálogo de Grados, Catálogo de Asignaturas, Asignar Asignaturas a Profesor | 2 sprints | 2 sp | Fase 1A |
 
-**Total:** 32 Casos de Uso en 7 fases | Duración estimada: 14-16 sprints (7-8 meses)
+**Total:** 36 Casos de Uso en 8 fases | Duración estimada: 16-18 sprints (8-9 meses)
 
 ---
 

@@ -1,5 +1,5 @@
 @startuml DiagramaDeContexto
-title Diagrama de contexto: perspectiva del Administrador
+title Diagrama de contexto: perspectiva del sistema (multi-actor)
 left to right direction
 skinparam linetype polyline
 
@@ -27,7 +27,7 @@ LISTA_ABIERTA --> LISTAS_ABIERTO : cerrarLista()
 SISTEMA_DISPONIBLE --> ALUMNOS_ABIERTO : abrirAlumnos()
 ALUMNOS_ABIERTO --> SISTEMA_DISPONIBLE : completarGestionAlumnos()
 
-ALUMNOS_ABIERTO --> ALUMNOS_ABIERTO : importarAlumnos()
+ALUMNOS_ABIERTO --> ALUMNOS_ABIERTO : importarAlumnos() / crearAlumno()
 ALUMNOS_ABIERTO --> ALUMNO_ABIERTO : verDetalleAlumno()
 
 ALUMNO_ABIERTO --> ALUMNOS_ABIERTO : cerrarDetalleAlumno()
@@ -79,5 +79,33 @@ USUARIOS_ABIERTO --> USUARIO_ABIERTO : crearUsuario() / consultarUsuario()
 USUARIO_ABIERTO --> USUARIO_ABIERTO   : editarUsuario()
 USUARIO_ABIERTO --> USUARIOS_ABIERTO  : guardarUsuario()
 USUARIO_ABIERTO --> USUARIOS_ABIERTO  : cerrarUsuario()
+
+'==========================================
+'  MÓDULO CATÁLOGO DE GRADOS (SECRETARIA)
+'==========================================
+SISTEMA_DISPONIBLE --> CATALOGO_GRADOS_ABIERTO : abrirCatalogoGrados()
+CATALOGO_GRADOS_ABIERTO --> SISTEMA_DISPONIBLE : completarGestionCatalogoGrados()
+
+CATALOGO_GRADOS_ABIERTO --> CATALOGO_GRADOS_ABIERTO : eliminarGrado()
+CATALOGO_GRADOS_ABIERTO --> GRADO_ABIERTO          : crearGrado() / editarGrado()
+GRADO_ABIERTO --> CATALOGO_GRADOS_ABIERTO          : guardarGrado() / cancelarGrado()
+
+'==========================================
+'  MÓDULO CATÁLOGO DE ASIGNATURAS (SECRETARIA)
+'==========================================
+SISTEMA_DISPONIBLE --> CATALOGO_ASIGNATURAS_ABIERTO : abrirCatalogoAsignaturas()
+CATALOGO_ASIGNATURAS_ABIERTO --> SISTEMA_DISPONIBLE : completarGestionCatalogoAsignaturas()
+
+CATALOGO_ASIGNATURAS_ABIERTO --> CATALOGO_ASIGNATURAS_ABIERTO : eliminarAsignatura()
+CATALOGO_ASIGNATURAS_ABIERTO --> ASIGNATURA_ABIERTA           : crearAsignatura() / editarAsignatura()
+ASIGNATURA_ABIERTA --> CATALOGO_ASIGNATURAS_ABIERTO           : guardarAsignatura() / cancelarAsignatura()
+
+'==========================================
+'  MÓDULO ASIGNACIONES PROFESOR ↔ ASIGNATURA (SECRETARIA)
+'==========================================
+SISTEMA_DISPONIBLE --> ASIGNACIONES_ABIERTO : abrirAsignaciones()
+ASIGNACIONES_ABIERTO --> SISTEMA_DISPONIBLE : completarGestionAsignaciones()
+
+ASIGNACIONES_ABIERTO --> ASIGNACIONES_ABIERTO : asignarAsignatura() / desasignarAsignatura()
 
 @enduml

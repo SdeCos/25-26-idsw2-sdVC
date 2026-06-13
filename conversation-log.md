@@ -2492,3 +2492,87 @@ Documentación:
 Estado del proyecto al cierre: **M1 – M7 cerrados, los 7 ítems del plan**. Las tres disciplinas RUP cuadran a **30/30 CUs** (26 base + 4 añadidos por las mejoras: `gestionarCatalogoGrados`, `crearAlumno`, `gestionarCatalogoAsignaturas`, `asignarAsignaturasAProfesor`).
 
 Cambios sin commitear, listos para `git commit` por parte del usuario. 39 archivos pendientes: 33 modificados + 6 nuevos (`asignatura_grado.py`, `asignaciones.py`, `AsignaturasPage.tsx`, `AsignarAsignaturasProfesorPage.tsx`, los 2 directorios nuevos de CUs en cada disciplina).
+
+---
+
+### Sesión 2026-06-13
+
+## [14:00] Checklist de verificación pre-presentación
+
+**Prompt:** Faltan ~2 días para la presentación del lunes 15. Quiero un checklist del sistema para comprobar que todo funciona, antes de decidir si hay que tocar algo más.
+
+**Resultado:** Checklist en 8 bloques: arranque/seed, Usuario transversal, los 5 roles (Admin/Secretaria/Profesor/Director/Alumno), transversales (multi-grado, idempotencia, auditoría, reseed limpio), y material de presentación (README, conversation-log, PLAN-MEJORAS). Cada bloque con golden path + casos donde han aparecido bugs/regresiones según el log.
+
+**Decisión:** Aceptado. Una afirmación incorrecta en el bloque Secretaria — "ve solo alumnos INF — scoping M7" — corregida en la siguiente entrada.
+
+---
+
+## [14:20] Tanda 1 de bugs encontrados al ejecutar el checklist
+
+**Prompt:** Observaciones de las pruebas: Admin sin grados al crear director, mensaje placeholder en dashboard, error "No se pudieron cargar las asignaturas impartidas" en Asignaciones (Secretaria), crearAlumno sin selector de grado, dudas sobre scoping de Secretaria y de Director multi-grado, idea de mostrar % asistencia en fichas.
+
+**Resultado:** Mea culpa sobre el scoping de Secretaria (`politica_acceso.py:92-94` literal "opera sobre todos los grados", M7 zanjó el departamento colectivo). Diagnóstico inicial por item con propuestas y preguntas abiertas. Tres bugs sencillos cerrados de inmediato:
+
+- **Admin#3**: `GET /grados` estaba bloqueado por `_require_secretaria`; añadido `_require_lectura_grados = require_rol(["secretaria","administrador"])` para que el selector funcione también al admin.
+- **Admin#2**: párrafo placeholder retirado de `DashboardPage.tsx` sin reemplazo.
+- **Secre#4**: añadida bandera `cancelled` en el `useEffect` de `AsignarAsignaturasProfesorPage` para descartar respuestas tardías al cambiar de profesor.
+
+**Decisión:** Tres items resueltos. Pendiente: el error de Asignaciones seguía reapareciendo al marcar una asignatura, lo que apuntaba a otra causa (siguiente entrada).
+
+---
+
+## [15:00] Causa raíz real del error de Asignaciones — `.unique()` faltante
+
+**Prompt:** Aun con el fix de race condition, el error reaparece: al seleccionar profesor1 todo va bien, pero al marcar una asignatura no se puede desmarcar y aparece "No se pudieron cargar". Corrígelo antes de continuar.
+
+**Resultado:** `usuario_repository.obtener_impartidas` hacía `.scalars().all()` sin `.unique()`. Con `Asignatura.grados` declarado `lazy="joined"`, marcar una asignatura multi-grado (caso IDIO1, en INF + ADE) producía filas duplicadas en el resultset y SQLAlchemy abortaba → 500 → frontend mostraba mensaje genérico. Mismo patrón que `AsignaturaRepository.obtener_todas`, que ya tenía `.unique()` desde M5 extensión. Añadido `.unique()` también de forma preventiva en `AsignaturaRepository.obtener_por_codigos`.
+
+**Decisión:** Confirmado por el usuario "ahora funciona". El fix de race condition se mantiene porque era un bug latente independiente. La descripción de Secre#4 actualizada con la causa real.
+
+---
+
+## [15:30] Tanda final — Secre#5, Dir#9, Prof#8
+
+**Prompt:** Para crearAlumno, opción B (grado opcional + matrícula 2025/2026 vacía); para % asistencia, por asignatura; para política dispensas, opción B (por matrícula del solicitante). Mantener los READMEs salvo que el cambio toque diagramas.
+
+**Resultado:**
+- **Secre#5**: `CrearAlumnoRequest.grado_id: int | None = None`. Si viene, el router pre-valida con `GradoRepository.obtener_por_id`, crea el alumno y luego una `Matricula` vacía vía `MatriculaRepository.get_or_create_header` con `responsable_id = current_user.id`. Front con selector "Grado (opcional)" y opción "— sin matrícula —". README 03-desarrollo de `crearAlumno` actualizado con la nueva fila de divergencia y verificación.
+- **Dir#9**: helper `_grados_de_solicitud(set[int])` → `_grado_de_matricula(int | None)` mirando `am.matricula.grado_id`. `PoliticaDirector` compara `==` en lugar de `in`. `SolicitudDispensaRepository.obtener_por_grado` cambia el JOIN de `asignatura_grados` a `Matricula.grado_id`. Caso canónico (María López INF, IYA010 multi-grado): `director2` (ADE) deja de verla.
+- **Prof#8**: `AsistenciaRepository.estadisticas_por_alumno` cuenta presentes/totales contra `SesionDeClase.estado == CERRADA`. Nuevo `AsignaturaMatriculadaConAsistenciaOut` (subtipo) con `presentes`, `total_sesiones`, `porcentaje_asistencia: float | None`. `AlumnoDetalleOut.asignaturas_matriculadas` migra al subtipo; el DTO base queda intacto para los demás consumidores (selector de dispensa del alumno y de la secretaría). Front: columna "Asistencia" con badge verde/rojo y tooltip "presentes / total". README 03-desarrollo de `consultarDetalleAlumno` actualizado.
+
+`tsc --noEmit` limpio. Imports del backend OK.
+
+**Decisión:** Las 3 mejoras aceptadas y verificadas tras reload. Sobre los READMEs de 01/02: no se tocan porque la decisión de Dir#9 cambia el criterio de scoping pero no añade mensajes a la secuencia ni a la colaboración; los READMEs nunca habían explicitado el criterio (coherente con [[feedback_scope_minimo_disciplinas]]). En Prof#8 solo se toca el README de desarrollo (la columna "Asistencia" no exige cambio de diagrama).
+
+---
+
+## [16:00] README principal a 30/30 + plan del requisitado
+
+**Prompt:** README del repo muestra 26/26, actualízalo. Listar las modificaciones que hay que hacer al requisitado (nuevos CUs y diagrama de contexto). Hacer todas menos los prototipos.
+
+**Resultado:**
+- README principal actualizado: tabla con `30/30` en las 3 disciplinas.
+- 4 detallados nuevos en `RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/` (crearAlumno, gestionarCatalogoGrados, gestionarCatalogoAsignaturas, asignarAsignaturasAProfesor) — `.puml` siguiendo el estilo state-machine del SDR + `.svg` renderizados con `plantuml -tsvg`. Primera renderización dio nombres `CrearAlumno.svg` (CamelCase del tag `@startuml`); ajustado a `crearAlumno` (lowercase inicial) para igualar el resto.
+- `DiagramaDeContexto.puml`: título "perspectiva del Administrador" → "perspectiva del sistema (multi-actor)"; `crearAlumno()` añadido al módulo ALUMNOS; 3 módulos nuevos (CATÁLOGO DE GRADOS, CATÁLOGO DE ASIGNATURAS, ASIGNACIONES PROFESOR ↔ ASIGNATURA), todos bajo Secretaría. SVG regenerado.
+- `Actores.puml`: notas de Secretaría y Administrador ampliadas para reflejar el reparto post-M4/M5/M7. SVG regenerado.
+- `PriorizaciónCasosDeUso.md`: filas 34–37 añadidas (Fase 4 nueva con los 4 CUs). Total 33 → 36, fases 7 → 8.
+- `Secretaria/README.md` creado de cero (no existía) con 11 CUs agrupados por módulo (Alumnos, Matrículas, Catálogos, Dispensas) siguiendo el formato de badges del `Administrador/README.md`.
+- `Administrador/README.md`: nota arriba aclarando que `crearUsuario.tipo` ya no admite `alumno` (el alta de alumnos es de Secretaría — link a su README).
+
+**Decisión:** Prototipos saltados a petición del usuario. Working tree con cambios pendientes en `RUP/00-requisitos/` listos para commit.
+
+---
+
+## [16:25] Cierre de sesión 2026-06-13
+
+**Prompt:** Finaliza la sesión de hoy y actualiza el conversation log (creo que no se ha modificado nada hoy).
+
+**Resultado:** El log efectivamente estaba en blanco desde el cierre del 2026-06-11. Esta entrada y las anteriores se añaden ahora retroactivamente con las horas reales (`date`). Estado del proyecto al cierre:
+
+- **Frontend/backend** con 7 mejoras post-M5 (Admin#2, Admin#3, Secre#4, Secre#5, Prof#7 verificado, Prof#8, Dir#9). `tsc --noEmit` limpio.
+- **Bugs latentes preventivos** zanjados: `.unique()` en `AsignaturaRepository.obtener_por_codigos` (mismo patrón que `obtener_todas` y `obtener_impartidas`).
+- **README principal** corregido a 30/30.
+- **00-requisitos** completado: 4 nuevos detallados de Secretaría, módulo CATÁLOGOS en contexto, Actores con redistribución, Prioritización ampliada a 36 CUs y Fase 4, READMEs por actor coherentes.
+- **Prototipos** del requisitado saltados a petición del usuario.
+
+Cambios sin commitear listos para `git commit`. La presentación del lunes 15 va con: 30/30 CUs en las 3 disciplinas, requisitado coherente con el sistema construido, y las pruebas manuales del checklist apuntando los flujos clave por rol.

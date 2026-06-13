@@ -1,0 +1,64 @@
+@startuml crearAlumno
+title Crear Alumno
+
+' --- CONFIGURACIÓN DE ESTILO ---
+skinparam nodesep 100
+skinparam ranksep 100
+skinparam linetype ortho
+skinparam Padding 10
+
+' Definición de Estados
+state ALUMNOS_ABIERTO_INICIAL  as "ALUMNOS_ABIERTO"
+state ALUMNO_ABIERTO_COMP      as "ALUMNO_ABIERTO"
+state ALUMNOS_ABIERTO_FINAL    as "ALUMNOS_ABIERTO"
+
+[*] -[#green]-> ALUMNOS_ABIERTO_INICIAL
+
+' Transición de entrada
+ALUMNOS_ABIERTO_INICIAL -[#green]-> ALUMNO_ABIERTO_COMP : crearAlumno()
+note left on link
+    <b>Secretaria solicita</b> dar de alta un nuevo alumno
+    (incorporación tardía, becario, etc.).
+    <b>Sistema permite</b> el acceso al formulario
+    (Contexto: ALUMNO_ABIERTO).
+end note
+
+' Comportamiento interno
+state ALUMNO_ABIERTO_COMP {
+    state FormularioAlta as "Alta de Alumno"
+
+    FormularioAlta :
+
+    [*] -[#green]-> FormularioAlta
+
+    note right of FormularioAlta
+        <b>Secretaria solicita</b> introducir:
+        • Credenciales (User/Pass).
+        • Datos Personales (nombre, apellidos, email).
+        • Grado de incorporación (opcional).
+        <b>Sistema permite</b> la captura de datos
+        y, si se indica grado, crea una matrícula
+        vacía para el curso vigente.
+    end note
+
+    FormularioAlta -[#green]-> [*]
+}
+
+' Salidas
+ALUMNO_ABIERTO_COMP -[#green]---> ALUMNOS_ABIERTO_FINAL : guardarAlumno()
+note left on link
+    <b>GUARDAR:</b>
+    <b>Secretaria solicita</b> registrar el alta.
+    <b>Sistema permite</b> persistir el alumno y,
+    en su caso, la matrícula derivada.
+end note
+
+ALUMNO_ABIERTO_COMP -[#red]---> ALUMNOS_ABIERTO_FINAL : cancelarAlumno()
+note right on link
+    <b>CANCELAR:</b>
+    <b>Secretaria solicita</b> abandonar el alta.
+    <b>Sistema permite</b> descartar los datos.
+end note
+
+ALUMNOS_ABIERTO_FINAL -[#blue]-> [*]
+@enduml
