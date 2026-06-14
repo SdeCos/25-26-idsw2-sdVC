@@ -88,6 +88,7 @@ export const AlumnosPage: React.FC = () => {
                 <th>Apellidos</th>
                 <th>Email</th>
                 <th>Activo</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -98,6 +99,9 @@ export const AlumnosPage: React.FC = () => {
                   <td>{a.apellidos}</td>
                   <td>{a.email}</td>
                   <td>{a.activo ? 'Sí' : 'No'}</td>
+                  <td>
+                    <Link to={`/alumnos/${a.id}`}>Ver ficha</Link>
+                  </td>
                 </tr>
               ))}
             </tbody>

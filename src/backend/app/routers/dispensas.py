@@ -23,6 +23,7 @@ from app.services.solicitud_dispensa_service import (
     NoAutorizado,
     ObservacionesRequeridas,
     SolicitudDispensaService,
+    SolicitudDuplicada,
     SolicitudNoEncontrada,
     TransicionNoValida,
 )
@@ -95,6 +96,11 @@ async def crear_dispensa(
         raise HTTPException(
             status.HTTP_422_UNPROCESSABLE_ENTITY,
             "La asignatura matriculada no pertenece al alumno indicado",
+        ) from exc
+    except SolicitudDuplicada as exc:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            "Ya existe una solicitud activa para esta asignatura matriculada",
         ) from exc
 
 

@@ -1,4 +1,4 @@
-export type EstadoAsistencia = 'presente' | 'ausente' | 'tarde';
+export type EstadoAsistencia = 'presente' | 'ausente' | 'justificado';
 
 export interface AlumnoEnAsistencia {
   id: number;

@@ -1,0 +1,7 @@
+username,password,nombre,apellidos,email,telefono
+alumno6,test123,Sergio,Vega Marín,sergio@cgu.es,600555666
+,test123,Marta,Castro Núñez,marta@cgu.es,
+alumno7,,Roberto,Núñez Lara,roberto@cgu.es,
+alumno8,test123,,Pérez Solar,raquel@cgu.es,600777888
+alumno9,test123,Julia,Romero Bravo,no-es-un-email,
+alumno10,test123,Iván,Lozano Mora,ivan@cgu.es,600999000

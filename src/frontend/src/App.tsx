@@ -65,7 +65,10 @@ export const App: React.FC = () => (
     <Route path="/usuarios" element={adminOnly(<UsuariosPage />)} />
     <Route path="/usuarios/nuevo" element={adminOnly(<CrearUsuarioPage />)} />
     <Route path="/usuarios/:id" element={adminOnly(<ConsultarUsuarioPage />)} />
-    <Route path="/usuarios/:id/editar" element={adminOnly(<EditarUsuarioPage />)} />
+    <Route
+      path="/usuarios/:id/editar"
+      element={gate(['administrador', 'secretaria'], <EditarUsuarioPage />)}
+    />
 
     {/* Alumnos — Secretaria (listado paginado) y Profesor (por asignatura) */}
     <Route path="/alumnos" element={profesorOSecretariaOAlumnosPage()} />

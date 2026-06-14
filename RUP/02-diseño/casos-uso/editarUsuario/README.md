@@ -60,6 +60,24 @@
 - **`require_rol(["administrador"])` en ambos endpoints** — un Admin que no llegue a guardar igualmente carga datos sensibles. La autorización va en el endpoint, no en la operación.
 - **Sin control de concurrencia explícito** — el análisis registra como deuda "qué pasa si dos Admins editan el mismo usuario simultáneamente". Se difiere: el flujo last-writer-wins basta para los volúmenes esperados; si emergen incidencias se introducirá un `ETag` / `If-Match` sin romper contrato.
 
+## evolución post-base — autorización per-target (2026-06-14)
+
+`require_rol(["administrador"])` original se sustituye por un check **per-target** dentro de los handlers `GET /usuarios/{id}` y `PATCH /usuarios/{id}`:
+
+```python
+def _autorizar_acceso_a(target: Usuario, actor: Usuario) -> None:
+    rol_requerido = "secretaria" if target.tipo == "alumno" else "administrador"
+    if actor.tipo != rol_requerido:
+        raise HTTPException(403, "No autorizado para esta operación")
+```
+
+`GET /usuarios` (listado) y `POST /usuarios` (alta) siguen `require_rol(["administrador"])` a nivel del handler, no del router. El cambio de scope es mínimo: solo el detalle y la edición se vuelven multi-actor, y el reparto está cerrado per-target.
+
+**Cambios en el frontend:**
+- `Route /usuarios/:id/editar`: pasa de `adminOnly` a `gate(['administrador','secretaria'])`. La autorización efectiva sigue siendo del backend.
+- `EditarUsuarioPage`: la vuelta tras guardar/cancelar va a `/alumnos/:id` cuando el target es `tipo=alumno`, a `/usuarios/:id` en otro caso. Pequeña función `rutaFicha(u)` decide.
+- `DetalleAlumnoPage`: botón "Editar" visible solo para Secretaria, enlaza a `/usuarios/:id/editar`.
+
 ## referencias
 
 - [Análisis `editarUsuario()`](/RUP/01-analisis/casos-uso/editarUsuario/README.md)

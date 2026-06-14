@@ -74,16 +74,25 @@ class MatriculaRepository:
     async def crear_detalle(
         self, *, matricula_id: int, asignatura_id: int, n_matricula: int
     ) -> AsignaturaMatriculada | None:
-        """Crea AsignaturaMatriculada. Si choca con UNIQUE, retorna None."""
+        """Crea AsignaturaMatriculada. Si ya existe ese (matricula, asignatura),
+        retorna None sin tocar la transacción.
+        """
+        # Pre-check: el rollback tras IntegrityError invalidaría el header
+        # `Matricula` recién creado en el bucle padre y rompería el siguiente
+        # acceso a `header.id` (MissingGreenlet en contexto async).
+        ya_existe = await self.session.scalar(
+            select(AsignaturaMatriculada.id).where(
+                AsignaturaMatriculada.matricula_id == matricula_id,
+                AsignaturaMatriculada.asignatura_id == asignatura_id,
+            )
+        )
+        if ya_existe is not None:
+            return None
         am = AsignaturaMatriculada(
             matricula_id=matricula_id,
             asignatura_id=asignatura_id,
             n_matricula=n_matricula,
         )
         self.session.add(am)
-        try:
-            await self.session.flush()
-        except IntegrityError:
-            await self.session.rollback()
-            return None
+        await self.session.flush()
         return am

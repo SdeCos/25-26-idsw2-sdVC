@@ -26,7 +26,7 @@ Dos repos hermanos viven al lado de este y se usan como referencia recurrente; n
 
 ## Medida de progreso
 
-El denominador para las fracciones del README es **26 CUs** — los 24 casos de uso con detalle migrados del SDR más 2 añadidos en este repo para cerrar el actor `Usuario` (iniciarSesion, cerrarSesion). Distribución por rol: Usuario (2), Administrador (3), Profesor (8), Alumno (3), DirectorDeGrado (2), Secretaria (8).
+El denominador para las fracciones del README es **30 CUs** — los 24 casos de uso con detalle migrados del SDR, 2 añadidos para cerrar el actor `Usuario` (iniciarSesion, cerrarSesion) y 4 incorporados durante el plan de mejoras post-base. Distribución por rol: Usuario (2), Administrador (3), Profesor (8), Alumno (3), DirectorDeGrado (2), Secretaria (12).
 
 ## Idioma
 

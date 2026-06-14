@@ -1,5 +1,7 @@
 # Plan de mejoras post-base
 
+> **Estado: cerrado (2026-06-11).** Las 7 mejoras (M1–M7) están implementadas y verificadas. El documento se conserva como registro histórico del proceso post-base — qué huecos surgieron tras la primera ronda de pruebas manuales del sistema base, qué principios guiaron el reparto de responsabilidades (Secretaria académica vs. Administrador del sistema) y cómo se ejecutó cada mejora. El denominador del proyecto pasó de 26 a 30 CUs como consecuencia de este plan.
+
 Tras la primera ronda de pruebas manuales sobre el sistema base (26 CUs implementados), surgieron 5 huecos iniciales (1 bug, 2 mejoras de UX y 2 funcionalidades faltantes), más uno detectado mientras se ejecutaba el plan (cardinalidad de grupos por sesión). Este plan los aborda en orden de coste creciente.
 
 **Principio de reparto que guía el plan:** la Secretaría es la operadora académica del sistema (alumnos, matrículas, asignaturas, planes); el Administrador es el operador del sistema (cuentas de personal: profesores, directores, secretarias, administradores). Esto justifica mover a Secretaria las altas que hoy hace el Administrador y darle también el catálogo de asignaturas.

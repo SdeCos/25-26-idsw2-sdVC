@@ -77,19 +77,24 @@ export const EditarUsuarioPage: React.FC = () => {
     return cambios;
   };
 
+  // Secretaria edita alumnos vía esta misma página: la vuelta debe ir a
+  // /alumnos/:id, no a /usuarios/:id (que es admin-only).
+  const rutaFicha = (u: UsuarioDetalle) =>
+    u.tipo === 'alumno' ? `/alumnos/${u.id}` : `/usuarios/${u.id}`;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!original) return;
     const cambios = diff();
     if (Object.keys(cambios).length === 0) {
-      navigate(`/usuarios/${original.id}`);
+      navigate(rutaFicha(original));
       return;
     }
     setSaving(true);
     setError(null);
     try {
       await usuariosService.actualizar(original.id, cambios);
-      navigate(`/usuarios/${original.id}`);
+      navigate(rutaFicha(original));
     } catch (err) {
       if (isAxiosError(err) && err.response?.status === 409) {
         setError('Ese username ya está en uso');
@@ -118,7 +123,7 @@ export const EditarUsuarioPage: React.FC = () => {
       <header className="page-header">
         <h1>Editar usuario #{original.id}</h1>
         <div>
-          <Link to={`/usuarios/${original.id}`}>← Cancelar</Link>
+          <Link to={rutaFicha(original)}>← Cancelar</Link>
         </div>
       </header>
 

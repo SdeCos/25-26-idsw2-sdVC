@@ -76,9 +76,9 @@ class AsistenciaRepository:
         """Para cada asignatura del alumno: `(presentes, total_cerradas)`.
 
         Cuenta sesiones de clase CERRADAS en las que el alumno tiene asistencia
-        registrada (presente, ausente, justificado). Las sesiones abiertas o
-        canceladas no entran en el denominador. Usada por la ficha del alumno
-        para calcular el % de asistencia y marcar el umbral del 70%.
+        registrada (presente, justificado, ausente). Las sesiones abiertas o
+        canceladas no entran en el denominador. JUSTIFICADO cuenta como
+        PRESENTE para el umbral del 70%. Usada por la ficha del alumno.
         """
         from app.models.asistencia import EstadoAsistencia
         from app.models.sesion_clase import EstadoSesionClase
@@ -95,11 +95,18 @@ class AsistenciaRepository:
             )
         )
         result = await self.session.execute(stmt)
+        # JUSTIFICADO cuenta como PRESENTE para el umbral del 70% (decisión
+        # 2026-06-14: el justificado es una ausencia documentada que no debe
+        # penalizar la asistencia — práctica académica estándar).
+        cuenta_como_presente = {
+            EstadoAsistencia.PRESENTE.value,
+            EstadoAsistencia.JUSTIFICADO.value,
+        }
         stats: dict[int, list[int]] = {}
         for asignatura_id, estado in result.all():
             datos = stats.setdefault(asignatura_id, [0, 0])
             datos[1] += 1
-            if estado == EstadoAsistencia.PRESENTE.value:
+            if estado in cuenta_como_presente:
                 datos[0] += 1
         return {aid: (p, t) for aid, (p, t) in stats.items()}
 

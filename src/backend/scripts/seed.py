@@ -206,7 +206,8 @@ async def _seed_matriculas(
             )
         )
         existentes_por_asig = {
-            am.asignatura_id: am for am in detalles_existentes.scalars().all()
+            am.asignatura_id: am
+            for am in detalles_existentes.unique().scalars().all()
         }
         for codigo in codigos_asig:
             asig = asignaturas[codigo]

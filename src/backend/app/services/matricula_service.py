@@ -31,9 +31,12 @@ class MatriculaService:
         archivos: list[tuple[str, bytes]],
         responsable_id: int,
     ) -> InformeImportacionMatriculasOut:
-        """Importa matrículas. El grado de cada matrícula se deriva de las
-        asignaturas matriculadas: todas deben pertenecer al mismo grado o se
-        rechaza el header.
+        """Importa matrículas. El grado de cada matrícula se deriva como la
+        intersección de los grados de sus asignaturas (post-M5 una asignatura
+        puede pertenecer a varios grados). Reglas:
+        - Intersección vacía → grados incompatibles, header rechazado.
+        - Intersección con 1 grado → ese es el grado de la matrícula.
+        - Intersección con 2+ grados → ambigua, header rechazado.
         """
         resultado = await self.validador.validar(archivos)
 
@@ -46,43 +49,63 @@ class MatriculaService:
             for e in resultado.errores
         ]
 
-        # Pre-pasada: agrupar por (alumno, curso) y verificar coherencia de
-        # grado entre todas las asignaturas del header.
+        # Pre-pasada: agrupar por (alumno, curso) para resolver el grado de
+        # cada matrícula a partir de la intersección de grados de sus
+        # asignaturas.
         from collections import defaultdict
         agrupados: dict[tuple[int, str], list] = defaultdict(list)
         for r in resultado.validos:
             agrupados[(r.alumno_id, r.curso_academico)].append(r)
 
-        # Lookup batched: ids únicos de asignaturas → grado_id.
+        # Lookup batched: id de asignatura → set de grado_ids.
         asig_ids = {r.asignatura_id for r in resultado.validos}
-        grados_por_asig: dict[int, int] = {}
+        grados_por_asig: dict[int, set[int]] = {}
         if asig_ids:
             for aid in asig_ids:
                 asig = await self.asignatura_repo.obtener_por_id(aid)
                 if asig is not None:
-                    grados_por_asig[aid] = asig.grado_id
+                    grados_por_asig[aid] = {g.id for g in asig.grados}
 
         headers_cache: dict[tuple[int, str], int] = {}
 
         for clave, registros in agrupados.items():
-            grados_distintos = {
-                grados_por_asig.get(r.asignatura_id) for r in registros
-            }
-            grados_distintos.discard(None)
-            if len(grados_distintos) != 1:
+            sets_grados = [
+                grados_por_asig[r.asignatura_id]
+                for r in registros
+                if r.asignatura_id in grados_por_asig
+            ]
+            if not sets_grados:
+                continue
+            interseccion = set.intersection(*sets_grados)
+            if not interseccion:
                 errores_out.append(
                     ErrorImportacionOut(
                         archivo="(lote)",
                         fila=0,
                         mensaje=(
-                            f"matrícula con asignaturas de grados distintos "
-                            f"(alumno_id={clave[0]}, curso={clave[1]}): "
-                            f"{sorted(grados_distintos)}"
+                            f"matrícula con asignaturas de grados "
+                            f"incompatibles (alumno_id={clave[0]}, "
+                            f"curso={clave[1]})"
                         ),
                     )
                 )
                 continue
-            grado_id = next(iter(grados_distintos))
+            if len(interseccion) > 1:
+                errores_out.append(
+                    ErrorImportacionOut(
+                        archivo="(lote)",
+                        fila=0,
+                        mensaje=(
+                            f"matrícula ambigua — las asignaturas comparten "
+                            f"varios grados {sorted(interseccion)}; añade "
+                            f"alguna asignatura específica de un grado para "
+                            f"desambiguar (alumno_id={clave[0]}, "
+                            f"curso={clave[1]})"
+                        ),
+                    )
+                )
+                continue
+            grado_id = next(iter(interseccion))
 
             header, was_created = await self.matricula_repo.get_or_create_header(
                 alumno_id=clave[0],

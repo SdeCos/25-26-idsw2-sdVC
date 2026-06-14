@@ -274,34 +274,39 @@ export const SesionClaseActivaPage: React.FC = () => {
         )}
       </section>
 
-      {abierta && (
-        <section style={{ marginTop: '1.5rem' }}>
-          <h2>Toma de asistencia</h2>
-          {alumnos.length === 0 && (
-            <p style={{ color: '#6e6e73' }}>
-              No hay alumnos matriculados en esta asignatura.
-            </p>
-          )}
-          {alumnos.length > 0 && (
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Alumno</th>
-                  <th>Carnet</th>
-                  <th>Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {alumnos.map((a) => {
-                  const marca = marcas.get(a.id);
-                  return (
-                    <tr key={a.id}>
-                      <td>
-                        {a.nombre} {a.apellidos}
-                      </td>
-                      <td>{a.carnet}</td>
-                      <td>
-                        {(['presente', 'tarde', 'ausente'] as EstadoAsistencia[]).map(
+      <section style={{ marginTop: '1.5rem' }}>
+        <h2>{abierta ? 'Toma de asistencia' : 'Asistencia registrada'}</h2>
+        {!abierta && (
+          <p style={{ color: '#6e6e73' }}>
+            Sesión cerrada — no admite más cambios.
+          </p>
+        )}
+        {alumnos.length === 0 && (
+          <p style={{ color: '#6e6e73' }}>
+            No hay alumnos matriculados en esta asignatura.
+          </p>
+        )}
+        {alumnos.length > 0 && (
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Alumno</th>
+                <th>Carnet</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {alumnos.map((a) => {
+                const marca = marcas.get(a.id);
+                return (
+                  <tr key={a.id}>
+                    <td>
+                      {a.nombre} {a.apellidos}
+                    </td>
+                    <td>{a.carnet}</td>
+                    <td>
+                      {abierta ? (
+                        (['presente', 'justificado', 'ausente'] as EstadoAsistencia[]).map(
                           (e) => (
                             <button
                               key={e}
@@ -318,22 +323,22 @@ export const SesionClaseActivaPage: React.FC = () => {
                               {e}
                             </button>
                           )
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
-        </section>
-      )}
-
-      {!abierta && (
-        <p style={{ color: '#6e6e73', marginTop: '1rem' }}>
-          Sesión cerrada — no admite más cambios.
-        </p>
-      )}
+                        )
+                      ) : marca ? (
+                        <span className={`estado-badge estado-${marca.estado}`}>
+                          {marca.estado}
+                        </span>
+                      ) : (
+                        <span style={{ color: '#6e6e73' }}>sin marcar</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </section>
     </div>
   );
 };

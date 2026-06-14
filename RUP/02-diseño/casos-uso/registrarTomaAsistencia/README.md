@@ -55,7 +55,7 @@ El diagrama muestra la persistencia de **una sola marca**. La carga inicial del 
   - `id` PK
   - `sesion_clase_id` FK → `sesiones_clase.id`
   - `alumno_id` FK → `usuarios.id` (Alumno)
-  - `estado` enum `EstadoAsistencia = {PRESENTE, AUSENTE, TARDE}`
+  - `estado` enum `EstadoAsistencia = {PRESENTE, AUSENTE, JUSTIFICADO}` (ver "evolución post-base 2026-06-14" al final)
   - `justificacion` string nullable
   - `fecha_registro` datetime (cuándo se marcó, ≠ fecha de la sesión)
   - **UNIQUE `(sesion_clase_id, alumno_id)`** — una marca por alumno y sesión, base del upsert idempotente del análisis
@@ -76,7 +76,7 @@ El diagrama muestra la persistencia de **una sola marca**. La carga inicial del 
   - La opción C (excluir del listado) ocultaría información útil al Profesor (los dispensados también deben pasar lista, solo que con marca prevista).
   
   La columna combinada vive en el frontend; el backend retorna `Asistencia` y `SolicitudDispensa` por separado en la carga inicial.
-- **`enum EstadoAsistencia`** con 3 valores fijos (`PRESENTE`, `AUSENTE`, `TARDE`). Sin `JUSTIFICADO` como valor del enum — la justificación es un campo aparte del propio `Asistencia`, ortogonal al estado. Si en futuro emerge "ausente justificado" como semántica distinta de "ausente", se reconsidera; por ahora la combinación `estado=AUSENTE + justificacion="..."` cubre el caso.
+- **`enum EstadoAsistencia`** con 3 valores fijos (`PRESENTE`, `AUSENTE`, `JUSTIFICADO`). Ver "evolución post-base 2026-06-14" al final: el enum original era `{PRESENTE, AUSENTE, TARDE}` con la idea de que la justificación era un campo aparte; la evolución reemplaza `TARDE` por `JUSTIFICADO` con semántica explícita de "ausencia documentada que cuenta como presente para el umbral del 70%".
 - **Sin auditoría adicional** (deuda del análisis: ¿quién marcó? ¿cuándo?) — el `fecha_registro` ya responde "cuándo". El "quién" es trivialmente `sesion.profesor_id` (gracias a la verificación de propietario). Sin columna `registrado_por_id` separada. YAGNI hasta que aparezca un caso (p.ej. Secretaria marca asistencia en nombre del Profesor).
 - **Sin política de cierre temporal** (deuda del análisis) — la regla "no se marca tras cerrar" se materializa con la validación de estado. La pregunta "¿modificar dentro de ventana post-cierre?" queda fuera de scope (no hay reapertura).
 - **Concurrencia** (deuda del análisis: dos pestañas del mismo Profesor) — el upsert por (sesion, alumno) es naturalmente idempotente. Último-en-escribir-gana, sin race condition destructiva.
@@ -86,7 +86,7 @@ El diagrama muestra la persistencia de **una sola marca**. La carga inicial del 
 | Entidad | Capa | Notas |
 |---|---|---|
 | `Asistencia` | modelo SQLAlchemy `app/models/asistencia.py` | Tabla `asistencias` con UNIQUE compuesto |
-| `EstadoAsistencia` | enum en el modelo | `PRESENTE`, `AUSENTE`, `TARDE` |
+| `EstadoAsistencia` | enum en el modelo | `PRESENTE`, `AUSENTE`, `JUSTIFICADO` |
 | `AsistenciaIn`/`AsistenciaOut` | schema Pydantic `app/schemas/asistencias.py` | `AsistenciaIn` = `{estado, justificacion?}` (la sesión y el alumno van en path) |
 | `AsistenciaService` | `app/services/asistencia_service.py` | `marcar`, `listar_por_sesion`. Excepciones `AsistenciaNoEditable`, `AlumnoNoMatriculado` |
 | `AsistenciaRepository` | `app/repositories/asistencia_repository.py` | `upsert`, `listar_por_sesion`, `obtener_por_rango` (para el export) |
@@ -94,6 +94,21 @@ El diagrama muestra la persistencia de **una sola marca**. La carga inicial del 
 ## sin Strategy `PoliticaAcceso` aquí
 
 Aunque hay tres roles que podrían tocar `Asistencia` (Profesor marca, Alumno consulta, Secretaria potencial reporte), **solo el Profesor escribe**. El listado de asistencias de un alumno desde su propia ficha (futura extensión de `consultarDetalleAlumno`) tendría política de propiedad propia. Sin abstracción prematura — la Strategy se introduce cuando hay dos roles operando con políticas opuestas sobre la misma operación (lección consolidada del ramillete Alumno).
+
+## evolución post-base — TARDE → JUSTIFICADO (2026-06-14)
+
+Detectado durante las pruebas manuales pre-entrega: el enum `EstadoAsistencia` traía `{PRESENTE, AUSENTE, TARDE}`, pero `TARDE` ocupaba una zona ambigua — no contaba como `PRESENTE` para el % del 70% (la cuenta era `estado == PRESENTE`), y tampoco era una ausencia formal. Nadie lo usaba con sentido pedagógico claro.
+
+**Cambio.** Reemplazado `TARDE` por `JUSTIFICADO`:
+- **PRESENTE**: vino a clase.
+- **JUSTIFICADO**: ausencia documentada (médica, viaje universitario, etc.). **Cuenta como `PRESENTE`** para el cálculo del porcentaje de asistencia — práctica académica estándar.
+- **AUSENTE**: no vino, sin justificar.
+
+`asistencia_repository.obtener_estadisticas_por_alumno` cambia su condición de conteo a `estado IN (PRESENTE, JUSTIFICADO)`. El comentario que ya decía "presente, ausente, justificado" pasa de aspiracional a literal.
+
+**Decisión original revisada.** El diseño base separaba `estado` del campo `justificacion` ortogonalmente, con la idea de que `estado=AUSENTE + justificacion="..."` cubría el caso. La evolución reconoce que esto exigía al Profesor recordar la disciplina + escribir texto, sin afectar el % visible. `JUSTIFICADO` como estado **automatiza la consecuencia** (cuenta como presente) y deja `justificacion` como campo opcional de contexto, no como discriminador semántico.
+
+**Migración aplicada.** `UPDATE asistencias SET estado='justificado' WHERE estado='tarde'` sobre la BD existente. Pendiente: en próximas iteraciones, evaluar si conviene exigir `justificacion` no-nula cuando `estado=JUSTIFICADO` (auditoría).
 
 ## referencias
 

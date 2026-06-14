@@ -50,6 +50,17 @@ class AsignaturaMatriculadaIncoherente(Exception):
     pass
 
 
+class SolicitudDuplicada(Exception):
+    """Ya existe una solicitud activa para esta asignatura matriculada.
+
+    Se considera "activa" toda solicitud en PENDIENTE, EN_REVISION o APROBADA.
+    Las RECHAZADA/ANULADA son estados terminales que sí permiten reintento
+    (el alumno puede volver a solicitar con motivo nuevo).
+    """
+
+    pass
+
+
 class SolicitudDispensaService:
     def __init__(self, repo: SolicitudDispensaRepository) -> None:
         self.repo = repo
@@ -107,6 +118,24 @@ class SolicitudDispensaService:
         # `am.matricula` está eager-loaded vía joinedload en el modelo.
         if am.matricula.alumno_id != alumno_id:
             raise AsignaturaMatriculadaIncoherente
+
+        # Bloquea solicitudes duplicadas para la misma matrícula-asignatura.
+        # Solo cuentan como "activas" PENDIENTE, EN_REVISION y APROBADA — si la
+        # anterior está RECHAZADA o ANULADA, el alumno puede reintentar.
+        estados_activos = (
+            EstadoSolicitud.PENDIENTE.value,
+            EstadoSolicitud.EN_REVISION.value,
+            EstadoSolicitud.APROBADA.value,
+        )
+        existente_activa = await self.session.scalar(
+            select(SolicitudDispensa.id).where(
+                SolicitudDispensa.asignatura_matriculada_id
+                == datos.asignatura_matriculada_id,
+                SolicitudDispensa.estado.in_(estados_activos),
+            )
+        )
+        if existente_activa is not None:
+            raise SolicitudDuplicada
 
         return await self.repo.crear(
             alumno_id=alumno_id,

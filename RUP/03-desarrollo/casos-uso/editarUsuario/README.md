@@ -49,6 +49,27 @@ Validado vía `curl` contra `localhost:8000`:
 
 Validación a nivel navegador (carga → editar → guardar → consulta) pendiente de ejecución manual.
 
+## evolución post-base — actor extendido (2026-06-14)
+
+Detectado en pruebas manuales: tras M4, la Secretaría podía crear alumnos pero nadie podía editarlos (Admin perdió el acceso por M4; Secretaría nunca tuvo CU de edición). Resuelto extendiendo este CU en vez de añadir un `editarAlumno` espejo — `Alumno` es `Usuario` por STI, la operación de edición es idéntica.
+
+**Backend:**
+- `routers/usuarios.py`: `require_rol(["administrador"])` movido del router a los handlers que sí son admin-only (`GET /usuarios`, `POST /usuarios`). `GET /usuarios/{id}` y `PATCH /usuarios/{id}` usan ahora `_autorizar_acceso_a(target, actor)`: alumno → Secretaria, no-alumno → Administrador.
+- `repositories/usuario_repository.py::obtener_todos()`: filtra `tipo != 'alumno'` para que el listado del Admin no incluya alumnos (coherencia con M4 — bug detectado el mismo día).
+
+**Frontend:**
+- `App.tsx`: ruta `/usuarios/:id/editar` accesible a `['administrador','secretaria']`. El check fino lo hace el backend per-target.
+- `pages/EditarUsuarioPage.tsx`: `rutaFicha(u)` decide la URL de vuelta según `u.tipo` (`/alumnos/:id` para alumnos, `/usuarios/:id` para el resto). El form no requiere otros cambios — el `tipo` se pinta deshabilitado igual.
+- `pages/DetalleAlumnoPage.tsx`: botón "Editar" en la cabecera, visible solo para Secretaria, enlaza a `/usuarios/:id/editar`.
+
+**Verificación curl:**
+- `GET /usuarios` como admin → 0 alumnos en respuesta ✓
+- `GET /usuarios/{alumno_id}` como admin → 403 ✓
+- `GET /usuarios/{alumno_id}` como secretaria → 200 ✓
+- `GET /usuarios/{profesor_id}` como secretaria → 403 ✓
+- `PATCH /usuarios/{alumno_id}` como secretaria → 200, cambio persistido ✓
+- `PATCH /usuarios/{alumno_id}` como admin → 403 ✓
+
 ## referencias
 
 - [Análisis](/RUP/01-analisis/casos-uso/editarUsuario/README.md)

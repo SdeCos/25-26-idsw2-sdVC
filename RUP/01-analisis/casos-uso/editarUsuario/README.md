@@ -184,6 +184,23 @@ El patrón sigue a pySigHor (`editarProfesor`, `editarAula`): el CU de edición 
 
 **Código fuente:** [colaboracion.puml](colaboracion.puml)
 
+## evolución post-base — actor extendido (2026-06-14)
+
+Detectado durante las pruebas manuales pre-entrega: tras M4 (`crearAlumno` pasó a la Secretaría) quedó un hueco — nadie podía editar un alumno. Admin lo perdió por M4, y la Secretaría nunca tuvo un CU `editarAlumno` espejo.
+
+**Decisión:** no se crea `editarAlumno` separado porque `Alumno` **es un `Usuario`** (herencia STI) y la operación de "editar datos" es **idéntica** sin importar el subtipo — mismo formulario, mismos campos editables, misma persistencia. La asimetría con M4/`crearAlumno` se justifica en que el alta sí tenía un formulario distinto (sin `<select tipo>`), pero la edición no introduce diferencia alguna.
+
+Se amplía este CU con un segundo actor autorizado:
+
+| Actor                  | Targets autorizados                          |
+| ---------------------- | -------------------------------------------- |
+| **Administrador**      | `Usuario` con `tipo ∈ {administrador, profesor, secretaria, director}` (cuentas de personal) |
+| **Secretaria** (nuevo) | `Usuario` con `tipo = alumno`                |
+
+La política se materializa en el diseño como un check per-target en el handler (no en el router), y en el desarrollo como `_autorizar_acceso_a(target, actor)` en `routers/usuarios.py`. La invariante "el `tipo` no se edita" se mantiene.
+
+Catálogo se queda en **30 CUs** (no se añade `editarAlumno`).
+
 ## referencias
 
 - [Detallado `editarUsuario()`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Administrador/editarUsuario.puml)

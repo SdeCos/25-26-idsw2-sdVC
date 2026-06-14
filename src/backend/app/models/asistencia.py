@@ -17,9 +17,17 @@ from app.models.usuario import Usuario
 
 
 class EstadoAsistencia(str, Enum):
+    """Estados de asistencia.
+
+    JUSTIFICADO es ausencia documentada (médica, viaje universitario, etc.) y
+    cuenta como PRESENTE para el umbral del 70% (decisión 2026-06-14).
+    Sustituye al antiguo TARDE, que quedaba en zona ambigua: no sumaba al
+    porcentaje y no representaba un concepto académico claro.
+    """
+
     PRESENTE = "presente"
     AUSENTE = "ausente"
-    TARDE = "tarde"
+    JUSTIFICADO = "justificado"
 
 
 class Asistencia(Base):

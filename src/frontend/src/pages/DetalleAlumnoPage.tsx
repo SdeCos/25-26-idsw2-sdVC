@@ -2,10 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { isAxiosError } from 'axios';
 import { alumnosService } from '../services/alumnosService';
+import { useAuth } from '../context/AuthContext';
 import type { AlumnoDetalle } from '../types/alumnos';
 
 export const DetalleAlumnoPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const { usuario } = useAuth();
+  const esSecretaria = usuario?.tipo === 'secretaria';
   const [alumno, setAlumno] = useState<AlumnoDetalle | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -42,7 +45,14 @@ export const DetalleAlumnoPage: React.FC = () => {
         <h1>
           {alumno.nombre} {alumno.apellidos}
         </h1>
-        <Link to="/alumnos">← Volver al listado</Link>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          {esSecretaria && (
+            <Link to={`/usuarios/${alumno.id}/editar`}>
+              <button type="button">Editar</button>
+            </Link>
+          )}
+          <Link to="/alumnos">← Volver al listado</Link>
+        </div>
       </header>
 
       <dl className="ficha">

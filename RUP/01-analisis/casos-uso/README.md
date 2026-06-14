@@ -18,20 +18,20 @@ Diagramas de colaboración MVC por caso de uso.
 | [registrarTomaAsistencia()](registrarTomaAsistencia/README.md) | Profesor | ✅ |
 | [cerrarSesionClase()](cerrarSesionClase/README.md) | Profesor | ✅ |
 | [exportarHistorialAsistencias()](exportarHistorialAsistencias/README.md) | Profesor | ✅ |
-| [consultarSolicitudDispensa()](consultarSolicitudDispensaProfesor/README.md) (Profesor) | Profesor | ✅ |
-| [crearSolicitudDispensa()](crearSolicitudDispensa/README.md) (Alumno) | Alumno | ✅ |
-| [editarSolicitudDispensa()](editarSolicitudDispensa/README.md) (Alumno) | Alumno | ✅ |
-| [consultarSolicitudDispensa()](consultarSolicitudDispensa/README.md) (Alumno) | Alumno | ✅ |
+| [consultarSolicitudDispensa()](consultarSolicitudDispensaProfesor/README.md) | Profesor | ✅ |
+| [crearSolicitudDispensa()](crearSolicitudDispensa/README.md) | Alumno | ✅ |
+| [editarSolicitudDispensa()](editarSolicitudDispensa/README.md) | Alumno | ✅ |
+| [consultarSolicitudDispensa()](consultarSolicitudDispensa/README.md) | Alumno | ✅ |
 | [consultarSolicitudesDispensas()](consultarSolicitudesDispensas/README.md) | DirectorDeGrado | ✅ |
-| [editarSolicitudDispensa()](editarSolicitudDispensaDirector/README.md) (Director) | DirectorDeGrado | ✅ |
-| [consultarListaAlumnos()](consultarListaAlumnosSecretaria/README.md) (Secretaria) | Secretaria | ✅ |
+| [editarSolicitudDispensa()](editarSolicitudDispensaDirector/README.md) | DirectorDeGrado | ✅ |
+| [consultarListaAlumnos()](consultarListaAlumnosSecretaria/README.md) | Secretaria | ✅ |
 | [consultarDetalleMatricula()](consultarDetalleMatricula/README.md) | Secretaria | ✅ |
 | [importarListasAlumnos()](importarListasAlumnos/README.md) | Secretaria | ✅ |
 | [importarMatriculas()](importarMatriculas/README.md) | Secretaria | ✅ |
 | [crearAlumno()](crearAlumno/README.md) | Secretaria | ✅ |
-| [crearSolicitudDispensa()](crearSolicitudDispensaSecretaria/README.md) (Secretaria) | Secretaria | ✅ |
-| [editarSolicitudDispensa()](editarSolicitudDispensaSecretaria/README.md) (Secretaria) | Secretaria | ✅ |
-| [consultarSolicitudDispensa()](consultarSolicitudDispensaSecretaria/README.md) (Secretaria) | Secretaria | ✅ |
+| [crearSolicitudDispensa()](crearSolicitudDispensaSecretaria/README.md) | Secretaria | ✅ |
+| [editarSolicitudDispensa()](editarSolicitudDispensaSecretaria/README.md) | Secretaria | ✅ |
+| [consultarSolicitudDispensa()](consultarSolicitudDispensaSecretaria/README.md) | Secretaria | ✅ |
 | [exportarDispensas()](exportarDispensas/README.md) | Secretaria | ✅ |
 | [gestionarCatalogoGrados()](gestionarCatalogoGrados/README.md) | Secretaria | ✅ |
 | [gestionarCatalogoAsignaturas()](gestionarCatalogoAsignaturas/README.md) | Secretaria | ✅ |

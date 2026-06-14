@@ -45,7 +45,13 @@ class UsuarioRepository:
         return await self.session.get(Usuario, id)
 
     async def obtener_todos(self) -> list[Usuario]:
-        result = await self.session.execute(select(Usuario).order_by(Usuario.id))
+        # M4: el CRUD de /usuarios es cuentas de personal — alumnos los gestiona
+        # Secretaría vía /alumnos. Filtrarlos aquí cierra el hueco de lectura.
+        result = await self.session.execute(
+            select(Usuario)
+            .where(Usuario.tipo != "alumno")
+            .order_by(Usuario.id)
+        )
         return list(result.scalars().all())
 
     async def obtener_alumnos_por_usernames(

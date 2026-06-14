@@ -30,11 +30,12 @@
 | Escenario | Resultado |
 |---|---|
 | Profesor marca presente | 200 + `Asistencia` con `fecha_registro` |
-| Re-marcar el mismo alumno con `tarde` + justificación | 200 (upsert) — misma `id`, nuevo estado |
+| Re-marcar el mismo alumno con `justificado` + justificación | 200 (upsert) — misma `id`, nuevo estado |
 | Sesión `CERRADA` | 422 "sesión cerrada — no se puede marcar" |
 | Sesión de otro Profesor | 403 "no es tu sesión" |
 | Alumno no matriculado en la asignatura | 422 `AlumnoNoMatriculado` |
-| Frontend: tres botones (presente/tarde/ausente), el activo queda resaltado | comportamiento esperado |
+| Frontend: tres botones (presente/justificado/ausente), el activo queda resaltado | comportamiento esperado |
+| Frontend: sesión cerrada → tabla read-only con badge por alumno (no botones) | comportamiento esperado (fix 2026-06-14) |
 
 ## decisiones materializadas
 
@@ -43,6 +44,14 @@
 - **Sub-recurso `/sesiones-clase/{id}/asistencias`** — refleja la jerarquía conceptual.
 - **`Asistencia ↔ SolicitudDispensa`: opción A** (independientes); el cliente cruza si lo necesita visualmente.
 - **`fecha_registro` con `server_default=now()` y `onupdate=now()`** — auditoría temporal sin código adicional.
+
+## evolución post-base (2026-06-14)
+
+Dos cambios detectados en pruebas manuales pre-entrega:
+
+1. **`EstadoAsistencia.TARDE` → `JUSTIFICADO`** — `TARDE` no contaba para el % del 70% (la cuenta del repositorio era `estado == PRESENTE`) y no representaba un concepto académico claro. `JUSTIFICADO` es ausencia documentada que **cuenta como `PRESENTE`** para el umbral. Archivos tocados: `models/asistencia.py` (enum), `repositories/asistencia_repository.py` (`estado IN (PRESENTE, JUSTIFICADO)` en el contador), `types/asistencias.ts` y `pages/SesionClaseActivaPage.tsx` (botón). Migración SQL: `UPDATE asistencias SET estado='justificado' WHERE estado='tarde'`. Decisión documentada en `02-diseño/.../README.md`.
+
+2. **Tabla read-only tras cerrar la sesión** — antes la página solo mostraba "Sesión cerrada — no admite más cambios" y ocultaba la tabla entera; el Profesor que acababa de cerrar no veía qué había marcado. Ahora la sección se renderiza siempre, con `<h2>` distinto ("Asistencia registrada" vs "Toma de asistencia") y la columna Estado pinta `<span className="estado-badge">` en lugar de los 3 botones cuando `!abierta`. Archivo único: `pages/SesionClaseActivaPage.tsx`.
 
 ## referencias
 

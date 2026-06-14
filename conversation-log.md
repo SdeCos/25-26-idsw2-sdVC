@@ -2576,3 +2576,284 @@ Cambios sin commitear, listos para `git commit` por parte del usuario. 39 archiv
 - **Prototipos** del requisitado saltados a petición del usuario.
 
 Cambios sin commitear listos para `git commit`. La presentación del lunes 15 va con: 30/30 CUs en las 3 disciplinas, requisitado coherente con el sistema construido, y las pruebas manuales del checklist apuntando los flujos clave por rol.
+
+---
+
+### Sesión 2026-06-14
+
+## [10:17] Retoques finales antes de entregar — denominadores y limpieza de paréntesis
+
+**Prompt:** Última sesión antes de entregar. (1) Comprobar que en cada índice aparezca la cantidad correcta de elementos (30 CDU, etc.). (2) En los README de `casos-uso/` de las tres disciplinas, eliminar el `(Actor)` redundante junto al nombre del CU, ya que la columna Actor ya lo indica.
+
+**Resultado:**
+
+- Denominadores corregidos:
+  - `RUP/02-diseño/README.md` y `RUP/03-desarrollo/README.md`: `26/26 ✅` → `30/30 ✅`.
+  - `CLAUDE.md` (sección "Medida de progreso"): `26 CUs` → `30 CUs`, con desglose actualizado (Usuario 2, Administrador 3, Profesor 8, Alumno 3, DirectorDeGrado 2, Secretaria 12). Conteo verificado con `grep` sobre la tabla del índice de análisis.
+- Paréntesis `(Profesor)`, `(Alumno)`, `(Director)`, `(Secretaria)` eliminados del nombre del CU en los tres `casos-uso/README.md`:
+  - En `01-analisis/casos-uso/README.md` estaban fuera del link (`](path) (Actor)`); eliminados los 9 casos afectados (3 dispensas del Alumno, 1 del Profesor, 1 del Director, 3 del Secretaria y `consultarListaAlumnos` del Secretaria).
+  - En `02-diseño/casos-uso/README.md` y `03-desarrollo/casos-uso/README.md` estaban dentro del texto del link (`[nombre() (Actor)](path)`); misma lista de 9 CUs limpiada en ambos.
+- Resto de índices y READMEs revisados (`README.md` raíz, `01-analisis/README.md`, `src/backend/README.md`, `src/frontend/README.md`, `modelosUML/README.md`, etc.) — ninguno tenía recuento de CUs desactualizado. Las menciones a "26 CUs" en `RUP/PLAN-MEJORAS.md` y en `consultarSolicitudDispensaSecretaria/README.md` son narrativa histórica (estado del proyecto en aquel momento), no índices, y se mantienen.
+
+**Decisión:** Aceptado. Listo para los siguientes retoques de la sesión final.
+
+---
+
+## [10:25] Dudas finales: PLAN-MEJORAS.md y error recurrente del seed
+
+**Prompt:** Dos dudas: (1) `PLAN-MEJORAS.md` era una guía personal y había pensado eliminarlo al implantar todas las mejoras, ¿correcto o mantenerlo? (2) El script de arranque funciona bien la primera vez, pero al día siguiente da error y solo se arregla con `rm src/backend/cgu.db`. ¿Qué es mejor — arreglar la causa o ponerlo al inicio del script?
+
+**Resultado:**
+
+- **PLAN-MEJORAS.md mantenido**, no eliminado. Justificación: el documento es el registro vivo del proceso post-base (qué huecos, qué principio Secretaria-vs-Admin, ejecución y fechas de cada M1–M7), el `conversation-log.md` enlaza a él en varias entradas, y CLAUDE.md evalúa "proceso de creación visible". Añadida cabecera al inicio: "**Estado: cerrado (2026-06-11).** Las 7 mejoras (M1–M7) están implementadas y verificadas. […]" — el documento queda explícitamente congelado como histórico.
+- **Error del seed reproducido** ejecutando `python -m scripts.seed` contra la BD existente. La traza:
+  ```
+  sqlalchemy.exc.InvalidRequestError: The unique() method must be invoked on this
+  Result, as it contains results that include joined eager loads against collections
+  ```
+  Falla en `scripts/seed.py:209` (`_seed_matriculas → _asegurar`) al hacer `SELECT AsignaturaMatriculada` — la cadena `lazy="joined"` arrastra `Asignatura.grados[]` (colección), y SQLAlchemy exige `.unique()` para colapsar las filas duplicadas del cross-join.
+- **Por qué solo falla en la 2ª ejecución:** en la primera no hay todavía `AsignaturaMatriculada` para esa matrícula, así que `.scalars().all()` no materializa filas y no detecta el problema; en la segunda hay filas y revienta.
+- **Fix aplicado:** 1 línea en `seed.py:209` — `detalles_existentes.scalars().all()` → `detalles_existentes.unique().scalars().all()`. Es el mismo patrón ya aplicado sistemáticamente en `AsignaturaRepository`, `MatriculaRepository`, `SolicitudDispensaRepository`, etc. (confirmado con `grep '.unique()' app/repositories/*.py`).
+- **Verificación:** 2 ejecuciones consecutivas extra del seed contra la BD ya poblada — todas las filas detectadas como "ya existe", 0 errores, 0 duplicados.
+
+**Decisión:** Descartada la alternativa de añadir `rm cgu.db` al inicio del script: destruiría en cada arranque cualquier dato que el usuario hubiera creado durante el uso de la app, y dejaría el bug latente para morder en producción/demo (cualquier listado de Matrícula vía un service que ejecutara esa misma SELECT cruda sin `.unique()` reventaría igual). El fix raíz cuesta 1 línea y elimina el problema desde origen.
+
+---
+
+## [10:32] Roadmap de pruebas manuales + CSVs fixtures
+
+**Prompt:** Para casi finalizar, dame un guion/roadmap de todas las acciones a hacer manualmente para verificar las funcionalidades. Además, generar 2 CSVs por cada importación (uno que funcione, otro que dé error), ubicarlos donde sea coherente. ¿Es coherente el plan?
+
+**Resultado:**
+
+- Plan declarado coherente: pruebas manuales end-to-end son la forma natural de validar la coincidencia entre lo construido y el requisitado, y los CSVs fixtures convierten los CUs de import en reproducibles desde el repo en vez de "monta uno ad hoc cada vez".
+- Carpeta nueva `documents/pruebas-manuales/` (siguiendo CLAUDE.md "Documentación adicional en /documents") con:
+  - `README.md` — guion completo de verificación organizado en 12 bloques (0 Setup/Login, 1 Administrador, 2 Secretaria/Catálogos, 3 Secretaria/Profesores, 4 Secretaria/Alumnos, 5 Secretaria/Matrículas, 6 Secretaria/Dispensas, 7 Profesor, 8 Alumno, 9 DirectorDeGrado + scoping cruzado, 10 matriz de acceso/casos negativos, 11 Cierre). Cubre los 30 CUs con casillas `[ ]` marcables y aclara qué CUs cubre cada bloque (incluyendo el reparto post-base de M1–M7).
+  - `csvs/alumnos-validos.csv` — 3 filas válidas (alumno3..alumno5).
+  - `csvs/alumnos-con-errores.csv` — 6 filas: 2 válidas (`alumno6`, `alumno10`) + 4 erróneas que activan cada rama de `_validar_fila` del `ValidadorArchivoListasAlumnos` (username vacío, password vacía, nombre vacío, email sin '@').
+  - `csvs/matriculas-validas.csv` — 7 detalles distribuidos en 3 matrículas (alumno3 INF×2, alumno4 INF×2, alumno5 ADE×2 + IDIO1).
+  - `csvs/matriculas-con-errores.csv` — alumno desconocido, asignatura desconocida, n_matricula no entero, n_matricula < 1, y caso M5/M7 más fino: dos asignaturas de grados distintos para el mismo alumno (`alumno10` con IYA040+ADE101) → error de coherencia de grado del `MatriculaService.importar` (lote agrupado).
+- Ubicación elegida (`documents/`) sobre `RUP/03-desarrollo/` o `src/backend/scripts/`: la carpeta `documents/` es la canónica de CLAUDE.md para "documentación adicional", queda fuera del árbol RUP (sobrevive a cualquier reorganización de disciplinas) y agrupa guion + fixtures en una sola unidad navegable.
+
+**Decisión:** Aceptado. El guion + los 4 CSVs quedan en `documents/pruebas-manuales/` listos para la ronda final de verificación antes de la entrega.
+
+---
+
+## [11:01] Dos bugs de coherencia M4 detectados en pruebas manuales
+
+**Prompt:** "Solo he comprobado hasta consultarListaAlumnos de Secretaria. (1) Como admin, en su lista de usuarios sí aparecen los alumnos. (2) En la lista de alumnos de Secretaria, no hay opción para ver la ficha/editarla. ¿Son errores?"
+
+**Resultado:** Ambos confirmados como bugs reales — huecos de coherencia con M4 ("el Administrador es el operador del sistema; los alumnos los opera la Secretaría"):
+
+- **Bug 1 — Admin ve alumnos en `/usuarios`.** `UsuarioRepository.obtener_todos()` devolvía todos los tipos. M4 retiró la **escritura** de alumnos al admin (`POST /usuarios` rechaza `tipo=alumno`, el `<select>` no la ofrece) pero la **lectura** quedó abierta. Único caller del método: el `GET /usuarios` del router protegido por `require_rol(["administrador"])`. **Fix:** `WHERE Usuario.tipo != 'alumno'` en la query.
+- **Bug 2 — `AlumnosPage` sin acción por fila.** La tabla mostraba 5 columnas (Username, Nombre, Apellidos, Email, Activo) sin link al detalle. La ruta `/alumnos/:id` + `DetalleAlumnoPage` ya existían; solo faltaba el enlace. La página de Profesor (`ListaAlumnosPage.tsx:102`) sí tenía "Ver ficha" — olvido al crear `AlumnosPage`. **Fix:** columna "Acciones" con `<Link to={\`/alumnos/${a.id}\`}>Ver ficha</Link>`.
+
+- **Hueco relacionado dejado abierto** (señalado al usuario): `GET /usuarios/{id}` y `PATCH /usuarios/{id}` no comprueban `tipo` del target — un admin con el ID de un alumno podría consultarlo/editarlo por URL. Fix mínimo sería `if usuario.tipo == "alumno": raise 404` en ambos handlers, pero no entra dentro de los dos bugs reportados; queda a decisión del usuario.
+
+**Decisión:** Fix aplicado a los dos bugs. Confirmaciones del backend hot-reload (uvicorn `--reload`) y frontend hot-reload (Vite) — usuario solo refresca el navegador. El testing guide queda consistente: la línea "alumnos no aparecen en `/usuarios` del admin" (que en realidad era un claim mío al escribirla) ahora es verdad.
+
+---
+
+## [11:15] Hueco funcional: nadie podía editar alumnos — extensión de `editarUsuario`
+
+**Prompt:** "¿Debería Secretaria poder editar alumnos? Si no, ¿cómo se modifica un dato erróneo, ya que admin no tiene acceso y ahora tampoco Secretaria?"
+
+**Resultado:** Detectado hueco real — tras M4 (Admin pierde alumnos) la Secretaría tenía `crearAlumno`, `consultarDetalleAlumno`, `importarListasAlumnos` (upsert, workaround clunky para edición individual) pero **no `editarAlumno`**. Workaround: subir un CSV de 1 fila al import, UX horrible para corregir un email mal escrito.
+
+**Discusión arquitectónica con el usuario.** Mi primera recomendación fue añadir `editarAlumno` como CU completo (30 → 31). El usuario contraargumentó: "Alumno es Usuario (STI), `editarUsuario` debería bastar". Argumento aceptado:
+
+- M4 sí separó `crearAlumno` porque el **formulario es distinto** (sin `<select tipo>`). Para editar, el formulario es **idéntico** — mismo flujo, mismos campos, misma persistencia.
+- Crear `editarAlumno` espejo sería duplicar análisis/diseño/desarrollo por algo que conceptualmente es el mismo CU operando sobre un subtipo distinto.
+- Decisión: **ampliar `editarUsuario`** con un segundo actor autorizado (Secretaria sobre target `tipo=alumno`). Catálogo se queda en **30 CUs**.
+
+**Cambios aplicados:**
+
+- **Backend (`routers/usuarios.py`):** `require_rol(["administrador"])` movido del router a los handlers que sí son admin-only (`GET /usuarios` listado y `POST /usuarios` alta). `GET /usuarios/{id}` y `PATCH /usuarios/{id}` usan ahora `_autorizar_acceso_a(target, actor)`: `target.tipo == 'alumno' → Secretaria`, en otro caso `Administrador`. Cierra de paso el hueco que dejé pendiente antes (admin podía editar alumno por URL).
+- **Frontend (`App.tsx`):** ruta `/usuarios/:id/editar` pasa de `adminOnly` a `gate(['administrador','secretaria'])`. El check fino lo hace el backend per-target.
+- **Frontend (`pages/EditarUsuarioPage.tsx`):** función `rutaFicha(u)` que devuelve `/alumnos/:id` si target es alumno, `/usuarios/:id` en otro caso. Usada para los navigates tras guardar/cancelar y para el link "← Cancelar". Sin tocar el form.
+- **Frontend (`pages/DetalleAlumnoPage.tsx`):** botón "Editar" en la cabecera, visible solo para Secretaria, enlaza a `/usuarios/:id/editar`. Mantiene el "← Volver al listado" original al lado.
+- **Documentación:** notas "Evolución post-base — actor extendido (2026-06-14)" añadidas al final de los 3 READMEs del CU `editarUsuario` (01-analisis, 02-diseño, 03-desarrollo) sin reescribir el cuerpo histórico. La de 03-desarrollo lleva la matriz de verificación curl.
+- **Testing guide (`documents/pruebas-manuales/README.md`):** sin tocar ningún `[x]` previo. Añadido en Bloque 1 un test negativo nuevo ("admin intenta GET/editar alumno por URL → 403"). Añadida en Bloque 4 una subsección nueva "editarUsuario() — actor extendido (Secretaria sobre alumno)" con 6 tests, incluido el negativo "Secretaria intenta GET profesor por URL → 403". Aclaración explícita en la subsección de que es el mismo CU que el de Bloque 1 (no suma al denominador).
+
+**Verificación curl (6/6 ✓):**
+- `GET /usuarios` como admin → solo personal, 0 alumnos.
+- `GET /usuarios/{alumno_id}` como admin → 403; como secretaria → 200.
+- `GET /usuarios/{profesor_id}` como secretaria → 403.
+- `PATCH /usuarios/{alumno_id}` como secretaria → 200 (cambio persiste); como admin → 403.
+
+Email de `alumno10` revertido a `ivan@cgu.es` tras la prueba para no dejar la BD en estado raro mientras el usuario sigue con las pruebas manuales.
+
+**Decisión:** Aceptada la opción del usuario (extender en vez de espejar). Coherente con el modelo de dominio (Alumno IS Usuario), sin asimetría artificial en el catálogo, sin inflar el denominador. Usuario continúa con las pruebas manuales desde Bloque 4 `consultarDetalleAlumno()`.
+
+---
+
+## [11:38] Bug import matrículas — deuda de M5 (Asignatura.grado_id → grados[])
+
+**Prompt:** "Suba el archivo que suba (válido o errores), recibo 'No se pudo importar el archivo' en rojo."
+
+**Resultado:** Reproducido vía curl → HTTP 500. Tracing directo del servicio reveló:
+
+```
+File "matricula_service.py", line 63, in importar
+    grados_por_asig[aid] = asig.grado_id
+AttributeError: 'Asignatura' object has no attribute 'grado_id'
+```
+
+**Causa raíz.** Deuda olvidada de M5: cuando se promocionó `Asignatura.grado_id` (1:1) → `Asignatura.grados[]` (N:M vía tabla `asignatura_grados`), `MatriculaService.importar` quedó referenciando el campo viejo. Nunca explotó hasta hoy porque nadie había probado el import manualmente después de M5 (M7 cerró antes que M5 en pruebas internas).
+
+**Fix.** Reescritura del bloque de derivación de grado por matrícula con **intersección** en vez de igualdad:
+- `grados_por_asig: dict[int, set[int]]` — lookup por asignatura del set de grados.
+- Por cada (alumno, curso), `interseccion = set.intersection(*sets_grados)`.
+- 3 casos: intersección vacía → error "grados incompatibles" (caso de `alumno10` con IYA040+ADE101); intersección con 1 grado → ese es el de la matrícula (alumno3 IYA040+IDIO1 → INF; alumno5 ADE101+ADE202+IDIO1 → ADE); intersección con 2+ grados → error "matrícula ambigua, desambiguar añadiendo una asignatura específica". Las tres ramas con mensajes claros para el informe.
+
+**Por qué el frontend mostraba "No se pudo importar el archivo".** El handler `routers/matriculas.py:importar_matriculas` solo captura `CabeceraInvalida`. Cualquier otro error sube al middleware de FastAPI que devuelve 500 con body `{"detail":"Internal Server Error"}`. El catch del frontend (`ImportarMatriculasPage:31`) intenta sacar `err.response.data.detail` — al ser genérico, cae al mensaje fallback. Bien diseñado: con el fix aplicado, los errores de negocio van por el cauce normal (`informe.errores`) y solo verían el rojo si hay un 500 de verdad.
+
+**Verificación:**
+- `matriculas-validas.csv` → 3 matrículas, 7 detalles, 0 errores ✓
+- `matriculas-con-errores.csv` → 1 matrícula + 1 detalle (alumno6 con IYA040), 5 errores (alumno desconocido, asignatura desconocida, n_matricula no entero, n_matricula < 1, grados incompatibles para alumno10) ✓
+
+**Efectos sobre la BD para el usuario:** las matrículas de alumno3, alumno4, alumno5 y alumno6 ya están persistidas como parte de la verificación curl. La siguiente prueba del guion ("Reimportar el mismo CSV → errores 'asignatura ya matriculada'") funcionará tal cual contra ese estado.
+
+**Testing guide actualizado:** el wording del expected error pasa de "grados distintos" a "grados incompatibles", y el conteo del informe de errors pasa de "1 detalle creado" a "1 matrícula + 1 detalle creados" (más preciso). Sin tocar ningún `[x]`.
+
+**Decisión:** Aceptado. El fix también vacuna contra cualquier futuro CU que cuente con derivación de grado desde asignaturas multi-grado.
+
+---
+
+## [11:43] Segundo bug del import de matrículas — MissingGreenlet en re-imports
+
+**Prompt:** "matriculas-con-errores funciona como debe, pero matriculas-validas me sigue dando 'No se pudo importar el archivo'."
+
+**Resultado:** Reproducido vía curl: matriculas-validas (re-import) sigue dando HTTP 500. Trace directo del servicio reveló:
+
+```
+File "matricula_service.py", line 122, in importar
+    matricula_id=header.id,
+sqlalchemy.exc.MissingGreenlet: greenlet_spawn has not been called; can't
+call await_only() here.
+```
+
+**Causa raíz.** `MatriculaRepository.crear_detalle` captura `IntegrityError` y hace `await self.session.rollback()`. El rollback invalida **toda** la transacción — incluido el `header` Matricula del bucle padre. La siguiente iteración del `for registro in registros` accede a `header.id` → SQLAlchemy intenta refrescar la columna expirada con un lazy load → en contexto async sin greenlet → MissingGreenlet.
+
+**Por qué `matriculas-con-errores` parecía funcionar:** en su flujo, alumno6 tiene 1 solo detalle válido (IYA040) que se insertó limpio la primera vez; cuando se reimportaba, sí entraba en el branch del IntegrityError, pero como era el último detalle del grupo no se accedía a `header.id` después. alumno10 cortaba antes con "grados incompatibles", sin llegar a `crear_detalle`. matriculas-validas en cambio tiene 3 grupos con múltiples detalles cada uno → conflicto + acceso posterior a `header.id` → explosión.
+
+**Fix.** `MatriculaRepository.crear_detalle` sustituye el patrón "INSERT + capturar IntegrityError + rollback" por **pre-check de existencia**:
+
+```python
+ya_existe = await self.session.scalar(
+    select(AsignaturaMatriculada.id).where(
+        AsignaturaMatriculada.matricula_id == matricula_id,
+        AsignaturaMatriculada.asignatura_id == asignatura_id,
+    )
+)
+if ya_existe is not None:
+    return None
+```
+
+Sin rollback → sin invalidación del header → bucle padre sigue iterando con la sesión sana. Como bonus: el SELECT por `AsignaturaMatriculada.id` (1 columna) evita el `lazy="joined"` que arrastraba la cadena `asignatura → grados[]` (otra fuente potencial de unique-not-called).
+
+**Verificación curl:**
+- `matriculas-validas.csv` (re-import) → 7 errores "ya matriculada", 0 detalles ✓
+- `matriculas-con-errores.csv` (re-import) → 6 errores (4 de fila + alumno6/IYA040 ya matriculada + alumno10 grados incompatibles), 0 detalles ✓
+
+**Heads-up al usuario** sobre el efecto acumulativo de las verificaciones curl en la BD: cuando reimporte en la UI verá directamente los errores "ya matriculada", no el flujo "creados" del guion. Funcionalmente correcto — cubre la rama de conflicto del CU. Para ver el flujo limpio, parar el sistema + `rm src/backend/cgu.db` + relanzar (opcional, no necesario para cobertura).
+
+**Decisión:** Pre-check > IntegrityError+rollback en cualquier servicio batch que itere sobre un header común. Patrón a vigilar en próximas iteraciones — solo `crear_detalle` tenía esta forma; el resto del backend usa pre-checks (ver `seed.py` arreglado por la mañana, mismo principio).
+
+---
+
+## [12:01] Dos cambios en asistencia: TARDE → JUSTIFICADO + tabla read-only tras cierre
+
+**Prompt:** "En sesiones de clase no muestra presente/ausente/justificado, muestra presente/ausente/tarde. ¿No debería desaparecer tarde y aparecer justificado (que es como presente pero con otro nombre)? Y cuando se cierra una sesión, no se puede ver el listado de asistencias, ¿es correcto?"
+
+**Resultado:** Dos cambios aplicados:
+
+### 1. `EstadoAsistencia.TARDE` → `JUSTIFICADO`
+
+- Razón: `TARDE` quedaba en zona ambigua — no contaba como `PRESENTE` para el % del 70% (la cuenta era `estado == PRESENTE`) y no representaba un concepto académico claro. `JUSTIFICADO` es ausencia documentada con semántica estándar: **cuenta como `PRESENTE`** para el umbral.
+- SDR no especifica estados intermedios (solo `presente: boolean` en el modelo del dominio); la elección original era nuestra y no canónica.
+- Archivos tocados:
+  - `models/asistencia.py` — enum + docstring explicativo.
+  - `repositories/asistencia_repository.py` — contador cambia a `estado IN (PRESENTE, JUSTIFICADO)`. Set `cuenta_como_presente` explícito en el código.
+  - `types/asistencias.ts` — union type pasa a `'presente' | 'ausente' | 'justificado'`.
+  - `pages/SesionClaseActivaPage.tsx:304` — el array de botones cambia.
+  - Migración: `UPDATE asistencias SET estado='justificado' WHERE estado='tarde'` aplicado contra `cgu.db` (1 fila migrada).
+- Documentación: notas "evolución post-base 2026-06-14" añadidas a `RUP/02-diseño/.../registrarTomaAsistencia/README.md` y `RUP/03-desarrollo/.../registrarTomaAsistencia/README.md`. La decisión original (separar `estado` de `justificacion` como ortogonales, "estado=AUSENTE + justificacion='..' cubre el caso") queda explicada y revisada — `JUSTIFICADO` como estado automatiza la consecuencia (cuenta como presente) en vez de exigir al Profesor disciplina manual.
+- Verificación curl: `PUT /sesiones-clase/1/asistencias/5 {estado: justificado}` → 200; ficha de alumno1 devuelve `IYA040: presentes=2, total=2, pct=100.0` confirmando que JUSTIFICADO suma al contador. Asistencia restaurada a `presente` post-verificación para no contaminar el estado de pruebas del usuario.
+
+### 2. Tabla de asistencias read-only tras cerrar la sesión
+
+- Antes: el bloque `{!abierta && <p>Sesión cerrada — no admite más cambios.</p>}` ocultaba la tabla entera. El Profesor que acababa de cerrar no veía qué había marcado.
+- Ahora: la sección se renderiza siempre, con `<h2>` distinto ("Asistencia registrada" cuando cerrada vs "Toma de asistencia" cuando abierta) y la columna Estado pinta `<span className="estado-badge">` en lugar de los 3 botones cuando `!abierta`. Si la sesión cerrada tiene alumnos sin asistencia marcada, sale "sin marcar" en gris.
+- Archivo único: `pages/SesionClaseActivaPage.tsx`.
+
+**Decisión:** Aceptado por el usuario. Catálogo se queda en 30 CUs (refinamiento del CU `registrarTomaAsistencia`, no nuevo). El testing guide ya mencionaba PRESENTE/AUSENTE/JUSTIFICADO desde su creación — no necesita cambios.
+
+---
+
+## [12:07] Bug: dispensas duplicadas por asignatura matriculada
+
+**Prompt:** "Me deja crear varias solicitudes de dispensa por asignatura, corrigelo."
+
+**Resultado:** Hueco confirmado — no había constraint UNIQUE en `solicitudes_dispensa(asignatura_matriculada_id)` ni pre-check en el service. El usuario llegó a crear 2 dispensas PENDIENTE para IYA020 de alumno1 antes de detectarlo. El testing guide del Bloque 8 ya lo pedía (`Intenta crear otra sobre IYA020 → error "ya existe solicitud..."`) — la verificación lo hizo aflorar.
+
+**Política aplicada.** Solo se bloquean duplicados si la solicitud previa está **activa** (`PENDIENTE`, `EN_REVISION`, `APROBADA`). Si está `RECHAZADA` o `ANULADA`, se permite reintento. Justificación: en la realidad académica un alumno cuya dispensa fue rechazada puede volver a solicitar con nuevo motivo; una `ANULADA` (cancelada antes de resolución) tampoco debe ser barrera permanente. Las `APROBADA` sí cuentan como activas porque no tiene sentido duplicar una concesión ya en vigor.
+
+**Cambios:**
+- `services/solicitud_dispensa_service.py`: nueva excepción `SolicitudDuplicada` + pre-check antes de delegar al repo. Query `SELECT id FROM solicitudes_dispensa WHERE asignatura_matriculada_id = ? AND estado IN (PENDIENTE, EN_REVISION, APROBADA)`.
+- `routers/dispensas.py`: import de la nueva excepción + handler de 409 con mensaje "Ya existe una solicitud activa para esta asignatura matriculada".
+- Frontend: sin cambios — `CrearSolicitudPage` y `CrearSolicitudDispensaSecretariaPage` ya extraen `err.response.data.detail` y lo muestran.
+
+**Por qué pre-check y no UNIQUE constraint.** La regla no es UNIQUE absoluta (`asignatura_matriculada_id`), es UNIQUE-en-activas. SQL no puede expresarlo limpiamente con un UniqueConstraint clásico; necesitaría un partial index (SQLite lo soporta) o un trigger. El pre-check en el service es declarativo y leíble, y soporta la política condicional sin reservar sintaxis avanzada de BD. Coherente con la decisión de "intersección de grados" del fix de matriculas (lógica de negocio en el service, no en SQL).
+
+**Verificación curl:** intento de crear dispensa para am_id=4 (ya con PENDIENTE) → 409 + mensaje correcto ✓.
+
+**Estado pendiente:** 2 duplicados ya persistidos en la BD por uso previo. Comunicado al usuario para decidir si limpiarlos vía UI (rechazar como Director) o SQL directo. Sin acción automática.
+
+**Decisión:** Aceptado. Catálogo en 30 CUs (refinamiento de `crearSolicitudDispensa`, no nuevo).
+
+---
+
+## [12:16] Cierre de sesión 2026-06-14 — listos para commit + PR final
+
+**Prompt:** "Todos los checks comprobados y funcionando. ¿Puedo hacer commit final y PR, o falta algo?"
+
+**Resultado:** Sesión cerrada. Verificación pre-commit ejecutada:
+
+- `from app.main import app` → OK ✓
+- `npx tsc --noEmit` → 0 errores ✓
+- 28 archivos modificados + 1 carpeta nueva (`documents/pruebas-manuales/`).
+
+**Limpieza final aplicada a petición del usuario:**
+
+- Duplicado de dispensa borrado: `solicitudes_dispensa.id=7` (ya ANULADA) eliminada vía SQL. Solo queda `id=6` (PENDIENTE) para am_id=4 (IYA020), coherente con el fix de duplicados.
+- Sección 10 del testing guide (matriz de acceso / casos negativos) eliminada — el usuario verificó que las autorizaciones funcionan y consideró el coste de la matriz exhaustiva no rentable manualmente. Renumerado: "11. Cierre" → "10. Cierre"; tabla de cobertura `0,11 → 0,10`.
+
+**Resumen del día (sesión 2026-06-14):**
+
+Empezó como "últimos retoques antes de la entrega" y derivó en una jornada larga de pruebas manuales que destapó **6 bugs reales** y **2 refinamientos** de UX/dominio. Todo cerrado antes del commit final:
+
+| # | Detectado | Resuelto |
+|---|-----------|----------|
+| Coherencia índices | denominadores 26→30, paréntesis de actor duplicados | CLAUDE.md + 6 README ajustados; PLAN-MEJORAS marcado como cerrado |
+| seed.py | `.unique()` faltante (mismo bug latente que tenían los repos) | 1 línea en seed.py:209; verificado idempotente en 3 ejecuciones |
+| Pruebas manuales | testing guide ausente | `documents/pruebas-manuales/README.md` (30 CUs por bloque) + 4 CSVs fixtures |
+| Admin veía alumnos en `/usuarios` | hueco de M4 (escritura cerrada pero lectura abierta) | filtro `tipo != 'alumno'` en `UsuarioRepository.obtener_todos` |
+| AlumnosPage sin link a ficha | olvido al crearla; `ListaAlumnosPage` sí lo tenía | columna "Acciones" + Link |
+| editarAlumno inexistente | nadie podía editar alumnos tras M4 | **editarUsuario extendido a Secretaria** sobre target `tipo=alumno` (sin nuevo CU — `Alumno` es `Usuario` por STI); cierra también el hueco GET/PATCH per-target |
+| matricula_service.py | deuda M5: `Asignatura.grado_id` → `Asignatura.grados[]` no propagada | reescrita la derivación con intersección de grados; 3 ramas: vacío, único, ambiguo |
+| crear_detalle rollback | invalidaba `header` Matricula del bucle padre → MissingGreenlet en re-imports | pre-check de existencia en vez de IntegrityError+rollback |
+| EstadoAsistencia | `TARDE` en zona ambigua | `TARDE → JUSTIFICADO`, cuenta como `PRESENTE` para el % 70%; SQL migration |
+| Sesión cerrada sin tabla | "Sesión cerrada — no admite más cambios" sin ver lo marcado | tabla read-only con badges cuando `!abierta` |
+| Dispensas duplicadas | sin pre-check ni UNIQUE | `SolicitudDuplicada` (409) bloqueando si hay activa (PENDIENTE/EN_REVISION/APROBADA); RECHAZADA/ANULADA permiten reintento |
+
+**Decisiones arquitectónicas notables del día:**
+
+1. **`editarUsuario` extendido en vez de espejar `editarAlumno`.** Argumento del usuario aceptado: `Alumno IS Usuario` (STI); para CREAR sí cambia el formulario (sin `<select tipo>`), pero para EDITAR el form es idéntico — el único cambio es la autorización per-target. Catálogo se queda en 30 CUs.
+2. **Pre-check > IntegrityError+rollback** en cualquier servicio batch sobre un header común (matrículas, dispensas). Patrón confirmado tras el bug de `crear_detalle`.
+3. **Política condicional en service vs UNIQUE constraint** para dispensas duplicadas. SQL no expresa limpiamente UNIQUE-en-activas, y la lógica de "permitir reintento si la previa está RECHAZADA/ANULADA" es de negocio, no de integridad.
+4. **`JUSTIFICADO` como estado vs `AUSENTE + justificacion="..."` ortogonal.** El diseño original separaba estado de justificación; la evolución reconoce que el segundo enfoque exigía disciplina manual al Profesor sin afectar al %. `JUSTIFICADO` automatiza la consecuencia (cuenta como presente).
+
+**Estado del proyecto al cierre:** análisis 30/30 ✅, diseño 30/30 ✅, desarrollo 30/30 ✅. Frontend y backend reiniciables vía `./scripts/start.sh` sin necesidad de `rm cgu.db` (idempotencia restaurada). `documents/pruebas-manuales/` completo y verificado por el usuario block by block.
+
+**Próximo paso:** el usuario hará `git commit` + PR a mano. Esta entrada cierra la sesión.

@@ -18,20 +18,20 @@ Implementación de cada caso de uso bajo [`/src`](/src/), con un README de traza
 | [registrarTomaAsistencia()](registrarTomaAsistencia/README.md) | Profesor | ✅ |
 | [cerrarSesionClase()](cerrarSesionClase/README.md) | Profesor | ✅ |
 | [exportarHistorialAsistencias()](exportarHistorialAsistencias/README.md) | Profesor | ✅ |
-| [consultarSolicitudDispensa() (Profesor)](consultarSolicitudDispensaProfesor/README.md) | Profesor | ✅ |
-| [crearSolicitudDispensa() (Alumno)](crearSolicitudDispensa/README.md) | Alumno | ✅ |
-| [editarSolicitudDispensa() (Alumno)](editarSolicitudDispensa/README.md) | Alumno | ✅ |
-| [consultarSolicitudDispensa() (Alumno)](consultarSolicitudDispensa/README.md) | Alumno | ✅ |
+| [consultarSolicitudDispensa()](consultarSolicitudDispensaProfesor/README.md) | Profesor | ✅ |
+| [crearSolicitudDispensa()](crearSolicitudDispensa/README.md) | Alumno | ✅ |
+| [editarSolicitudDispensa()](editarSolicitudDispensa/README.md) | Alumno | ✅ |
+| [consultarSolicitudDispensa()](consultarSolicitudDispensa/README.md) | Alumno | ✅ |
 | [consultarSolicitudesDispensas()](consultarSolicitudesDispensas/README.md) | DirectorDeGrado | ✅ |
-| [editarSolicitudDispensa() (Director)](editarSolicitudDispensaDirector/README.md) | DirectorDeGrado | ✅ |
-| [consultarListaAlumnos() (Secretaria)](consultarListaAlumnosSecretaria/README.md) | Secretaria | ✅ |
+| [editarSolicitudDispensa()](editarSolicitudDispensaDirector/README.md) | DirectorDeGrado | ✅ |
+| [consultarListaAlumnos()](consultarListaAlumnosSecretaria/README.md) | Secretaria | ✅ |
 | [consultarDetalleMatricula()](consultarDetalleMatricula/README.md) | Secretaria | ✅ |
 | [importarListasAlumnos()](importarListasAlumnos/README.md) | Secretaria | ✅ |
 | [importarMatriculas()](importarMatriculas/README.md) | Secretaria | ✅ |
 | [crearAlumno()](crearAlumno/README.md) | Secretaria | ✅ |
-| [crearSolicitudDispensa() (Secretaria)](crearSolicitudDispensaSecretaria/README.md) | Secretaria | ✅ |
-| [editarSolicitudDispensa() (Secretaria)](editarSolicitudDispensaSecretaria/README.md) | Secretaria | ✅ |
-| [consultarSolicitudDispensa() (Secretaria)](consultarSolicitudDispensaSecretaria/README.md) | Secretaria | ✅ |
+| [crearSolicitudDispensa()](crearSolicitudDispensaSecretaria/README.md) | Secretaria | ✅ |
+| [editarSolicitudDispensa()](editarSolicitudDispensaSecretaria/README.md) | Secretaria | ✅ |
+| [consultarSolicitudDispensa()](consultarSolicitudDispensaSecretaria/README.md) | Secretaria | ✅ |
 | [exportarDispensas()](exportarDispensas/README.md) | Secretaria | ✅ |
 | [gestionarCatalogoGrados()](gestionarCatalogoGrados/README.md) | Secretaria | ✅ |
 | [gestionarCatalogoAsignaturas()](gestionarCatalogoAsignaturas/README.md) | Secretaria | ✅ |
