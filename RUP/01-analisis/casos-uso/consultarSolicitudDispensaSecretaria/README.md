@@ -23,12 +23,14 @@ Análisis del caso de uso `consultarSolicitudDispensa()` desde el rol Secretaria
 
 <div align=center>
 
-|![Análisis consultarSolicitudDispensa() (Secretaria)](./colaboracion.svg)|
+|![Análisis consultarSolicitudDispensa() (Secretaria)](/images/RUP/01-analisis/casos-uso/consultarSolicitudDispensaSecretaria/colaboracion.svg)|
 |-|
 |**Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC|
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/consultarSolicitudDispensaSecretaria/colaboracion.puml)
 ## por qué un análisis separado del Alumno
 
 Calcado estructural de [[consultarSolicitudDispensa]] (Alumno): 4 mensajes, 1 origen, 1 destino opcional vía `<<include>>`. La asimetría es **exclusivamente de política**:
@@ -55,7 +57,7 @@ Mismo Repository, mismo método del Controller (`cargarSolicitud`), misma signat
 
 | Clase | Responsabilidad | Derivación |
 |-|-|-|
-| **ConsultarSolicitudDispensaSecretariaView** | Ficha read-only enriquecida con datos del Alumno titular y metadatos de auditoría | Prototipos SALT [`consultarSolicitudDispensaSecretaria1.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/consultarSolicitudDispensaSecretaria1.png) y [`consultarSolicitudDispensaSecretaria2.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/consultarSolicitudDispensaSecretaria2.png) |
+| **ConsultarSolicitudDispensaSecretariaView** | Ficha read-only enriquecida con datos del Alumno titular y metadatos de auditoría | Prototipos SALT [`consultarSolicitudDispensaSecretaria1.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/consultarSolicitudDispensaSecretaria1.png) y [`consultarSolicitudDispensaSecretaria2.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/consultarSolicitudDispensaSecretaria2.png) |
 
 ### clases controller (verde #b5bd68)
 
@@ -169,8 +171,8 @@ Cuatro variantes del mismo CU, cuatro políticas, cuatro vistas. Es la entidad *
 
 ### con wireframe (prototipo SALT)
 
-- **[`consultarSolicitudDispensaSecretaria1.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/consultarSolicitudDispensaSecretaria1.png)** — vista de detalle
-- **[`consultarSolicitudDispensaSecretaria2.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/consultarSolicitudDispensaSecretaria2.png)** — variante con scroll o sección adicional
+- **[`consultarSolicitudDispensaSecretaria1.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/consultarSolicitudDispensaSecretaria1.png)** — vista de detalle
+- **[`consultarSolicitudDispensaSecretaria2.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/consultarSolicitudDispensaSecretaria2.png)** — variante con scroll o sección adicional
 
 ### con actores
 
@@ -214,14 +216,14 @@ Con este CU se cierran simultáneamente:
 7. **Refactor "Introduce Parameter Object"** aplicado donde el smell es claro (`DatosSesionClase`); pendientes candidatos (`FiltrosDispensa`).
 8. **Polimorfismo de Usuario** materializa la jerarquía de actores como jerarquía de clases — habilita los dispatchs por rol.
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/consultarSolicitudDispensaSecretaria/colaboracion.puml)
 
 ## referencias
 
-- [Detallado `consultarSolicitudDispensa()` (Secretaria)](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/consultarSolicitudDispensa.puml)
-- [Prototipo SALT `consultarSolicitudDispensaSecretaria1.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/consultarSolicitudDispensaSecretaria1.png)
-- [Prototipo SALT `consultarSolicitudDispensaSecretaria2.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/consultarSolicitudDispensaSecretaria2.png)
-- [Caso de uso de Secretaria](/RUP/00-requisitos/CasosDeUso/CasoDeUso/Secretaria/DiagramaCompletoCasoDeUso.puml)
+- [Detallado `consultarSolicitudDispensa()` (Secretaria)](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/consultarSolicitudDispensa.puml)
+- [Prototipo SALT `consultarSolicitudDispensaSecretaria1.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/consultarSolicitudDispensaSecretaria1.png)
+- [Prototipo SALT `consultarSolicitudDispensaSecretaria2.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/consultarSolicitudDispensaSecretaria2.png)
+- [Caso de uso de Secretaria](/modelosUML/RUP/00-requisitos/CasosDeUso/CasoDeUso/Secretaria/DiagramaCompletoCasoDeUso.puml)
 - [Análisis `consultarSolicitudDispensa()` (Alumno)](/RUP/01-analisis/casos-uso/consultarSolicitudDispensa/README.md)
 - [Análisis `consultarSolicitudDispensa()` (Profesor)](/RUP/01-analisis/casos-uso/consultarSolicitudDispensaProfesor/README.md)
 - [Análisis `consultarSolicitudesDispensas()` (Director)](/RUP/01-analisis/casos-uso/consultarSolicitudesDispensas/README.md)

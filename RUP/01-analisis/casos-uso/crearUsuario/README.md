@@ -21,12 +21,14 @@ Análisis del caso de uso `crearUsuario()` mediante diagrama de colaboración MV
 
 <div align=center>
 
-|![Análisis crearUsuario()](./colaboracion.svg)|
+|![Análisis crearUsuario()](/images/RUP/01-analisis/casos-uso/crearUsuario/colaboracion.svg)|
 |-|
 |**Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC|
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/crearUsuario/colaboracion.puml)
 ## clases de análisis identificadas
 
 ### clases model (naranja #F2AC4E)
@@ -40,7 +42,7 @@ Análisis del caso de uso `crearUsuario()` mediante diagrama de colaboración MV
 
 | Clase | Responsabilidad | Derivación |
 |-|-|-|
-| **CrearUsuarioView** | Formulario inicial de alta: selector de tipo + credenciales mínimas (login, contraseña) | Sin prototipo SALT en el requisitado — derivada del estado `FormularioRegistro` del [detallado](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Administrador/crearUsuario.puml) |
+| **CrearUsuarioView** | Formulario inicial de alta: selector de tipo + credenciales mínimas (login, contraseña) | Sin prototipo SALT en el requisitado — derivada del estado `FormularioRegistro` del [detallado](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Administrador/crearUsuario.puml) |
 
 ### clases controller (verde #b5bd68)
 
@@ -179,12 +181,12 @@ La asimetría es deliberada: el patrón sigue la naturaleza del caso, no una reg
 - Transaccionalidad del par `crear()` + `editarUsuario(usuarioNuevo)` (¿qué pasa si el alta se confirma pero el Admin abandona la edición?)
 - Reconciliación de `Usuario` con el modelo del dominio (compartida con [[iniciarSesion]])
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/crearUsuario/colaboracion.puml)
 
 ## referencias
 
-- [Detallado `crearUsuario()`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Administrador/crearUsuario.puml)
-- [Caso de uso del Administrador](/RUP/00-requisitos/CasosDeUso/CasoDeUso/Administrador/Administrador.puml)
-- [Actores.puml](/RUP/00-requisitos/CasosDeUso/Actores/Actores.puml)
+- [Detallado `crearUsuario()`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Administrador/crearUsuario.puml)
+- [Caso de uso del Administrador](/modelosUML/RUP/00-requisitos/CasosDeUso/CasoDeUso/Administrador/Administrador.puml)
+- [Actores.puml](/modelosUML/RUP/00-requisitos/CasosDeUso/Actores/Actores.puml)
 - [Análisis `iniciarSesion()`](/RUP/01-analisis/casos-uso/iniciarSesion/README.md)
 - [conversation-log.md](/conversation-log.md)

@@ -1,6 +1,6 @@
 # CGU > crearSesionClase > Diseño
 
-> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Profesor/crearSesionClase.puml) | [Análisis](/RUP/01-analisis/casos-uso/crearSesionClase/README.md) | **Diseño** | Desarrollo |
+> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Profesor/crearSesionClase.puml) | [Análisis](/RUP/01-analisis/casos-uso/crearSesionClase/README.md) | **Diseño** | Desarrollo |
 > |-|-|-|-|-|-|
 
 ## información del artefacto
@@ -19,13 +19,13 @@
 
 <div align=center>
 
-|![Secuencia crearSesionClase()](./secuencia.svg)|
+|![Secuencia crearSesionClase()](/images/RUP/02-diseño/casos-uso/crearSesionClase/secuencia.svg)|
 |-|
 |**Disciplina**: Diseño RUP<br>**Enfoque**: Diagrama de secuencia con tecnología concreta|
 
 </div>
 
-[Código PlantUML](secuencia.puml)
+[Código PlantUML](/modelosUML/RUP/02-diseño/casos-uso/crearSesionClase/secuencia.puml)
 
 ## participantes
 

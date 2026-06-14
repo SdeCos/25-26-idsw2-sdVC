@@ -17,13 +17,13 @@
 
 <div align=center>
 
-|![Secuencia iniciarSesion()](./secuencia.svg)|
+|![Secuencia iniciarSesion()](/images/RUP/02-diseño/casos-uso/iniciarSesion/secuencia.svg)|
 |-|
 |**Disciplina**: Diseño RUP<br>**Enfoque**: Diagrama de secuencia con tecnología concreta|
 
 </div>
 
-[Código PlantUML](secuencia.puml)
+[Código PlantUML](/modelosUML/RUP/02-diseño/casos-uso/iniciarSesion/secuencia.puml)
 
 ## participantes
 
@@ -57,5 +57,5 @@
 ## referencias
 
 - [Análisis `iniciarSesion()`](/RUP/01-analisis/casos-uso/iniciarSesion/README.md)
-- [Detallado `iniciarSesion()`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Usuario/iniciarSesion.puml)
+- [Detallado `iniciarSesion()`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Usuario/iniciarSesion.puml)
 - [conversation-log.md](/conversation-log.md)

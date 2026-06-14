@@ -31,12 +31,14 @@ Es la **tercera variante** del CU `consultarSolicitudDispensa` en el proyecto, c
 
 <div align=center>
 
-|![Análisis consultarSolicitudDispensa() Profesor](./colaboracion.svg)|
+|![Análisis consultarSolicitudDispensa() Profesor](/images/RUP/01-analisis/casos-uso/consultarSolicitudDispensaProfesor/colaboracion.svg)|
 |-|
 |**Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC|
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/consultarSolicitudDispensaProfesor/colaboracion.puml)
 ## clases de análisis identificadas
 
 ### clases model (naranja #F2AC4E)
@@ -50,7 +52,7 @@ Es la **tercera variante** del CU `consultarSolicitudDispensa` en el proyecto, c
 
 | Clase | Responsabilidad | Derivación |
 |-|-|-|
-| **ConsultarSolicitudDispensaProfesorView** | Ficha de visualización enriquecida: datos del **alumno solicitante** (nombre, grado, curso), **lista de asignaturas afectadas**, motivo, fechas (solicitud, edición, aprobación), comentarios | [Prototipos SALT `consultarSolicitudDispensaProfesor1.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/consultarSolicitudDispensaProfesor1.png) (listado pre-existente) y [`consultarSolicitudDispensaProfesor2.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/consultarSolicitudDispensaProfesor2.png) (ficha) |
+| **ConsultarSolicitudDispensaProfesorView** | Ficha de visualización enriquecida: datos del **alumno solicitante** (nombre, grado, curso), **lista de asignaturas afectadas**, motivo, fechas (solicitud, edición, aprobación), comentarios | [Prototipos SALT `consultarSolicitudDispensaProfesor1.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/consultarSolicitudDispensaProfesor1.png) (listado pre-existente) y [`consultarSolicitudDispensaProfesor2.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/consultarSolicitudDispensaProfesor2.png) (ficha) |
 
 Distinta de [[consultarSolicitudDispensa]] del Alumno: el Alumno **ya sabe** quién es él y a qué asignaturas tiene dispensa; el Profesor **necesita ese contexto** para situar la solicitud. La asimetría es de información presentada, no de operación.
 
@@ -215,14 +217,14 @@ Adoptamos la misma decisión que en el Alumno: el listado se asume como estado p
 - **Campos del prototipo no presentes en el detallado**: "Comentarios", "Fecha de Aprobación", lista de asignaturas con docente/día/hora — emergen como atributos del modelo del dominio
 - **Visibilidad de dispensas pendientes vs aprobadas**: el prototipo confirma que el Profesor ve cualquier estado; ¿debería diferenciar el comportamiento por estado? (p.ej. notificar al pasar lista que existe una dispensa pendiente)
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/consultarSolicitudDispensaProfesor/colaboracion.puml)
 
 ## referencias
 
-- [Detallado `consultarSolicitudDispensa()` (Profesor)](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Profesor/consultarSolicitudDispensa.puml)
-- [Prototipo SALT `consultarSolicitudDispensaProfesor1.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/consultarSolicitudDispensaProfesor1.png)
-- [Prototipo SALT `consultarSolicitudDispensaProfesor2.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/consultarSolicitudDispensaProfesor2.png)
-- [Caso de uso del Profesor](/RUP/00-requisitos/CasosDeUso/CasoDeUso/Profesor/Profesor.puml)
+- [Detallado `consultarSolicitudDispensa()` (Profesor)](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Profesor/consultarSolicitudDispensa.puml)
+- [Prototipo SALT `consultarSolicitudDispensaProfesor1.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/consultarSolicitudDispensaProfesor1.png)
+- [Prototipo SALT `consultarSolicitudDispensaProfesor2.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/consultarSolicitudDispensaProfesor2.png)
+- [Caso de uso del Profesor](/modelosUML/RUP/00-requisitos/CasosDeUso/CasoDeUso/Profesor/Profesor.puml)
 - [Análisis `consultarSolicitudDispensa()` (Alumno)](/RUP/01-analisis/casos-uso/consultarSolicitudDispensa/README.md)
 - [Análisis `consultarSolicitudesDispensas()` (Director)](/RUP/01-analisis/casos-uso/consultarSolicitudesDispensas/README.md)
 - [conversation-log.md](/conversation-log.md)

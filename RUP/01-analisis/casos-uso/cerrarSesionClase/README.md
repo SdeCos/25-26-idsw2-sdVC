@@ -23,12 +23,14 @@ Es el **cierre del ciclo de vida operativo** de una `SesionDeClase`: empieza en 
 
 <div align=center>
 
-|![Análisis cerrarSesionClase()](./colaboracion.svg)|
+|![Análisis cerrarSesionClase()](/images/RUP/01-analisis/casos-uso/cerrarSesionClase/colaboracion.svg)|
 |-|
 |**Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC|
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/cerrarSesionClase/colaboracion.puml)
 ## clases de análisis identificadas
 
 ### clases model (naranja #F2AC4E)
@@ -42,7 +44,7 @@ Es el **cierre del ciclo de vida operativo** de una `SesionDeClase`: empieza en 
 
 | Clase | Responsabilidad | Derivación |
 |-|-|-|
-| **CerrarSesionClaseView** | Modal de confirmación "Finalizar Sesión" con hora de finalización propuesta | [Prototipo SALT `cerrarSesionClase.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/cerrarSesionClase.png) |
+| **CerrarSesionClaseView** | Modal de confirmación "Finalizar Sesión" con hora de finalización propuesta | [Prototipo SALT `cerrarSesionClase.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/cerrarSesionClase.png) |
 
 ### clases controller (verde #b5bd68)
 
@@ -190,13 +192,13 @@ crear        → SESION_ASISTENCIA_ABIERTA (estado activo)
 - **Atomicidad**: el `actualizar()` con `horaFin` debería ser una transacción si involucra otros agregados (p.ej. estadísticas de asistencia)
 - **Reflejar `horaFin` y `cerrada` en el modelo del dominio** al promover `SesionDeClase`
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/cerrarSesionClase/colaboracion.puml)
 
 ## referencias
 
-- [Detallado `cerrarSesionClase()`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Profesor/cerrarSesionClase.puml)
-- [Prototipo SALT `cerrarSesionClase.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/cerrarSesionClase.png)
-- [Caso de uso del Profesor](/RUP/00-requisitos/CasosDeUso/CasoDeUso/Profesor/Profesor.puml)
+- [Detallado `cerrarSesionClase()`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Profesor/cerrarSesionClase.puml)
+- [Prototipo SALT `cerrarSesionClase.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/cerrarSesionClase.png)
+- [Caso de uso del Profesor](/modelosUML/RUP/00-requisitos/CasosDeUso/CasoDeUso/Profesor/Profesor.puml)
 - [Análisis `crearSesionClase()`](/RUP/01-analisis/casos-uso/crearSesionClase/README.md)
 - [Análisis `editarSesionClase()`](/RUP/01-analisis/casos-uso/editarSesionClase/README.md)
 - [Análisis `cerrarSesion()` (Usuario)](/RUP/01-analisis/casos-uso/cerrarSesion/README.md)

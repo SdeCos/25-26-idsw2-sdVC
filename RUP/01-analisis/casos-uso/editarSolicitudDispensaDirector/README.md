@@ -25,12 +25,14 @@ Aunque comparte nombre con [[editarSolicitudDispensa]] del Alumno, las dos opera
 
 <div align=center>
 
-|![Análisis editarSolicitudDispensa() Director](./colaboracion.svg)|
+|![Análisis editarSolicitudDispensa() Director](/images/RUP/01-analisis/casos-uso/editarSolicitudDispensaDirector/colaboracion.svg)|
 |-|
 |**Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC|
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/editarSolicitudDispensaDirector/colaboracion.puml)
 ## clases de análisis identificadas
 
 ### clases model (naranja #F2AC4E)
@@ -44,7 +46,7 @@ Aunque comparte nombre con [[editarSolicitudDispensa]] del Alumno, las dos opera
 
 | Clase | Responsabilidad | Derivación |
 |-|-|-|
-| **EditarSolicitudDispensaDirectorView** | Formulario de revisión: campos Estado (Aprobar/Rechazar), Observaciones | [Prototipo SALT `editarSolicitudDispensaDirector.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/DirectorDeGrado/editarSolicitudDispensaDirector.png), [`guardarSolicitudDispensaDirector.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/DirectorDeGrado/guardarSolicitudDispensaDirector.png), [`confirmacionGuardarSolicitudDispensaDirector.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/DirectorDeGrado/confirmacionGuardarSolicitudDispensaDirector.png) |
+| **EditarSolicitudDispensaDirectorView** | Formulario de revisión: campos Estado (Aprobar/Rechazar), Observaciones | [Prototipo SALT `editarSolicitudDispensaDirector.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/DirectorDeGrado/editarSolicitudDispensaDirector.png), [`guardarSolicitudDispensaDirector.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/DirectorDeGrado/guardarSolicitudDispensaDirector.png), [`confirmacionGuardarSolicitudDispensaDirector.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/DirectorDeGrado/confirmacionGuardarSolicitudDispensaDirector.png) |
 
 Distinta de la `EditarSolicitudDispensaView` del Alumno porque los campos editables son distintos: el Alumno edita `motivo`/`adjuntos`; el Director edita `estado`/`observaciones`. Aunque sería tentador unificarlas con permisos por campo, en análisis las mantenemos separadas — la decisión de unificar/dividir vistas es de diseño UI.
 
@@ -228,15 +230,15 @@ Con este CU, el ciclo de vida completo de una `SolicitudDispensa` queda analizad
 - **Reconciliación de `SolicitudDispensa` con el modelo del dominio** (más urgente con los nuevos campos)
 - **Renombrado del detallado del Director**: `EditarSolicitud.puml` → `EditarSolicitudDispensa.puml` por consistencia
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/editarSolicitudDispensaDirector/colaboracion.puml)
 
 ## referencias
 
-- [Detallado `EditarSolicitud.puml`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/DirectorDeGrado/EditarSolicitud.puml)
-- [Prototipo SALT `editarSolicitudDispensaDirector.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/DirectorDeGrado/editarSolicitudDispensaDirector.png)
-- [Prototipo SALT `guardarSolicitudDispensaDirector.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/DirectorDeGrado/guardarSolicitudDispensaDirector.png)
-- [Prototipo SALT `confirmacionGuardarSolicitudDispensaDirector.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/DirectorDeGrado/confirmacionGuardarSolicitudDispensaDirector.png)
-- [Caso de uso del DirectorDeGrado](/RUP/00-requisitos/CasosDeUso/CasoDeUso/DirectorDeGrado/DirectorDeGrado.puml)
+- [Detallado `EditarSolicitud.puml`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/DirectorDeGrado/EditarSolicitud.puml)
+- [Prototipo SALT `editarSolicitudDispensaDirector.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/DirectorDeGrado/editarSolicitudDispensaDirector.png)
+- [Prototipo SALT `guardarSolicitudDispensaDirector.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/DirectorDeGrado/guardarSolicitudDispensaDirector.png)
+- [Prototipo SALT `confirmacionGuardarSolicitudDispensaDirector.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/DirectorDeGrado/confirmacionGuardarSolicitudDispensaDirector.png)
+- [Caso de uso del DirectorDeGrado](/modelosUML/RUP/00-requisitos/CasosDeUso/CasoDeUso/DirectorDeGrado/DirectorDeGrado.puml)
 - [Análisis `consultarSolicitudesDispensas()` (Director)](/RUP/01-analisis/casos-uso/consultarSolicitudesDispensas/README.md)
 - [Análisis `editarSolicitudDispensa()` (Alumno)](/RUP/01-analisis/casos-uso/editarSolicitudDispensa/README.md)
 - [conversation-log.md](/conversation-log.md)

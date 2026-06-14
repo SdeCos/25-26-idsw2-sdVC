@@ -14,24 +14,24 @@ Representación de las entidades principales del sistema, sus atributos, relacio
 ## Diagrama de Clases
 
 <p align="center">
-  <img src="./DiagramasDeClase/ModeloCompleto.svg">
+  <img src="/images/RUP/00-requisitos/ModeloDelDominio/DiagramasDeClase/ModeloCompleto.svg">
 </p>
 
 [![](https://img.shields.io/badge/-Carpeta-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./DiagramasDeClase/)
-[![](https://img.shields.io/badge/-Ver_PUML-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./DiagramasDeClase/ModeloCompleto.puml)
-[![](https://img.shields.io/badge/-Ver_SVG-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./DiagramasDeClase/ModeloCompleto.svg)
+[![](https://img.shields.io/badge/-Ver_PUML-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](/modelosUML/RUP/00-requisitos/ModeloDelDominio/DiagramasDeClase/ModeloCompleto.puml)
+[![](https://img.shields.io/badge/-Ver_SVG-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](/images/RUP/00-requisitos/ModeloDelDominio/DiagramasDeClase/ModeloCompleto.svg)
 
 ---
 
 ## Diagrama de Objetos
 
 <p align="center">
-  <img src="./DiagramaDeObjetos/DiagramaDeObjetos.svg">
+  <img src="/images/RUP/00-requisitos/ModeloDelDominio/DiagramaDeObjetos/DiagramaDeObjetos.svg">
 </p>
 
 [![](https://img.shields.io/badge/-Carpeta-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./DiagramaDeObjetos/)
-[![](https://img.shields.io/badge/-Ver_PUML-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./DiagramaDeObjetos/DiagramaDeObjetos.puml)
-[![](https://img.shields.io/badge/-Ver_SVG-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./DiagramaDeObjetos/DiagramaDeObjetos.svg)
+[![](https://img.shields.io/badge/-Ver_PUML-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](/modelosUML/RUP/00-requisitos/ModeloDelDominio/DiagramaDeObjetos/DiagramaDeObjetos.puml)
+[![](https://img.shields.io/badge/-Ver_SVG-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](/images/RUP/00-requisitos/ModeloDelDominio/DiagramaDeObjetos/DiagramaDeObjetos.svg)
 
 ---
 
@@ -40,85 +40,47 @@ Representación de las entidades principales del sistema, sus atributos, relacio
 ### Alumno
 
 <p align="center">
-  <img src="./DiagramasDeEstado/Alumno/Alumno.svg">
+  <img src="/images/RUP/00-requisitos/ModeloDelDominio/DiagramasDeEstado/Alumno/Alumno.svg">
 </p>
 
 [![](https://img.shields.io/badge/-Carpeta-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./DiagramasDeEstado/Alumno/)
-[![](https://img.shields.io/badge/-Ver_PUML-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./DiagramasDeEstado/Alumno/Alumno.puml)
-[![](https://img.shields.io/badge/-Ver_SVG-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./DiagramasDeEstado/Alumno/Alumno.svg)
+[![](https://img.shields.io/badge/-Ver_PUML-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](/modelosUML/RUP/00-requisitos/ModeloDelDominio/DiagramasDeEstado/Alumno/Alumno.puml)
+[![](https://img.shields.io/badge/-Ver_SVG-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](/images/RUP/00-requisitos/ModeloDelDominio/DiagramasDeEstado/Alumno/Alumno.svg)
 
 ---
 
 ### Asistencia
 
 <p align="center">
-  <img src="./DiagramasDeEstado/Asistencia/Asistencia.svg">
+  <img src="/images/RUP/00-requisitos/ModeloDelDominio/DiagramasDeEstado/Asistencia/Asistencia.svg">
 </p>
 
 [![](https://img.shields.io/badge/-Carpeta-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./DiagramasDeEstado/Asistencia/)
-[![](https://img.shields.io/badge/-Ver_PUML-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./DiagramasDeEstado/Asistencia/Asistencia.puml)
-[![](https://img.shields.io/badge/-Ver_SVG-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./DiagramasDeEstado/Asistencia/Asistencia.svg)
-
----
-
-### Director de Grado
-
-<p align="center">
-  <img src="./DiagramasDeEstado/DirectorGrado/DirectorDeGrado.svg">
-</p>
-
-[![](https://img.shields.io/badge/-Carpeta-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./DiagramasDeEstado/DirectorGrado/)
-[![](https://img.shields.io/badge/-Ver_PUML-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./DiagramasDeEstado/DirectorGrado/DirectorDeGrado.puml)
-[![](https://img.shields.io/badge/-Ver_SVG-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./DiagramasDeEstado/DirectorGrado/DirectorDeGrado.svg)
+[![](https://img.shields.io/badge/-Ver_PUML-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](/modelosUML/RUP/00-requisitos/ModeloDelDominio/DiagramasDeEstado/Asistencia/Asistencia.puml)
+[![](https://img.shields.io/badge/-Ver_SVG-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](/images/RUP/00-requisitos/ModeloDelDominio/DiagramasDeEstado/Asistencia/Asistencia.svg)
 
 ---
 
 ### Dispensas
 
 <p align="center">
-  <img src="./DiagramasDeEstado/Dispensas/Dispensas.svg">
+  <img src="/images/RUP/00-requisitos/ModeloDelDominio/DiagramasDeEstado/Dispensas/Dispensas.svg">
 </p>
 
 [![](https://img.shields.io/badge/-Carpeta-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./DiagramasDeEstado/Dispensas/)
-[![](https://img.shields.io/badge/-Ver_PUML-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./DiagramasDeEstado/Dispensas/Dispensas.puml)
-[![](https://img.shields.io/badge/-Ver_SVG-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./DiagramasDeEstado/Dispensas/Dispensas.svg)
-
----
-
-### Lista de Alumnos
-
-<p align="center">
-  <img src="./DiagramasDeEstado/ListaAlumno/ListaAlumno.svg">
-</p>
-
-[![](https://img.shields.io/badge/-Carpeta-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./DiagramasDeEstado/ListaAlumno/)
-[![](https://img.shields.io/badge/-Ver_PUML-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./DiagramasDeEstado/ListaAlumno/ListaAlumno.puml)
-[![](https://img.shields.io/badge/-Ver_SVG-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./DiagramasDeEstado/ListaAlumno/ListaAlumno.svg)
+[![](https://img.shields.io/badge/-Ver_PUML-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](/modelosUML/RUP/00-requisitos/ModeloDelDominio/DiagramasDeEstado/Dispensas/Dispensas.puml)
+[![](https://img.shields.io/badge/-Ver_SVG-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](/images/RUP/00-requisitos/ModeloDelDominio/DiagramasDeEstado/Dispensas/Dispensas.svg)
 
 ---
 
 ### Matrícula
 
 <p align="center">
-  <img src="./DiagramasDeEstado/Matricula/Matricula.svg">
+  <img src="/images/RUP/00-requisitos/ModeloDelDominio/DiagramasDeEstado/Matricula/Matricula.svg">
 </p>
 
 [![](https://img.shields.io/badge/-Carpeta-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./DiagramasDeEstado/Matricula/)
-[![](https://img.shields.io/badge/-Ver_PUML-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./DiagramasDeEstado/Matricula/Matricula.puml)
-[![](https://img.shields.io/badge/-Ver_SVG-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./DiagramasDeEstado/Matricula/Matricula.svg)
+[![](https://img.shields.io/badge/-Ver_PUML-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](/modelosUML/RUP/00-requisitos/ModeloDelDominio/DiagramasDeEstado/Matricula/Matricula.puml)
+[![](https://img.shields.io/badge/-Ver_SVG-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](/images/RUP/00-requisitos/ModeloDelDominio/DiagramasDeEstado/Matricula/Matricula.svg)
 
 ---
-
-### Sesión de Clase
-
-<p align="center">
-  <img src="./DiagramasDeEstado/SesionDeClase/DdE.svg">
-</p>
-
-[![](https://img.shields.io/badge/-Carpeta-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./DiagramasDeEstado/SesionDeClase/)
-[![](https://img.shields.io/badge/-Ver_PUML-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./DiagramasDeEstado/SesionDeClase/DdE.puml)
-[![](https://img.shields.io/badge/-Ver_SVG-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./DiagramasDeEstado/SesionDeClase/DdE.svg)
-
----
-
-

@@ -23,12 +23,14 @@ Es el **debut formal de la entidad `Asistencia`** en el proyecto, que vive en el
 
 <div align=center>
 
-|![Análisis registrarTomaAsistencia()](./colaboracion.svg)|
+|![Análisis registrarTomaAsistencia()](/images/RUP/01-analisis/casos-uso/registrarTomaAsistencia/colaboracion.svg)|
 |-|
 |**Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC|
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/registrarTomaAsistencia/colaboracion.puml)
 ## clases de análisis identificadas
 
 ### clases model (naranja #F2AC4E)
@@ -213,12 +215,12 @@ Tras los `guardar()` repetidos, el Profesor permanece en `:Sesion Asistencia Abi
 - **Concurrencia**: dos pestañas del mismo Profesor marcando asistencias en la misma sesión
 - **Auditoría**: ¿quién marcó? ¿cuándo? — campos derivados a añadir a `Asistencia`
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/registrarTomaAsistencia/colaboracion.puml)
 
 ## referencias
 
-- [Detallado `registrarTomaAsistencia()`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Profesor/registrarTomaAsistencia.puml)
-- [Caso de uso del Profesor](/RUP/00-requisitos/CasosDeUso/CasoDeUso/Profesor/Profesor.puml)
+- [Detallado `registrarTomaAsistencia()`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Profesor/registrarTomaAsistencia.puml)
+- [Caso de uso del Profesor](/modelosUML/RUP/00-requisitos/CasosDeUso/CasoDeUso/Profesor/Profesor.puml)
 - [Análisis `crearSesionClase()`](/RUP/01-analisis/casos-uso/crearSesionClase/README.md)
 - [Análisis `editarSesionClase()`](/RUP/01-analisis/casos-uso/editarSesionClase/README.md)
 - [Análisis `consultarListaAlumnos()`](/RUP/01-analisis/casos-uso/consultarListaAlumnos/README.md)

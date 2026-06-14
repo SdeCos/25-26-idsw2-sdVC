@@ -23,12 +23,14 @@ Es el **gemelo estructural** de [[importarMatriculas]] (mismo patrón "Controlle
 
 <div align=center>
 
-|![Análisis importarListasAlumnos()](./colaboracion.svg)|
+|![Análisis importarListasAlumnos()](/images/RUP/01-analisis/casos-uso/importarListasAlumnos/colaboracion.svg)|
 |-|
 |**Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC|
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/importarListasAlumnos/colaboracion.puml)
 ## discrepancia crítica en el requisitado — detallado equivocado
 
 **El archivo `importarListasAlumnos.puml` del SDR tiene contenido equivocado**: su título es `"Exportar listado de alumnos"`, su transición de entrada es `exportarListaAlumnos()`, sus sub-estados son `SolicitudFiltros / ValidarFiltros / SeleccionFormato / Descarga` (estructura de **exportación**, no de importación).
@@ -209,12 +211,12 @@ Idénticos a [[importarMatriculas]] — el patrón se reutiliza:
 - **Política "alumno duplicado"**: ¿qué pasa si el archivo trae un alumno que ya existe? (sobreescribir, ignorar, error, actualizar campos cambiados)
 - **Resto de deudas heredadas** de [[importarMatriculas]] (formatos, tamaño máximo, atomicidad, auditoría)
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/importarListasAlumnos/colaboracion.puml)
 
 ## referencias
 
-- [Detallado `importarListasAlumnos.puml` — contenido equivocado, ver discrepancia](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/importarListasAlumnos.puml)
-- [Caso de uso de Secretaria](/RUP/00-requisitos/CasosDeUso/CasoDeUso/Secretaria/DiagramaCompletoCasoDeUso.puml)
+- [Detallado `importarListasAlumnos.puml` — contenido equivocado, ver discrepancia](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/importarListasAlumnos.puml)
+- [Caso de uso de Secretaria](/modelosUML/RUP/00-requisitos/CasosDeUso/CasoDeUso/Secretaria/DiagramaCompletoCasoDeUso.puml)
 - [Análisis `importarMatriculas()` — patrón gemelo (fuente de la analogía)](/RUP/01-analisis/casos-uso/importarMatriculas/README.md)
 - [Análisis `consultarListaAlumnos()` (Profesor) — reutiliza `AlumnoController`/`AlumnoRepository`](/RUP/01-analisis/casos-uso/consultarListaAlumnos/README.md)
 - [Análisis `exportarHistorialAsistencias()` (Profesor) — patrón "Controller+Servicio"](/RUP/01-analisis/casos-uso/exportarHistorialAsistencias/README.md)

@@ -13,9 +13,9 @@
 
 Este diagrama define los posibles estados por los que puede transitar un Alumno en el sistema, así como las transiciones permitidas entre ellos.
 
-![Diagrama de Estado - Alumno](./Alumno.svg)
+![Diagrama de Estado - Alumno](/images/RUP/00-requisitos/ModeloDelDominio/DiagramasDeEstado/Alumno/Alumno.svg)
 
-📁 [Carpeta](.) | 📄 [SVG](./Alumno.svg) | 📋 [PUML](./Alumno.puml)
+📁 [Carpeta](.) | 📄 [SVG](/images/RUP/00-requisitos/ModeloDelDominio/DiagramasDeEstado/Alumno/Alumno.svg) | 📋 [PUML](/modelosUML/RUP/00-requisitos/ModeloDelDominio/DiagramasDeEstado/Alumno/Alumno.puml)
 
 ---
 

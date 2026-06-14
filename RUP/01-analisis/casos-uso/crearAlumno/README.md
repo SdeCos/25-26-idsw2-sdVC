@@ -23,12 +23,14 @@ Este CU es la contraparte individual de [[importarListasAlumnos]] (carga masiva)
 
 <div align=center>
 
-|![Análisis crearAlumno()](./colaboracion.svg)|
+|![Análisis crearAlumno()](/images/RUP/01-analisis/casos-uso/crearAlumno/colaboracion.svg)|
 |-|
 |**Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC|
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/crearAlumno/colaboracion.puml)
 ## clases de análisis identificadas
 
 ### clases model (naranja #F2AC4E)
@@ -197,7 +199,7 @@ El reparto subyacente del sistema queda nítido tras este CU: el **Administrador
 - Política de contraseñas y validación de email/teléfono (compartidas con [[crearUsuario]]).
 - Transaccionalidad: única operación atómica al persistir.
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/crearAlumno/colaboracion.puml)
 
 ## referencias
 

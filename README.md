@@ -19,16 +19,16 @@ El sistema surge del proyecto de requisitado desarrollado en [IDSW1](https://git
 
 ```
 25-26-idsw2-sdVC/
-├── RUP/
+├── RUP/                      # Documentación por disciplina (READMEs y trazabilidad)
 │   ├── 00-requisitos/        # Artefactos del requisitado (IDSW1-SDR)
 │   ├── 01-analisis/          # Diagramas de colaboración por caso de uso
 │   ├── 02-diseño/            # Diagramas de secuencia por caso de uso
 │   └── 03-desarrollo/        # Trazabilidad código ↔ diseño por caso de uso
+├── modelosUML/RUP/...        # Fuentes .puml — espeja la jerarquía de RUP/
+├── images/RUP/...            # SVGs y PNGs — espeja la jerarquía de RUP/
 ├── src/
 │   ├── backend/              # FastAPI + SQLAlchemy + SQLite
 │   └── frontend/             # React + TypeScript + Vite
-├── modelosUML/               # Fuentes .puml de los diagramas
-├── images/                   # SVGs generados y recursos visuales
 ├── documents/                # Documentación adicional
 ├── QUE_HACE.md               # Descripción del sistema (no se modifica)
 ├── conversation-log.md       # Registro de conversaciones con la IA

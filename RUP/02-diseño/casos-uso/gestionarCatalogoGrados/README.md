@@ -17,13 +17,13 @@
 
 <div align=center>
 
-|![Secuencia gestionarCatalogoGrados()](./secuencia.svg)|
+|![Secuencia gestionarCatalogoGrados()](/images/RUP/02-diseño/casos-uso/gestionarCatalogoGrados/secuencia.svg)|
 |-|
 |**Disciplina**: Diseño RUP<br>**Enfoque**: Diagrama de secuencia con tecnología concreta — flujo de alta (operación más representativa del CU)|
 
 </div>
 
-[Código PlantUML](secuencia.puml)
+[Código PlantUML](/modelosUML/RUP/02-diseño/casos-uso/gestionarCatalogoGrados/secuencia.puml)
 
 ## participantes
 
@@ -64,5 +64,5 @@ El CU del análisis tiene cuatro operaciones (listar, crear, actualizar, elimina
 
 - [Análisis `gestionarCatalogoGrados()`](/RUP/01-analisis/casos-uso/gestionarCatalogoGrados/README.md)
 - [Diseño `crearUsuario()`](/RUP/02-diseño/casos-uso/crearUsuario/README.md) — patrón de validación de unicidad
-- [Modelo del dominio (SDR)](/RUP/00-requisitos/ModeloDelDominio/DiagramasDeClase/ModeloCompleto.puml)
+- [Modelo del dominio (SDR)](/modelosUML/RUP/00-requisitos/ModeloDelDominio/DiagramasDeClase/ModeloCompleto.puml)
 - [conversation-log.md](/conversation-log.md)

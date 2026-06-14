@@ -60,6 +60,6 @@ Validación a nivel navegador realizada en su día (alta/edición/borrado de gra
 
 - [Análisis](/RUP/01-analisis/casos-uso/gestionarCatalogoGrados/README.md)
 - [Diseño](/RUP/02-diseño/casos-uso/gestionarCatalogoGrados/README.md)
-- [Modelo del dominio (SDR)](/RUP/00-requisitos/ModeloDelDominio/DiagramasDeClase/ModeloCompleto.puml)
+- [Modelo del dominio (SDR)](/modelosUML/RUP/00-requisitos/ModeloDelDominio/DiagramasDeClase/ModeloCompleto.puml)
 - [Desarrollo `crearUsuario()`](/RUP/03-desarrollo/casos-uso/crearUsuario/README.md) — precedente del patrón router/service/repository con `UNIQUE` + 409
 - [conversation-log.md](/conversation-log.md)

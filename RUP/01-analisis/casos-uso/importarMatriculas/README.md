@@ -23,12 +23,14 @@ Es estructuralmente paralelo a [[exportarHistorialAsistencias]] del Profesor per
 
 <div align=center>
 
-|![Análisis importarMatriculas()](./colaboracion.svg)|
+|![Análisis importarMatriculas()](/images/RUP/01-analisis/casos-uso/importarMatriculas/colaboracion.svg)|
 |-|
 |**Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC|
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/importarMatriculas/colaboracion.puml)
 ## discrepancias en el requisitado
 
 | # | Tipo | Detalle | Decisión |
@@ -51,7 +53,7 @@ Es estructuralmente paralelo a [[exportarHistorialAsistencias]] del Profesor per
 
 | Clase | Responsabilidad | Derivación |
 |-|-|-|
-| **ImportarMatriculasView** | Modal con selector de archivos múltiples + drag-and-drop, lista de archivos cargados (con opción de eliminar), botones Cancelar/Importar; presentación del informe tras procesamiento | Prototipos SALT [`importarMatriculas1.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/importarMatriculas1.png) (modal inicial), [`importarMatriculas2.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/importarMatriculas2.png) (varios archivos seleccionados), [`importarMatriculas3.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/importarMatriculas3.png) (notificación de error) |
+| **ImportarMatriculasView** | Modal con selector de archivos múltiples + drag-and-drop, lista de archivos cargados (con opción de eliminar), botones Cancelar/Importar; presentación del informe tras procesamiento | Prototipos SALT [`importarMatriculas1.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/importarMatriculas1.png) (modal inicial), [`importarMatriculas2.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/importarMatriculas2.png) (varios archivos seleccionados), [`importarMatriculas3.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/importarMatriculas3.png) (notificación de error) |
 
 ### clases controller / servicios (verde #b5bd68)
 
@@ -250,15 +252,15 @@ Adicionalmente, podría poblarse `responsable = Sesion.usuario` (la Secretaria q
 - **Auditoría**: campo `responsable` (Secretaria que importó) en `Matricula`
 - **Patrón reutilizable**: estructura idéntica para [[importarListasAlumnos]] — `ValidadorArchivoX` como **plantilla** para futuras importaciones
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/importarMatriculas/colaboracion.puml)
 
 ## referencias
 
-- [Detallado `importarMatricula.puml` (sic, plural en contenido)](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/importarMatricula.puml)
-- [Prototipo SALT `importarMatriculas1.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/importarMatriculas1.png)
-- [Prototipo SALT `importarMatriculas2.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/importarMatriculas2.png)
-- [Prototipo SALT `importarMatriculas3.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/importarMatriculas3.png)
-- [Caso de uso de Secretaria](/RUP/00-requisitos/CasosDeUso/CasoDeUso/Secretaria/DiagramaCompletoCasoDeUso.puml)
+- [Detallado `importarMatricula.puml` (sic, plural en contenido)](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/importarMatricula.puml)
+- [Prototipo SALT `importarMatriculas1.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/importarMatriculas1.png)
+- [Prototipo SALT `importarMatriculas2.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/importarMatriculas2.png)
+- [Prototipo SALT `importarMatriculas3.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/importarMatriculas3.png)
+- [Caso de uso de Secretaria](/modelosUML/RUP/00-requisitos/CasosDeUso/CasoDeUso/Secretaria/DiagramaCompletoCasoDeUso.puml)
 - [Análisis `exportarHistorialAsistencias()` (Profesor) — patrón paralelo](/RUP/01-analisis/casos-uso/exportarHistorialAsistencias/README.md)
 - [Análisis `importarListasAlumnos()` — patrón gemelo](/RUP/01-analisis/casos-uso/importarListasAlumnos/README.md)
 - [conversation-log.md](/conversation-log.md)

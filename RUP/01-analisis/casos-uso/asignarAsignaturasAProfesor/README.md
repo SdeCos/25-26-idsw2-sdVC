@@ -25,12 +25,14 @@ Complementa a [[gestionarCatalogoAsignaturas]] (que opera sobre la entidad `Asig
 
 <div align=center>
 
-|![Análisis asignarAsignaturasAProfesor()](./colaboracion.svg)|
+|![Análisis asignarAsignaturasAProfesor()](/images/RUP/01-analisis/casos-uso/asignarAsignaturasAProfesor/colaboracion.svg)|
 |-|
 |**Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC|
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/asignarAsignaturasAProfesor/colaboracion.puml)
 ## clases de análisis identificadas
 
 ### clases model (naranja #F2AC4E)
@@ -146,11 +148,11 @@ Cada `AsignaturaImpartida` lleva `responsable_id` apuntando a la Secretaria que 
 - Validar en service que el `usuarioId` corresponde a tipo Profesor antes de delegar (defensa contra invocación cruzada).
 - En frontend, dos llamadas de carga (catálogo + impartidas) pueden hacerse en paralelo. Posible composición a un único `GET /usuarios/{profesor_id}/asignaciones-vista` si la simplificación del cliente compensa el endpoint compuesto — alternativa a evaluar en diseño.
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/asignarAsignaturasAProfesor/colaboracion.puml)
 
 ## referencias
 
-- [Modelo del dominio (SDR)](/RUP/00-requisitos/ModeloDelDominio/DiagramasDeClase/ModeloCompleto.puml)
+- [Modelo del dominio (SDR)](/modelosUML/RUP/00-requisitos/ModeloDelDominio/DiagramasDeClase/ModeloCompleto.puml)
 - [Análisis `gestionarCatalogoAsignaturas()`](/RUP/01-analisis/casos-uso/gestionarCatalogoAsignaturas/README.md) — CU complementario sobre la entidad
 - [Análisis `crearUsuario()`](/RUP/01-analisis/casos-uso/crearUsuario/README.md) — `UsuarioController` reutilizado
 - [Análisis `consultarListaAlumnos()`](/RUP/01-analisis/casos-uso/consultarListaAlumnos/README.md) — precedente de la asimetría Profesor-sujeto / Asignatura-objeto

@@ -17,13 +17,13 @@
 
 <div align=center>
 
-|![Secuencia gestionarCatalogoAsignaturas()](./secuencia.svg)|
+|![Secuencia gestionarCatalogoAsignaturas()](/images/RUP/02-diseño/casos-uso/gestionarCatalogoAsignaturas/secuencia.svg)|
 |-|
 |**Disciplina**: Diseño RUP<br>**Enfoque**: Diagrama de secuencia con tecnología concreta — flujo de alta. Se muestran solo las dos ramas distintivas del CU (creación nueva con cardinalidad N:M y validación iterativa de `grado_ids`). El choice point "código en uso" (`UNIQUE`+409) sigue el patrón ya documentado en [[gestionarCatalogoGrados]] / [[crearUsuario]].|
 
 </div>
 
-[Código PlantUML](secuencia.puml)
+[Código PlantUML](/modelosUML/RUP/02-diseño/casos-uso/gestionarCatalogoAsignaturas/secuencia.puml)
 
 ## participantes
 
@@ -83,5 +83,5 @@ El CU del análisis tiene cuatro operaciones (listar, crear, actualizar, elimina
 - [Análisis `gestionarCatalogoAsignaturas()`](/RUP/01-analisis/casos-uso/gestionarCatalogoAsignaturas/README.md)
 - [Diseño `gestionarCatalogoGrados()`](/RUP/02-diseño/casos-uso/gestionarCatalogoGrados/README.md) — patrón espejado
 - [Diseño `crearUsuario()`](/RUP/02-diseño/casos-uso/crearUsuario/README.md) — patrón `UNIQUE` + 409 + service fino
-- [Modelo del dominio (SDR)](/RUP/00-requisitos/ModeloDelDominio/DiagramasDeClase/ModeloCompleto.puml)
+- [Modelo del dominio (SDR)](/modelosUML/RUP/00-requisitos/ModeloDelDominio/DiagramasDeClase/ModeloCompleto.puml)
 - [conversation-log.md](/conversation-log.md)

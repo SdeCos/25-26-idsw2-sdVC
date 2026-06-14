@@ -1,6 +1,6 @@
 # CGU > editarSesionClase > Diseño
 
-> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Profesor/editarSesionClase.puml) | [Análisis](/RUP/01-analisis/casos-uso/editarSesionClase/README.md) | **Diseño** | Desarrollo |
+> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Profesor/editarSesionClase.puml) | [Análisis](/RUP/01-analisis/casos-uso/editarSesionClase/README.md) | **Diseño** | Desarrollo |
 > |-|-|-|-|-|-|
 
 ## información del artefacto
@@ -17,13 +17,13 @@
 
 <div align=center>
 
-|![Secuencia editarSesionClase()](./secuencia.svg)|
+|![Secuencia editarSesionClase()](/images/RUP/02-diseño/casos-uso/editarSesionClase/secuencia.svg)|
 |-|
 |**Disciplina**: Diseño RUP<br>**Enfoque**: Diagrama de secuencia con tecnología concreta|
 
 </div>
 
-[Código PlantUML](secuencia.puml)
+[Código PlantUML](/modelosUML/RUP/02-diseño/casos-uso/editarSesionClase/secuencia.puml)
 
 El diagrama muestra solo la fase de guardado. La carga inicial de la sesión es idéntica a la del consultar (no hay CU separado por ahora; el `GET /sesiones-clase/{id}` lo materializaremos junto al CU de visualización activa). El editar reutiliza la `SesionDeClase` ya cargada en `SesionClaseActivaPage` — el patrón "no duplicar fases" aplicado en [editarUsuario](/RUP/02-diseño/casos-uso/editarUsuario/README.md) y [editarSolicitudDispensaDirector](/RUP/02-diseño/casos-uso/editarSolicitudDispensaDirector/README.md).
 

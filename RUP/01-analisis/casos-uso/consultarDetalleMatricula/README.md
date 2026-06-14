@@ -23,12 +23,14 @@ Es el CU read-only del bloque "Matrículas" de la Secretaria, paralelo a [[consu
 
 <div align=center>
 
-|![Análisis consultarDetalleMatricula()](./colaboracion.svg)|
+|![Análisis consultarDetalleMatricula()](/images/RUP/01-analisis/casos-uso/consultarDetalleMatricula/colaboracion.svg)|
 |-|
 |**Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC|
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/consultarDetalleMatricula/colaboracion.puml)
 ## discrepancia en el requisitado — nombres de transición
 
 | Fuente | Nombre |
@@ -56,7 +58,7 @@ Análisis adopta **`consultarDetalleMatricula()`** como nombre canónico (matche
 
 | Clase | Responsabilidad | Derivación |
 |-|-|-|
-| **ConsultarDetalleMatriculaView** | "Ficha Matrícula": datos del alumno (Nombre, Nº Identidad), contexto académico (Curso Académico, Facultad, Plan de Estudios) y tabla de asignaturas (Código, Asignatura, ECTS, Curso, Carácter, Nº Matrícula) | [Prototipo SALT `consultarDetalleMatricula.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/consultarDetalleMatricula.png) |
+| **ConsultarDetalleMatriculaView** | "Ficha Matrícula": datos del alumno (Nombre, Nº Identidad), contexto académico (Curso Académico, Facultad, Plan de Estudios) y tabla de asignaturas (Código, Asignatura, ECTS, Curso, Carácter, Nº Matrícula) | [Prototipo SALT `consultarDetalleMatricula.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/consultarDetalleMatricula.png) |
 
 ### clases controller (verde #b5bd68)
 
@@ -238,13 +240,13 @@ Igual que los otros consultar de ficha del proyecto. La acción posterior (cerra
 - **Definir enum del `caracter`**: OB / OP / FB (Obligatoria / Optativa / Formación Básica) — confirmar con cliente
 - **Reconciliar `Asignatura` ↔ `SesionDeClase.asignatura`** del bloque Profesor (probablemente la misma entidad)
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/consultarDetalleMatricula/colaboracion.puml)
 
 ## referencias
 
-- [Detallado `consultarDetalleMatricula()`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/consultarDetalleMatricula.puml)
-- [Prototipo SALT `consultarDetalleMatricula.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/consultarDetalleMatricula.png)
-- [Caso de uso de Secretaria](/RUP/00-requisitos/CasosDeUso/CasoDeUso/Secretaria/DiagramaCompletoCasoDeUso.puml)
+- [Detallado `consultarDetalleMatricula()`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/consultarDetalleMatricula.puml)
+- [Prototipo SALT `consultarDetalleMatricula.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/consultarDetalleMatricula.png)
+- [Caso de uso de Secretaria](/modelosUML/RUP/00-requisitos/CasosDeUso/CasoDeUso/Secretaria/DiagramaCompletoCasoDeUso.puml)
 - [Análisis `importarMatriculas()` — debut de la entidad `Matricula`](/RUP/01-analisis/casos-uso/importarMatriculas/README.md)
 - [Análisis `consultarDetalleAlumno()` (Profesor) — paralelo conceptual](/RUP/01-analisis/casos-uso/consultarDetalleAlumno/README.md)
 - [conversation-log.md](/conversation-log.md)

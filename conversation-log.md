@@ -2857,3 +2857,49 @@ Empezó como "últimos retoques antes de la entrega" y derivó en una jornada la
 **Estado del proyecto al cierre:** análisis 30/30 ✅, diseño 30/30 ✅, desarrollo 30/30 ✅. Frontend y backend reiniciables vía `./scripts/start.sh` sin necesidad de `rm cgu.db` (idempotencia restaurada). `documents/pruebas-manuales/` completo y verificado por el usuario block by block.
 
 **Próximo paso:** el usuario hará `git commit` + PR a mano. Esta entrada cierra la sesión.
+
+## [12:35] Reestructura: .puml a /modelosUML/RUP/ y .svg/.png a /images/RUP/ (alineamiento con instrucciones del profesor)
+
+**Prompt:** el usuario detecta que la estructura no cumple lo que pedía el profesor: artefacto #3 manda "Fuentes `.puml` en `/modelosUML`" y "SVGs en `/images`", pero todo vivía dentro de `RUP/` siguiendo la convención de auto-contención de SigHor. Pide reorganizar y, además, añadir en cada README el enlace al `.puml` debajo de la imagen.
+
+**Resultado:**
+
+- **Movidos 260 ficheros** preservando jerarquía interna: 105 `.puml` → `/modelosUML/RUP/...`, 155 `.svg`+`.png` → `/images/RUP/...`. Hecho con `git mv` (histórico preservado).
+- **77 READMEs actualizados** vía 3 scripts Python idempotentes en `scripts/`:
+  - `migrar_referencias.py` — convierte `./foo.svg`, `src="./foo.png"` y bare `(secuencia.puml)` a rutas absolutas `/images/RUP/...` y `/modelosUML/RUP/...`. Case-insensitive (cubre README.md y README.MD).
+  - `migrar_absolutas.py` — convierte rutas viejas `/RUP/...svg|puml|png` (referencias cross-CU como el badge "Ver_Caso_de_Uso") al mismo formato.
+  - `insertar_link_puml.py` — inserta `[Código PlantUML](...)` justo bajo el `</div>` del diagrama en cada una de las 30 READMEs de análisis (02-diseño ya lo tenía).
+- **Limpieza:** 20+ carpetas vacías eliminadas de `RUP/`; READMEs placeholder de `/modelosUML/` y `/images/` reescritos para explicar el espejado de la jerarquía RUP; árbol del README raíz actualizado.
+
+**Verificación final:** scan automático encontró 27 referencias rotas, todas pre-existentes (typos como `EditarSolicituds.puml`, ficheros que nunca existieron como `Alumno/DdCdU.svg`, paths a `zOtrosSinAsignar/` que el README llamaba `./Profesor/`). No regresiones por la migración: los enlaces que funcionaban siguen funcionando, los que no, ya no funcionaban antes.
+
+**Decisión:** opción "preservar prefijo RUP" (recomendada por mí, validada por el usuario) frente a alternativa sin prefijo o duplicación. Ventaja: trazabilidad README ↔ fuente directa (`/images/RUP/01-analisis/casos-uso/<CU>/colaboracion.svg` espeja la ruta original). Rutas absolutas desde raíz (`/images/...`) en vez de relativas para coherencia con el patrón ya presente en el repo y robustez ante futuros movimientos de READMEs.
+
+## [12:39] Arreglo de 27 referencias rotas pre-existentes (típos + diagramas fantasma)
+
+**Prompt:** "arregla las 27 referencias rotas".
+
+**Resultado:** las 27 refs eran de 4 tipos, todas pre-existentes al movimiento:
+
+1. **Typo `DdCdU.svg`** (3 refs en `DetalladoCasosDeUso/README.md`) → `Alumno.svg` (nombre real del fichero del actor Alumno).
+2. **Typo `EditarSolicituds.puml`** (1 ref) → `EditarSolicitud.puml` (sin la "s" final).
+3. **Typo `Secretaria/Secretaria.svg`** (11 refs en `Secretaria/README.md`) → `Secretaria/CasoDeUsosCompleto.svg` (el fichero del actor Secretaria se llama así, no como los demás actores).
+4. **Ref a `verEstadoDispensa.puml`** (1) → `consultarSolicitudDispensa.puml` (la sección era "Consultar Estado de Dispensa" y el SVG ya apuntaba al `consultar*`; el PUML debía cuadrar).
+5. **Ref a `Profesor/guardarListasAlumnos.png`** (1) → `zOtrosSinAsignar/Profesor/guardarListasAlumnos.png` (el PNG vive en la subcarpeta de "otros sin asignar", el README lo buscaba sin el prefijo).
+6. **3 secciones del Modelo del Dominio referenciando diagramas de estado que nunca se crearon** (Director de Grado, Lista de Alumnos, Sesión de Clase — 9 refs). Decisión: **eliminar las 3 secciones** del `ModeloDelDominio/README.MD`. Los diagramas de estado realmente entregados son los 4 que sí existen (Alumno, Asistencia, Dispensas, Matrícula); las otras 3 entradas eran placeholders nunca rellenados.
+
+**Verificación:** scan automático tras los cambios → `Total refs rotas: 0`.
+
+**Decisión:** las eliminadas son trabajo nunca hecho del SDR, no del CGU. Mantenerlas como "TODO" en un README de fase Construcción no aporta — el alcance del proyecto está fijado en `QUE_HACE.md` y los CUs entregados. Si en el futuro se añaden esos diagramas, las secciones se recuperan trivialmente del git history.
+
+## [12:45] Cierre de sesión
+
+**Estado final tras la reestructura:**
+
+- 260 ficheros movidos: 105 `.puml` → `/modelosUML/RUP/...`, 155 `.svg`+`.png` → `/images/RUP/...` (todos con `git mv`, historial preservado).
+- 77 READMEs reescritos: rutas absolutas a `/modelosUML/...` y `/images/...`, enlace al `.puml` debajo de cada diagrama en los 30 CUs de análisis.
+- 27 referencias rotas pre-existentes arregladas (typos `DdCdU`, `EditarSolicituds`, `Secretaria/Secretaria.svg`, etc.) + 3 secciones del Modelo del Dominio eliminadas (diagramas de estado del SDR que nunca se crearon).
+- 3 scripts idempotentes en `scripts/` por si hay que volver a correr la migración.
+- Verificación final: `0` referencias rotas.
+
+**Pendiente:** commit a mano por el usuario. La rama queda lista para entregar.

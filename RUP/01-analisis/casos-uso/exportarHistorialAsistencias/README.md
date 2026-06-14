@@ -23,18 +23,20 @@ Es el **cierre del bloque Profesor** y completa la cadena natural: pasar lista (
 
 <div align=center>
 
-|![Análisis exportarHistorialAsistencias()](./colaboracion.svg)|
+|![Análisis exportarHistorialAsistencias()](/images/RUP/01-analisis/casos-uso/exportarHistorialAsistencias/colaboracion.svg)|
 |-|
 |**Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC|
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/exportarHistorialAsistencias/colaboracion.puml)
 ## discrepancia en el requisitado — formatos de exportación
 
 | Fuente | Formatos enumerados |
 |-|-|
-| [`exportarHistorialAsistencias.puml`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Profesor/exportarHistorialAsistencias.puml) | **Excel, PDF** |
-| [Prototipo SALT `exportarHistorialAsistencias.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/exportarHistorialAsistencias.png) | **CSV** (único valor visible en el dropdown) |
+| [`exportarHistorialAsistencias.puml`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Profesor/exportarHistorialAsistencias.puml) | **Excel, PDF** |
+| [Prototipo SALT `exportarHistorialAsistencias.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/exportarHistorialAsistencias.png) | **CSV** (único valor visible en el dropdown) |
 
 Análisis adopta **el conjunto unión** como hipótesis: `{Excel, PDF, CSV}`. El `formato` se modela como string/enum opaco a nivel análisis — qué formatos concretos están disponibles es decisión de diseño + producto.
 
@@ -53,7 +55,7 @@ Análisis adopta **el conjunto unión** como hipótesis: `{Excel, PDF, CSV}`. El
 
 | Clase | Responsabilidad | Derivación |
 |-|-|-|
-| **ExportarHistorialView** | Modal con campos `Inicio` (fecha), `Fin` (fecha), `Formato` (dropdown). Botones Cancelar / Exportar | [Prototipo SALT `exportarHistorialAsistencias.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/exportarHistorialAsistencias.png) |
+| **ExportarHistorialView** | Modal con campos `Inicio` (fecha), `Fin` (fecha), `Formato` (dropdown). Botones Cancelar / Exportar | [Prototipo SALT `exportarHistorialAsistencias.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/exportarHistorialAsistencias.png) |
 
 ### clases controller / servicios (verde #b5bd68)
 
@@ -220,12 +222,12 @@ Es **el CU más distinto** del bloque Profesor. Refleja una **categoría operati
 - **Reutilizar el patrón en `exportarDispensas()` (Secretaria)**: estructura paralela esperada
 - **Auditoría**: ¿se registra quién exportó qué y cuándo? (relevante si los datos son sensibles)
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/exportarHistorialAsistencias/colaboracion.puml)
 
 ## referencias
 
-- [Detallado `exportarHistorialAsistencias()`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Profesor/exportarHistorialAsistencias.puml)
-- [Prototipo SALT `exportarHistorialAsistencias.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/exportarHistorialAsistencias.png)
-- [Caso de uso del Profesor](/RUP/00-requisitos/CasosDeUso/CasoDeUso/Profesor/Profesor.puml)
+- [Detallado `exportarHistorialAsistencias()`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Profesor/exportarHistorialAsistencias.puml)
+- [Prototipo SALT `exportarHistorialAsistencias.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/exportarHistorialAsistencias.png)
+- [Caso de uso del Profesor](/modelosUML/RUP/00-requisitos/CasosDeUso/CasoDeUso/Profesor/Profesor.puml)
 - [Análisis `registrarTomaAsistencia()`](/RUP/01-analisis/casos-uso/registrarTomaAsistencia/README.md)
 - [conversation-log.md](/conversation-log.md)

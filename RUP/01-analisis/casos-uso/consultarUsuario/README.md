@@ -21,12 +21,14 @@ Análisis del caso de uso `consultarUsuario()` mediante diagrama de colaboració
 
 <div align=center>
 
-|![Análisis consultarUsuario()](./colaboracion.svg)|
+|![Análisis consultarUsuario()](/images/RUP/01-analisis/casos-uso/consultarUsuario/colaboracion.svg)|
 |-|
 |**Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC|
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/consultarUsuario/colaboracion.puml)
 ## clases de análisis identificadas
 
 ### clases model (naranja #F2AC4E)
@@ -177,14 +179,14 @@ El bloque cierra coherentemente: **crear** delega siempre a editar para completa
 - Permisos finos: ¿puede un Admin consultar a otro Admin? (regla de negocio pendiente)
 - Reconciliación de `Usuario` con el modelo del dominio (compartida con todo el bloque)
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/consultarUsuario/colaboracion.puml)
 
 ## referencias
 
-- [Detallado `consultarUsuario()`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Administrador/consultarUsuario.puml)
-- [Prototipo SALT `consultarUsuario1.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Administrador/consultarUsuario1.png)
-- [Prototipo SALT `consultarUsuario2.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Administrador/consultarUsuario2.png)
-- [Caso de uso del Administrador](/RUP/00-requisitos/CasosDeUso/CasoDeUso/Administrador/Administrador.puml)
+- [Detallado `consultarUsuario()`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Administrador/consultarUsuario.puml)
+- [Prototipo SALT `consultarUsuario1.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Administrador/consultarUsuario1.png)
+- [Prototipo SALT `consultarUsuario2.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Administrador/consultarUsuario2.png)
+- [Caso de uso del Administrador](/modelosUML/RUP/00-requisitos/CasosDeUso/CasoDeUso/Administrador/Administrador.puml)
 - [Análisis `crearUsuario()`](/RUP/01-analisis/casos-uso/crearUsuario/README.md)
 - [Análisis `editarUsuario()`](/RUP/01-analisis/casos-uso/editarUsuario/README.md)
 - [conversation-log.md](/conversation-log.md)

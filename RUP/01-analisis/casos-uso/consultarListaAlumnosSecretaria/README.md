@@ -25,12 +25,14 @@ Es la **cuarta política del Controller polimórfico**, ahora aplicada sobre `Al
 
 <div align=center>
 
-|![Análisis consultarListaAlumnos() Secretaria](./colaboracion.svg)|
+|![Análisis consultarListaAlumnos() Secretaria](/images/RUP/01-analisis/casos-uso/consultarListaAlumnosSecretaria/colaboracion.svg)|
 |-|
 |**Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC|
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/consultarListaAlumnosSecretaria/colaboracion.puml)
 ## discrepancia en el requisitado — nombres de transición
 
 | Fuente | Nombre |
@@ -57,7 +59,7 @@ El detallado y el prototipo usan **`abrirLista()`** para la transición; el acto
 
 | Clase | Responsabilidad | Derivación |
 |-|-|-|
-| **ConsultarListaAlumnosSecretariaView** | Listado tabular sin selector de asignatura: columnas Alumno, Nº Carnet, Grado, Curso, Estado | [Prototipo SALT `abrirListaAlumnosSecretaria.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/abrirListaAlumnosSecretaria.png) |
+| **ConsultarListaAlumnosSecretariaView** | Listado tabular sin selector de asignatura: columnas Alumno, Nº Carnet, Grado, Curso, Estado | [Prototipo SALT `abrirListaAlumnosSecretaria.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/abrirListaAlumnosSecretaria.png) |
 
 **Diferencia visual con la vista del Profesor**: idéntica estructura tabular pero **sin pestañas** en la cabecera. El Profesor veía una pestaña por asignatura impartida; la Secretaria ve la lista global directamente.
 
@@ -224,13 +226,13 @@ Igual que [[consultarListaAlumnos]] del Profesor: el destino a "detalle" no se m
 - **Paginación / filtros / búsqueda** en el listado (332 elementos según prototipo → relevante)
 - **Ordenación** del listado (por carnet, por curso, por grado, alfabético)
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/consultarListaAlumnosSecretaria/colaboracion.puml)
 
 ## referencias
 
-- [Detallado `consultarListaAlumnos()` (Secretaria)](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/consultarListaAlumnos.puml)
-- [Prototipo SALT `abrirListaAlumnosSecretaria.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/abrirListaAlumnosSecretaria.png)
-- [Caso de uso de Secretaria](/RUP/00-requisitos/CasosDeUso/CasoDeUso/Secretaria/DiagramaCompletoCasoDeUso.puml)
+- [Detallado `consultarListaAlumnos()` (Secretaria)](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/consultarListaAlumnos.puml)
+- [Prototipo SALT `abrirListaAlumnosSecretaria.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/abrirListaAlumnosSecretaria.png)
+- [Caso de uso de Secretaria](/modelosUML/RUP/00-requisitos/CasosDeUso/CasoDeUso/Secretaria/DiagramaCompletoCasoDeUso.puml)
 - [Análisis `consultarListaAlumnos()` (Profesor)](/RUP/01-analisis/casos-uso/consultarListaAlumnos/README.md)
 - [Análisis `consultarSolicitudesDispensas()` (Director)](/RUP/01-analisis/casos-uso/consultarSolicitudesDispensas/README.md) — paralelo "sin filtro" sobre otra entidad
 - [conversation-log.md](/conversation-log.md)

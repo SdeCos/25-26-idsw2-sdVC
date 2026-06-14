@@ -1,6 +1,6 @@
 # CGU > editarSolicitudDispensa (Secretaria) > Diseño
 
-> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/editarSolicitudDispensa.puml) | [Análisis](/RUP/01-analisis/casos-uso/editarSolicitudDispensaSecretaria/README.md) | **Diseño** | Desarrollo |
+> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/editarSolicitudDispensa.puml) | [Análisis](/RUP/01-analisis/casos-uso/editarSolicitudDispensaSecretaria/README.md) | **Diseño** | Desarrollo |
 > |-|-|-|-|-|-|
 
 ## información del artefacto
@@ -17,13 +17,13 @@
 
 <div align=center>
 
-|![Secuencia editarSolicitudDispensa() Secretaria](./secuencia.svg)|
+|![Secuencia editarSolicitudDispensa() Secretaria](/images/RUP/02-diseño/casos-uso/editarSolicitudDispensaSecretaria/secuencia.svg)|
 |-|
 |**Disciplina**: Diseño RUP<br>**Enfoque**: Diagrama de secuencia con tecnología concreta|
 
 </div>
 
-[Código PlantUML](secuencia.puml)
+[Código PlantUML](/modelosUML/RUP/02-diseño/casos-uso/editarSolicitudDispensaSecretaria/secuencia.puml)
 
 > El diagrama muestra solo la fase de guardado; la carga inicial es idéntica a [consultarSolicitudDispensaSecretaria](/RUP/02-diseño/casos-uso/consultarSolicitudDispensaSecretaria/README.md) — la `EditarSolicitudDispensaSecretariaPage` reutiliza `dispensasService.obtener(id)` y la misma cadena hasta la BD. Política consolidada del ramillete: no duplicar fases idénticas a otro CU.
 

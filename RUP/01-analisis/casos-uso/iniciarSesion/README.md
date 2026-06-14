@@ -21,19 +21,21 @@ Análisis del caso de uso `iniciarSesion()` mediante diagrama de colaboración M
 
 <div align=center>
 
-|![Análisis iniciarSesion()](./colaboracion.svg)|
+|![Análisis iniciarSesion()](/images/RUP/01-analisis/casos-uso/iniciarSesion/colaboracion.svg)|
 |-|
 |**Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC|
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/iniciarSesion/colaboracion.puml)
 ## clases de análisis identificadas
 
 ### clases model (naranja #F2AC4E)
 
 | Clase | Responsabilidad | Trazabilidad |
 |-|-|-|
-| **Usuario** | Clase abstracta; representa cualquier actor autenticable. La instancia real es siempre de un subtipo concreto (polimorfismo) | [Actores.puml](/RUP/00-requisitos/CasosDeUso/Actores/Actores.puml) — superclase de la jerarquía |
+| **Usuario** | Clase abstracta; representa cualquier actor autenticable. La instancia real es siempre de un subtipo concreto (polimorfismo) | [Actores.puml](/modelosUML/RUP/00-requisitos/CasosDeUso/Actores/Actores.puml) — superclase de la jerarquía |
 | **UsuarioRepository** | Verifica credenciales y devuelve la instancia concreta del `Usuario` | Análisis puro — choice point del detallado |
 | **Sesion** | Estado de autenticación activa; conoce al `Usuario` autenticado | Concepto emergente del análisis |
 
@@ -41,7 +43,7 @@ Análisis del caso de uso `iniciarSesion()` mediante diagrama de colaboración M
 
 | Clase | Responsabilidad | Derivación |
 |-|-|-|
-| **LoginView** | Ventana principal de interacción para autenticación | [Prototipo SALT](/RUP/00-requisitos/CasosDeUso/Prototipos/Usuario/iniciarSesion.puml) |
+| **LoginView** | Ventana principal de interacción para autenticación | [Prototipo SALT](/modelosUML/RUP/00-requisitos/CasosDeUso/Prototipos/Usuario/iniciarSesion.puml) |
 
 ### clases controller (verde #b5bd68)
 
@@ -170,13 +172,13 @@ A partir del mensaje 3 el sistema despacha comportamiento por el tipo real del `
 - Inactividad y expiración (referido en el detallado como `sesionInactiva()`)
 - Reconciliación con el modelo del dominio: ¿se promueve `Usuario` a clase de dominio?
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/iniciarSesion/colaboracion.puml)
 
 ## referencias
 
-- [Detallado `iniciarSesion()`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Usuario/iniciarSesion.puml)
-- [Prototipo SALT](/RUP/00-requisitos/CasosDeUso/Prototipos/Usuario/iniciarSesion.puml)
-- [Actores.puml](/RUP/00-requisitos/CasosDeUso/Actores/Actores.puml)
-- [Diagrama de contexto](/RUP/00-requisitos/CasosDeUso/DiagramaDeContexto/DiagramaDeContexto.puml)
-- [Modelo del dominio](/RUP/00-requisitos/ModeloDelDominio/DiagramasDeClase/ModeloCompleto.puml)
+- [Detallado `iniciarSesion()`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Usuario/iniciarSesion.puml)
+- [Prototipo SALT](/modelosUML/RUP/00-requisitos/CasosDeUso/Prototipos/Usuario/iniciarSesion.puml)
+- [Actores.puml](/modelosUML/RUP/00-requisitos/CasosDeUso/Actores/Actores.puml)
+- [Diagrama de contexto](/modelosUML/RUP/00-requisitos/CasosDeUso/DiagramaDeContexto/DiagramaDeContexto.puml)
+- [Modelo del dominio](/modelosUML/RUP/00-requisitos/ModeloDelDominio/DiagramasDeClase/ModeloCompleto.puml)
 - [conversation-log.md](/conversation-log.md)

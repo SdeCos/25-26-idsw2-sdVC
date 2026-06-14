@@ -1,6 +1,6 @@
 # CGU > consultarUsuario > Diseño
 
-> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Administrador/consultarUsuario.puml) | [Análisis](/RUP/01-analisis/casos-uso/consultarUsuario/README.md) | **Diseño** | Desarrollo |
+> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Administrador/consultarUsuario.puml) | [Análisis](/RUP/01-analisis/casos-uso/consultarUsuario/README.md) | **Diseño** | Desarrollo |
 > |-|-|-|-|-|-|
 
 ## información del artefacto
@@ -17,13 +17,13 @@
 
 <div align=center>
 
-|![Secuencia consultarUsuario()](./secuencia.svg)|
+|![Secuencia consultarUsuario()](/images/RUP/02-diseño/casos-uso/consultarUsuario/secuencia.svg)|
 |-|
 |**Disciplina**: Diseño RUP<br>**Enfoque**: Diagrama de secuencia con tecnología concreta|
 
 </div>
 
-[Código PlantUML](secuencia.puml)
+[Código PlantUML](/modelosUML/RUP/02-diseño/casos-uso/consultarUsuario/secuencia.puml)
 
 ## participantes
 
@@ -57,7 +57,7 @@
 ## referencias
 
 - [Análisis `consultarUsuario()`](/RUP/01-analisis/casos-uso/consultarUsuario/README.md)
-- [Detallado `consultarUsuario()`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Administrador/consultarUsuario.puml)
-- [Prototipo SALT `consultarUsuario1.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Administrador/consultarUsuario1.png)
+- [Detallado `consultarUsuario()`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Administrador/consultarUsuario.puml)
+- [Prototipo SALT `consultarUsuario1.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Administrador/consultarUsuario1.png)
 - [Diseño `crearUsuario()`](/RUP/02-diseño/casos-uso/crearUsuario/README.md)
 - [conversation-log.md](/conversation-log.md)

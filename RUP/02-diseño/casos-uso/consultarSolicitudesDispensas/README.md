@@ -1,6 +1,6 @@
 # CGU > consultarSolicitudesDispensas > Diseño
 
-> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/DirectorDeGrado/consultarSolicitudesDispensas.puml) | [Análisis](/RUP/01-analisis/casos-uso/consultarSolicitudesDispensas/README.md) | **Diseño** | Desarrollo |
+> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/DirectorDeGrado/consultarSolicitudesDispensas.puml) | [Análisis](/RUP/01-analisis/casos-uso/consultarSolicitudesDispensas/README.md) | **Diseño** | Desarrollo |
 > |-|-|-|-|-|-|
 
 ## información del artefacto
@@ -19,13 +19,13 @@
 
 <div align=center>
 
-|![Secuencia consultarSolicitudesDispensas()](./secuencia.svg)|
+|![Secuencia consultarSolicitudesDispensas()](/images/RUP/02-diseño/casos-uso/consultarSolicitudesDispensas/secuencia.svg)|
 |-|
 |**Disciplina**: Diseño RUP<br>**Enfoque**: Diagrama de secuencia con tecnología concreta|
 
 </div>
 
-[Código PlantUML](secuencia.puml)
+[Código PlantUML](/modelosUML/RUP/02-diseño/casos-uso/consultarSolicitudesDispensas/secuencia.puml)
 
 > El diagrama muestra **solo la fase de detalle**. La fase de **listado** (`GET /dispensas` desde `DispensasPage`) es estructuralmente idéntica al patrón de cualquier list endpoint genérico (auth → `Repository.obtener_todas` → 200 + lista), igual que el `GET /usuarios` que documentamos solo en el README de [`consultarUsuario`](/RUP/02-diseño/casos-uso/consultarUsuario/README.md). No se duplica en el diagrama. La parte de valor de diseño es el detalle con JOIN al `Alumno` propietario + el render condicional de acción según `estado`.
 
@@ -64,7 +64,7 @@
 ## referencias
 
 - [Análisis `consultarSolicitudesDispensas()`](/RUP/01-analisis/casos-uso/consultarSolicitudesDispensas/README.md)
-- [Detallado `consultarSolicitudesDispensas()`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/DirectorDeGrado/consultarSolicitudesDispensas.puml)
+- [Detallado `consultarSolicitudesDispensas()`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/DirectorDeGrado/consultarSolicitudesDispensas.puml)
 - [Diseño `editarSolicitudDispensa()` (Director)](/RUP/02-diseño/casos-uso/editarSolicitudDispensaDirector/README.md)
 - [Diseño `consultarUsuario()`](/RUP/02-diseño/casos-uso/consultarUsuario/README.md) — patrón de read-only ya consolidado
 - [conversation-log.md](/conversation-log.md)

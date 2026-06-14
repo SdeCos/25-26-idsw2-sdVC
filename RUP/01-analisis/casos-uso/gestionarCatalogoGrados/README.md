@@ -17,25 +17,27 @@
 
 Análisis del caso de uso `gestionarCatalogoGrados()` mediante diagrama de colaboración MVC. La Secretaria opera un CRUD básico sobre la entidad `Grado`: alta, listado, ver, editar, baja. El catálogo es **global** (no scoped por grado) — cualquier Secretaria puede mantenerlo, a diferencia de las operaciones académicas (dispensas, matrículas, alumnos) que sí están scoped por su grado. Esta excepción se justifica porque (a) los catálogos son meta-datos, no operación académica, y (b) sin él una Secretaria nueva no podría dar de alta su propio grado.
 
-`Grado` está modelado en el SDR ([`ModeloCompleto.puml`](/RUP/00-requisitos/ModeloDelDominio/DiagramasDeClase/ModeloCompleto.puml)) con relaciones `Matricula → Grado`, `Asignatura → Grado`, `Grado → DirectorDeGrado` y `Grado → SecretariaAcademica`. Este CU es el encargado de mantener la tabla.
+`Grado` está modelado en el SDR ([`ModeloCompleto.puml`](/modelosUML/RUP/00-requisitos/ModeloDelDominio/DiagramasDeClase/ModeloCompleto.puml)) con relaciones `Matricula → Grado`, `Asignatura → Grado`, `Grado → DirectorDeGrado` y `Grado → SecretariaAcademica`. Este CU es el encargado de mantener la tabla.
 
 ## diagrama de colaboración
 
 <div align=center>
 
-|![Análisis gestionarCatalogoGrados()](./colaboracion.svg)|
+|![Análisis gestionarCatalogoGrados()](/images/RUP/01-analisis/casos-uso/gestionarCatalogoGrados/colaboracion.svg)|
 |-|
 |**Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC|
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/gestionarCatalogoGrados/colaboracion.puml)
 ## clases de análisis identificadas
 
 ### clases model (naranja #F2AC4E)
 
 | Clase | Responsabilidad | Trazabilidad |
 |-|-|-|
-| **Grado** | Entidad de dominio: representa un grado universitario (código, nombre, facultad). Identidad estable, referenciada desde `Matricula`, `Asignatura`, `DirectorDeGrado` y `SecretariaAcademica` | Modelado en el SDR ([`ModeloCompleto.puml`](/RUP/00-requisitos/ModeloDelDominio/DiagramasDeClase/ModeloCompleto.puml)) |
+| **Grado** | Entidad de dominio: representa un grado universitario (código, nombre, facultad). Identidad estable, referenciada desde `Matricula`, `Asignatura`, `DirectorDeGrado` y `SecretariaAcademica` | Modelado en el SDR ([`ModeloCompleto.puml`](/modelosUML/RUP/00-requisitos/ModeloDelDominio/DiagramasDeClase/ModeloCompleto.puml)) |
 | **GradoRepository** | Persiste el catálogo de grados. Garantiza unicidad de `codigo`, valida ausencia de referencias antes de borrar | **Nueva** |
 
 ### clases view (azul #629EF9)
@@ -134,10 +136,10 @@ El sistema introduce scoping por grado para todas las operaciones académicas (`
 - Endpoints REST: `GET /grados`, `POST /grados`, `GET /grados/{id}`, `PATCH /grados/{id}`, `DELETE /grados/{id}`.
 - Permission: `require_rol(["secretaria"])` para todos. El catálogo es global pero accesible solo a rol Secretaria.
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/gestionarCatalogoGrados/colaboracion.puml)
 
 ## referencias
 
-- [Modelo del dominio (SDR)](/RUP/00-requisitos/ModeloDelDominio/DiagramasDeClase/ModeloCompleto.puml)
+- [Modelo del dominio (SDR)](/modelosUML/RUP/00-requisitos/ModeloDelDominio/DiagramasDeClase/ModeloCompleto.puml)
 - [Análisis `crearUsuario()`](/RUP/01-analisis/casos-uso/crearUsuario/README.md) — patrón Controller por entidad
 - [conversation-log.md](/conversation-log.md)

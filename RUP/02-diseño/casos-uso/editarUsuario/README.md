@@ -1,6 +1,6 @@
 # CGU > editarUsuario > Diseño
 
-> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Administrador/editarUsuario.puml) | [Análisis](/RUP/01-analisis/casos-uso/editarUsuario/README.md) | **Diseño** | Desarrollo |
+> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Administrador/editarUsuario.puml) | [Análisis](/RUP/01-analisis/casos-uso/editarUsuario/README.md) | **Diseño** | Desarrollo |
 > |-|-|-|-|-|-|
 
 ## información del artefacto
@@ -17,15 +17,15 @@
 
 <div align=center>
 
-|![Secuencia editarUsuario()](./secuencia.svg)|
+|![Secuencia editarUsuario()](/images/RUP/02-diseño/casos-uso/editarUsuario/secuencia.svg)|
 |-|
 |**Disciplina**: Diseño RUP<br>**Enfoque**: Diagrama de secuencia con tecnología concreta|
 
 </div>
 
-[Código PlantUML](secuencia.puml)
+[Código PlantUML](/modelosUML/RUP/02-diseño/casos-uso/editarUsuario/secuencia.puml)
 
-> El diagrama muestra **solo la fase de guardado** (`PATCH /usuarios/{id}`). La fase de carga inicial (`GET /usuarios/{id}` al montar la página) es idéntica a la secuencia de [`consultarUsuario`](/RUP/02-diseño/casos-uso/consultarUsuario/secuencia.svg) — el `EditarUsuarioPage` reutiliza el mismo `usuariosService.obtener(id)` y la misma cadena hasta la BD. No se duplica para que el diagrama refleje lo específico del CU.
+> El diagrama muestra **solo la fase de guardado** (`PATCH /usuarios/{id}`). La fase de carga inicial (`GET /usuarios/{id}` al montar la página) es idéntica a la secuencia de [`consultarUsuario`](/images/RUP/02-diseño/casos-uso/consultarUsuario/secuencia.svg) — el `EditarUsuarioPage` reutiliza el mismo `usuariosService.obtener(id)` y la misma cadena hasta la BD. No se duplica para que el diagrama refleje lo específico del CU.
 
 ## participantes
 
@@ -81,8 +81,8 @@ def _autorizar_acceso_a(target: Usuario, actor: Usuario) -> None:
 ## referencias
 
 - [Análisis `editarUsuario()`](/RUP/01-analisis/casos-uso/editarUsuario/README.md)
-- [Detallado `editarUsuario()`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Administrador/editarUsuario.puml)
-- [Prototipo SALT `editarUsuario.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Administrador/editarUsuario.png)
+- [Detallado `editarUsuario()`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Administrador/editarUsuario.puml)
+- [Prototipo SALT `editarUsuario.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Administrador/editarUsuario.png)
 - [Diseño `crearUsuario()`](/RUP/02-diseño/casos-uso/crearUsuario/README.md)
 - [Diseño `consultarUsuario()`](/RUP/02-diseño/casos-uso/consultarUsuario/README.md)
 - [conversation-log.md](/conversation-log.md)

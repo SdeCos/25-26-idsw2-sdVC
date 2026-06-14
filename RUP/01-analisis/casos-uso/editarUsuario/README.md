@@ -21,12 +21,14 @@ Análisis del caso de uso `editarUsuario()` mediante diagrama de colaboración M
 
 <div align=center>
 
-|![Análisis editarUsuario()](./colaboracion.svg)|
+|![Análisis editarUsuario()](/images/RUP/01-analisis/casos-uso/editarUsuario/colaboracion.svg)|
 |-|
 |**Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC|
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/editarUsuario/colaboracion.puml)
 ## clases de análisis identificadas
 
 ### clases model (naranja #F2AC4E)
@@ -40,7 +42,7 @@ Análisis del caso de uso `editarUsuario()` mediante diagrama de colaboración M
 
 | Clase | Responsabilidad | Derivación |
 |-|-|-|
-| **EditarUsuarioView** | Formulario de edición de un usuario existente; puede mostrar campos específicos del subtipo | [Prototipo SALT `editarUsuario.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Administrador/editarUsuario.png) |
+| **EditarUsuarioView** | Formulario de edición de un usuario existente; puede mostrar campos específicos del subtipo | [Prototipo SALT `editarUsuario.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Administrador/editarUsuario.png) |
 
 ### clases controller (verde #b5bd68)
 
@@ -182,7 +184,7 @@ El patrón sigue a pySigHor (`editarProfesor`, `editarAula`): el CU de edición 
 - Bloqueo del tipo (`tipo` no debería ser editable post-alta — invariante a hacer cumplir)
 - Reconciliación de `Usuario` con el modelo del dominio (compartida con [[iniciarSesion]] y [[crearUsuario]])
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/editarUsuario/colaboracion.puml)
 
 ## evolución post-base — actor extendido (2026-06-14)
 
@@ -203,8 +205,8 @@ Catálogo se queda en **30 CUs** (no se añade `editarAlumno`).
 
 ## referencias
 
-- [Detallado `editarUsuario()`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Administrador/editarUsuario.puml)
-- [Prototipo SALT `editarUsuario.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Administrador/editarUsuario.png)
-- [Caso de uso del Administrador](/RUP/00-requisitos/CasosDeUso/CasoDeUso/Administrador/Administrador.puml)
+- [Detallado `editarUsuario()`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Administrador/editarUsuario.puml)
+- [Prototipo SALT `editarUsuario.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Administrador/editarUsuario.png)
+- [Caso de uso del Administrador](/modelosUML/RUP/00-requisitos/CasosDeUso/CasoDeUso/Administrador/Administrador.puml)
 - [Análisis `crearUsuario()`](/RUP/01-analisis/casos-uso/crearUsuario/README.md)
 - [conversation-log.md](/conversation-log.md)

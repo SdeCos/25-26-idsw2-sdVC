@@ -17,13 +17,13 @@
 
 <div align=center>
 
-|![Secuencia crearAlumno()](./secuencia.svg)|
+|![Secuencia crearAlumno()](/images/RUP/02-diseño/casos-uso/crearAlumno/secuencia.svg)|
 |-|
 |**Disciplina**: Diseño RUP<br>**Enfoque**: Diagrama de secuencia con tecnología concreta|
 
 </div>
 
-[Código PlantUML](secuencia.puml)
+[Código PlantUML](/modelosUML/RUP/02-diseño/casos-uso/crearAlumno/secuencia.puml)
 
 ## participantes
 

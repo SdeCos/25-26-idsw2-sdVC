@@ -1,6 +1,6 @@
 # CGU > consultarListaAlumnos (Secretaria) > Diseño
 
-> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/consultarListaAlumnos.puml) | [Análisis](/RUP/01-analisis/casos-uso/consultarListaAlumnosSecretaria/README.md) | **Diseño** | Desarrollo |
+> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/consultarListaAlumnos.puml) | [Análisis](/RUP/01-analisis/casos-uso/consultarListaAlumnosSecretaria/README.md) | **Diseño** | Desarrollo |
 > |-|-|-|-|-|-|
 
 ## información del artefacto
@@ -19,13 +19,13 @@
 
 <div align=center>
 
-|![Secuencia consultarListaAlumnos() Secretaria](./secuencia.svg)|
+|![Secuencia consultarListaAlumnos() Secretaria](/images/RUP/02-diseño/casos-uso/consultarListaAlumnosSecretaria/secuencia.svg)|
 |-|
 |**Disciplina**: Diseño RUP<br>**Enfoque**: Diagrama de secuencia con tecnología concreta|
 
 </div>
 
-[Código PlantUML](secuencia.puml)
+[Código PlantUML](/modelosUML/RUP/02-diseño/casos-uso/consultarListaAlumnosSecretaria/secuencia.puml)
 
 ## participantes
 
@@ -79,5 +79,5 @@ Versión reducida de `UsuarioDetalleOut` (sin `tipo` ni metadatos que no se ven 
 - [Análisis `consultarListaAlumnos()` (Secretaria)](/RUP/01-analisis/casos-uso/consultarListaAlumnosSecretaria/README.md)
 - [Análisis `consultarListaAlumnos()` (Profesor) — política contraria con filtro](/RUP/01-analisis/casos-uso/consultarListaAlumnos/README.md)
 - [Diseño `consultarUsuario()` — patrón de consulta read-only](/RUP/02-diseño/casos-uso/consultarUsuario/README.md)
-- [Detallado `consultarListaAlumnos.puml` (Secretaria)](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/consultarListaAlumnos.puml)
+- [Detallado `consultarListaAlumnos.puml` (Secretaria)](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/consultarListaAlumnos.puml)
 - [conversation-log.md](/conversation-log.md)

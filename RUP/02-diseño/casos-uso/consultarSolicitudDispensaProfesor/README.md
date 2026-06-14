@@ -1,6 +1,6 @@
 # CGU > consultarSolicitudDispensa (Profesor) > Diseño
 
-> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Profesor/consultarSolicitudDispensa.puml) | [Análisis](/RUP/01-analisis/casos-uso/consultarSolicitudDispensaProfesor/README.md) | **Diseño** | Desarrollo |
+> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Profesor/consultarSolicitudDispensa.puml) | [Análisis](/RUP/01-analisis/casos-uso/consultarSolicitudDispensaProfesor/README.md) | **Diseño** | Desarrollo |
 > |-|-|-|-|-|-|
 
 ## información del artefacto
@@ -17,13 +17,13 @@
 
 <div align=center>
 
-|![Secuencia consultarSolicitudDispensa() Profesor](./secuencia.svg)|
+|![Secuencia consultarSolicitudDispensa() Profesor](/images/RUP/02-diseño/casos-uso/consultarSolicitudDispensaProfesor/secuencia.svg)|
 |-|
 |**Disciplina**: Diseño RUP<br>**Enfoque**: Diagrama de secuencia con tecnología concreta|
 
 </div>
 
-[Código PlantUML](secuencia.puml)
+[Código PlantUML](/modelosUML/RUP/02-diseño/casos-uso/consultarSolicitudDispensaProfesor/secuencia.puml)
 
 El diagrama muestra solo la ficha individual. El listado del Profesor (`GET /dispensas`) es estructuralmente idéntico al ya existente para Alumno/Director/Secretaria — la `PoliticaProfesor.obtener_listado` filtra y la `DispensasPage` ya ramifica por rol. Sin diagrama dedicado del listado (regla "no modelar fases triviales").
 

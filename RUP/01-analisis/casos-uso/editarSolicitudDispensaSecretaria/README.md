@@ -23,12 +23,14 @@ Calcado estructuralmente de [[editarSolicitudDispensa]] (Alumno) — la asimetr�
 
 <div align=center>
 
-| ![Análisis editarSolicitudDispensa() (Secretaria)](./colaboracion.svg)     |
+| ![Análisis editarSolicitudDispensa() (Secretaria)](/images/RUP/01-analisis/casos-uso/editarSolicitudDispensaSecretaria/colaboracion.svg)     |
 | -------------------------------------------------------------------------- |
 | **Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC |
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/editarSolicitudDispensaSecretaria/colaboracion.puml)
 ## por qué un análisis separado del Alumno
 
 Aunque la **estructura de mensajes es idéntica** al del Alumno (mismo Controller, mismo Repository, mismo flujo con 5 mensajes y 3 colaboraciones origen), las **tres diferencias semánticas** justifican folder/análisis aparte:
@@ -62,7 +64,7 @@ Esto refina la deuda hacia diseño: de las tres opciones planteadas para materia
 
 | Clase                                     | Responsabilidad                                                                                                     | Derivación                                                                                                                                          |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **EditarSolicitudDispensaSecretariaView** | Formulario de edición con campos modificables (motivo, adjuntos) + alumno titular visible como contexto no editable | Prototipo SALT [`editarSolicitudDispensaSecretaria.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/editarSolicitudDispensaSecretaria.png) |
+| **EditarSolicitudDispensaSecretariaView** | Formulario de edición con campos modificables (motivo, adjuntos) + alumno titular visible como contexto no editable | Prototipo SALT [`editarSolicitudDispensaSecretaria.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/editarSolicitudDispensaSecretaria.png) |
 
 ### clases controller (verde #b5bd68)
 
@@ -182,9 +184,9 @@ Análisis no decide — es regla de negocio para 02-diseño. Lo análogo en [[ed
 
 ### con wireframe (prototipo SALT)
 
-- **[`editarSolicitudDispensaSecretaria.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/editarSolicitudDispensaSecretaria.png)** → formulario con campos editables → `EditarSolicitudDispensaSecretariaView`
-- **[`guardarSolicitudDispensaSecretaria.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/guardarSolicitudDispensaSecretaria.png)** → vista tras guardar → confirmación visual del actualizar
-- **[`cerrarSolicitudDispensaSecretaria.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/cerrarSolicitudDispensaSecretaria.png)** → confirmación de cierre → flujo alternativo
+- **[`editarSolicitudDispensaSecretaria.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/editarSolicitudDispensaSecretaria.png)** → formulario con campos editables → `EditarSolicitudDispensaSecretariaView`
+- **[`guardarSolicitudDispensaSecretaria.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/guardarSolicitudDispensaSecretaria.png)** → vista tras guardar → confirmación visual del actualizar
+- **[`cerrarSolicitudDispensaSecretaria.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/cerrarSolicitudDispensaSecretaria.png)** → confirmación de cierre → flujo alternativo
 
 ### con actores
 
@@ -210,13 +212,13 @@ Análisis no decide — es regla de negocio para 02-diseño. Lo análogo en [[ed
 - **Notificación al Alumno** cuando un tercero edita su solicitud
 - **Promoción de `SolicitudDispensa` al modelo del dominio** (deuda máxima)
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/editarSolicitudDispensaSecretaria/colaboracion.puml)
 
 ## referencias
 
-- [Detallado `editarSolicitudDispensa()` (Secretaria)](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/editarSolicitudDispensa.puml)
-- [Prototipo SALT `editarSolicitudDispensaSecretaria.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/editarSolicitudDispensaSecretaria.png)
-- [Caso de uso de Secretaria](/RUP/00-requisitos/CasosDeUso/CasoDeUso/Secretaria/DiagramaCompletoCasoDeUso.puml)
+- [Detallado `editarSolicitudDispensa()` (Secretaria)](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/editarSolicitudDispensa.puml)
+- [Prototipo SALT `editarSolicitudDispensaSecretaria.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/editarSolicitudDispensaSecretaria.png)
+- [Caso de uso de Secretaria](/modelosUML/RUP/00-requisitos/CasosDeUso/CasoDeUso/Secretaria/DiagramaCompletoCasoDeUso.puml)
 - [Análisis `editarSolicitudDispensa()` (Alumno) — análogo estructural](/RUP/01-analisis/casos-uso/editarSolicitudDispensa/README.md)
 - [Análisis `editarSolicitudDispensa()` (Director) — análogo con método distinto](/RUP/01-analisis/casos-uso/editarSolicitudDispensaDirector/README.md)
 - [Análisis `crearSolicitudDispensa()` (Secretaria) — origen del crear→editar](/RUP/01-analisis/casos-uso/crearSolicitudDispensaSecretaria/README.md)

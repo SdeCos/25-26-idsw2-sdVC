@@ -23,19 +23,21 @@ La asignación de qué profesor imparte qué asignatura **no forma parte de este
 
 <div align=center>
 
-|![Análisis gestionarCatalogoAsignaturas()](./colaboracion.svg)|
+|![Análisis gestionarCatalogoAsignaturas()](/images/RUP/01-analisis/casos-uso/gestionarCatalogoAsignaturas/colaboracion.svg)|
 |-|
 |**Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC|
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/gestionarCatalogoAsignaturas/colaboracion.puml)
 ## clases de análisis identificadas
 
 ### clases model (naranja #F2AC4E)
 
 | Clase | Responsabilidad | Trazabilidad |
 |-|-|-|
-| **Asignatura** | Entidad de dominio: código único, nombre, ECTS, carácter (FB/OB/OP), grado al que pertenece (FK a [[gestionarCatalogoGrados]]). Identidad estable, referenciada desde `AsignaturaMatriculada`, `SesionDeClase`, `SolicitudDispensa` y la relación N:M con `Profesor`. | Modelada en el SDR ([`ModeloCompleto.puml`](/RUP/00-requisitos/ModeloDelDominio/DiagramasDeClase/ModeloCompleto.puml)) |
+| **Asignatura** | Entidad de dominio: código único, nombre, ECTS, carácter (FB/OB/OP), grado al que pertenece (FK a [[gestionarCatalogoGrados]]). Identidad estable, referenciada desde `AsignaturaMatriculada`, `SesionDeClase`, `SolicitudDispensa` y la relación N:M con `Profesor`. | Modelada en el SDR ([`ModeloCompleto.puml`](/modelosUML/RUP/00-requisitos/ModeloDelDominio/DiagramasDeClase/ModeloCompleto.puml)) |
 | **AsignaturaRepository** | Persiste el catálogo de asignaturas. Garantiza unicidad de `codigo`, valida ausencia de referencias antes de borrar | Pre-existente — hasta ahora solo se usaba en lectura desde otros CUs; este CU estrena las operaciones de escritura |
 
 ### clases view (azul #629EF9)
@@ -141,11 +143,11 @@ Mismo razonamiento que [[gestionarCatalogoGrados]] y por simetría: el catálogo
 - Validar `caracter` contra el dominio cerrado del SDR (FB/OB/OP — confirmar valores) y `ects > 0`.
 - Implicación transversal: el scoping de [[consultarSolicitudesDispensas]] / [[editarSolicitudDispensaDirector]] (M7) usa hoy "el grado de la asignatura". Con N:M pasa a "alguno de los grados de la asignatura" — si "Inglés" se imparte a INF + ADE, tanto el Director de INF como el de ADE ven las dispensas. El refactor del query en `PoliticaDirector` es trivial (`asignatura.grado_id == director.grado_id` → `director.grado_id IN asignatura.grados`).
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/gestionarCatalogoAsignaturas/colaboracion.puml)
 
 ## referencias
 
-- [Modelo del dominio (SDR)](/RUP/00-requisitos/ModeloDelDominio/DiagramasDeClase/ModeloCompleto.puml)
+- [Modelo del dominio (SDR)](/modelosUML/RUP/00-requisitos/ModeloDelDominio/DiagramasDeClase/ModeloCompleto.puml)
 - [Análisis `gestionarCatalogoGrados()`](/RUP/01-analisis/casos-uso/gestionarCatalogoGrados/README.md) — patrón espejado
 - [Análisis `asignarAsignaturasAProfesor()`](/RUP/01-analisis/casos-uso/asignarAsignaturasAProfesor/README.md) — gestión de la relación N:M, complementaria a este CU
 - [Análisis `importarMatriculas()`](/RUP/01-analisis/casos-uso/importarMatriculas/README.md) — precedente de `responsable_id` por auditoría

@@ -1,6 +1,6 @@
 # CGU > editarSolicitudDispensa (Director) > Diseño
 
-> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/DirectorDeGrado/EditarSolicitud.puml) | [Análisis](/RUP/01-analisis/casos-uso/editarSolicitudDispensaDirector/README.md) | **Diseño** | Desarrollo |
+> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/DirectorDeGrado/EditarSolicitud.puml) | [Análisis](/RUP/01-analisis/casos-uso/editarSolicitudDispensaDirector/README.md) | **Diseño** | Desarrollo |
 > |-|-|-|-|-|-|
 
 ## información del artefacto
@@ -19,15 +19,15 @@
 
 <div align=center>
 
-|![Secuencia editarSolicitudDispensa() Director](./secuencia.svg)|
+|![Secuencia editarSolicitudDispensa() Director](/images/RUP/02-diseño/casos-uso/editarSolicitudDispensaDirector/secuencia.svg)|
 |-|
 |**Disciplina**: Diseño RUP<br>**Enfoque**: Diagrama de secuencia con tecnología concreta|
 
 </div>
 
-[Código PlantUML](secuencia.puml)
+[Código PlantUML](/modelosUML/RUP/02-diseño/casos-uso/editarSolicitudDispensaDirector/secuencia.puml)
 
-> El diagrama muestra **solo la fase de PATCH**. La carga inicial (`GET /dispensas/{id}` al montar la página de veredicto) es idéntica a la fase de detalle de [`consultarSolicitudesDispensas`](/RUP/02-diseño/casos-uso/consultarSolicitudesDispensas/secuencia.svg) — el `EmitirVeredictoPage` reutiliza `dispensasService.obtener(id)`. No se duplica.
+> El diagrama muestra **solo la fase de PATCH**. La carga inicial (`GET /dispensas/{id}` al montar la página de veredicto) es idéntica a la fase de detalle de [`consultarSolicitudesDispensas`](/images/RUP/02-diseño/casos-uso/consultarSolicitudesDispensas/secuencia.svg) — el `EmitirVeredictoPage` reutiliza `dispensasService.obtener(id)`. No se duplica.
 
 ## state machine de `SolicitudDispensa`
 
@@ -91,7 +91,7 @@ EN_REVISION
 ## referencias
 
 - [Análisis `editarSolicitudDispensa()` (Director)](/RUP/01-analisis/casos-uso/editarSolicitudDispensaDirector/README.md)
-- [Detallado `EditarSolicitud.puml`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/DirectorDeGrado/EditarSolicitud.puml)
+- [Detallado `EditarSolicitud.puml`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/DirectorDeGrado/EditarSolicitud.puml)
 - [Diseño `consultarSolicitudesDispensas()`](/RUP/02-diseño/casos-uso/consultarSolicitudesDispensas/README.md)
 - [Diseño `editarUsuario()`](/RUP/02-diseño/casos-uso/editarUsuario/README.md) — patrón PATCH ya consolidado
 - [conversation-log.md](/conversation-log.md)

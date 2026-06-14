@@ -14,10 +14,10 @@ Visión general del sistema en relación con su entorno, actores externos y lím
 ---
 
 <p align="center">
-  <img src="./DiagramaDeContexto.svg">
+  <img src="/images/RUP/00-requisitos/CasosDeUso/DiagramaDeContexto/DiagramaDeContexto.svg">
 </p>
 
-[![](https://img.shields.io/badge/-Carpeta-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./) [![](https://img.shields.io/badge/-Ver_PUML-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./DiagramaDeContexto.puml) [![](https://img.shields.io/badge/-Ver_SVG-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./DiagramaDeContexto.svg) [![](https://img.shields.io/badge/-Navbar-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](#Navbar)
+[![](https://img.shields.io/badge/-Carpeta-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./) [![](https://img.shields.io/badge/-Ver_PUML-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](/modelosUML/RUP/00-requisitos/CasosDeUso/DiagramaDeContexto/DiagramaDeContexto.puml) [![](https://img.shields.io/badge/-Ver_SVG-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](/images/RUP/00-requisitos/CasosDeUso/DiagramaDeContexto/DiagramaDeContexto.svg) [![](https://img.shields.io/badge/-Navbar-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](#Navbar)
 
 ---
 

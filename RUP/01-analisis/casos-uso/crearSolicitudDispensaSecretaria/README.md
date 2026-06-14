@@ -23,15 +23,17 @@ Es la **cuarta y última pieza** del polimorfismo del Controller sobre `Solicitu
 
 <div align=center>
 
-|![Análisis crearSolicitudDispensa() (Secretaria)](./colaboracion.svg)|
+|![Análisis crearSolicitudDispensa() (Secretaria)](/images/RUP/01-analisis/casos-uso/crearSolicitudDispensaSecretaria/colaboracion.svg)|
 |-|
 |**Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC|
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/crearSolicitudDispensaSecretaria/colaboracion.puml)
 ## por qué un análisis separado del Alumno
 
-Aunque el detallado de Secretaria [`crearSolicitudDispensa.puml`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/crearSolicitudDispensa.puml) es **idéntico en estructura** al del Alumno (mismos sub-estados `CapturaDatos → ValidarDatos → CreacionExitosa`), la **semántica es distinta**: la Secretaria no es la dueña del dato. El folder con sufijo `Secretaria` evita la colisión de nombre canónico con [[crearSolicitudDispensa]] del Alumno, y registra explícitamente las cuatro diferencias clave:
+Aunque el detallado de Secretaria [`crearSolicitudDispensa.puml`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/crearSolicitudDispensa.puml) es **idéntico en estructura** al del Alumno (mismos sub-estados `CapturaDatos → ValidarDatos → CreacionExitosa`), la **semántica es distinta**: la Secretaria no es la dueña del dato. El folder con sufijo `Secretaria` evita la colisión de nombre canónico con [[crearSolicitudDispensa]] del Alumno, y registra explícitamente las cuatro diferencias clave:
 
 | # | Aspecto | Alumno | Secretaria |
 |-|-|-|-|
@@ -55,7 +57,7 @@ Mismo Repository (`SolicitudDispensaRepository.crear(...)` con misma firma) — 
 
 | Clase | Responsabilidad | Derivación |
 |-|-|-|
-| **CrearSolicitudDispensaSecretariaView** | Formulario inicial con **selector de Alumno** + asignatura + periodo + horario | Prototipo SALT [`guardarSolicitudDispensaSecretaria.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/guardarSolicitudDispensaSecretaria.png) (refleja el flujo continuo crear→editar→guardar desde el rol Secretaria) |
+| **CrearSolicitudDispensaSecretariaView** | Formulario inicial con **selector de Alumno** + asignatura + periodo + horario | Prototipo SALT [`guardarSolicitudDispensaSecretaria.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/guardarSolicitudDispensaSecretaria.png) (refleja el flujo continuo crear→editar→guardar desde el rol Secretaria) |
 
 ### clases controller (verde #b5bd68)
 
@@ -163,7 +165,7 @@ Como en [[crearSolicitudDispensa]] (Alumno), `SolicitudDispensa` es entidad conc
 
 ### con actores
 
-- **`SecretariaAcademica --> crearSolicitudDispensa()`** en package "Dispensas" del [`DiagramaCompletoCasoDeUso.puml`](/RUP/00-requisitos/CasosDeUso/CasoDeUso/Secretaria/DiagramaCompletoCasoDeUso.puml) → invocación del CU
+- **`SecretariaAcademica --> crearSolicitudDispensa()`** en package "Dispensas" del [`DiagramaCompletoCasoDeUso.puml`](/modelosUML/RUP/00-requisitos/CasosDeUso/CasoDeUso/Secretaria/DiagramaCompletoCasoDeUso.puml) → invocación del CU
 - **Secretaria como subclase de `Usuario`** (jerarquía de [[iniciarSesion]]) → habilita la resolución de `responsable` vía Sesion
 
 ### con modelo del dominio
@@ -236,13 +238,13 @@ Como en [[crearSolicitudDispensa]] (Alumno), `SolicitudDispensa` es entidad conc
 - **Promoción de `SolicitudDispensa` al modelo del dominio** (deuda máxima ya con cuatro roles)
 - **Reconciliación del actor `SecretariaAcademica` ↔ `Secretaria`** (deuda registrada desde [[importarMatriculas]])
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/crearSolicitudDispensaSecretaria/colaboracion.puml)
 
 ## referencias
 
-- [Detallado `crearSolicitudDispensa()` (Secretaria)](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/crearSolicitudDispensa.puml)
-- [Prototipo SALT `guardarSolicitudDispensaSecretaria.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/guardarSolicitudDispensaSecretaria.png)
-- [Caso de uso de Secretaria](/RUP/00-requisitos/CasosDeUso/CasoDeUso/Secretaria/DiagramaCompletoCasoDeUso.puml)
+- [Detallado `crearSolicitudDispensa()` (Secretaria)](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/crearSolicitudDispensa.puml)
+- [Prototipo SALT `guardarSolicitudDispensaSecretaria.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/guardarSolicitudDispensaSecretaria.png)
+- [Caso de uso de Secretaria](/modelosUML/RUP/00-requisitos/CasosDeUso/CasoDeUso/Secretaria/DiagramaCompletoCasoDeUso.puml)
 - [Análisis `crearSolicitudDispensa()` (Alumno) — análogo del rol Alumno](/RUP/01-analisis/casos-uso/crearSolicitudDispensa/README.md)
 - [Análisis `consultarSolicitudesDispensas()` (Director) — política sin restricción](/RUP/01-analisis/casos-uso/consultarSolicitudesDispensas/README.md)
 - [Análisis `consultarSolicitudDispensa()` (Profesor) — política "Profesor competente"](/RUP/01-analisis/casos-uso/consultarSolicitudDispensaProfesor/README.md)

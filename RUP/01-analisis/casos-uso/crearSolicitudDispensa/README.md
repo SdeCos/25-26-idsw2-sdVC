@@ -21,12 +21,14 @@ Análisis del caso de uso `crearSolicitudDispensa()` mediante diagrama de colabo
 
 <div align=center>
 
-|![Análisis crearSolicitudDispensa()](./colaboracion.svg)|
+|![Análisis crearSolicitudDispensa()](/images/RUP/01-analisis/casos-uso/crearSolicitudDispensa/colaboracion.svg)|
 |-|
 |**Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC|
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/crearSolicitudDispensa/colaboracion.puml)
 ## clases de análisis identificadas
 
 ### clases model (naranja #F2AC4E)
@@ -40,7 +42,7 @@ Análisis del caso de uso `crearSolicitudDispensa()` mediante diagrama de colabo
 
 | Clase | Responsabilidad | Derivación |
 |-|-|-|
-| **CrearSolicitudDispensaView** | Formulario inicial: asignatura, periodo, horario | Sin prototipo SALT específico — derivada del estado `FormularioEdicion` del [detallado](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Alumno/crearSolicitudDispensa.puml) |
+| **CrearSolicitudDispensaView** | Formulario inicial: asignatura, periodo, horario | Sin prototipo SALT específico — derivada del estado `FormularioEdicion` del [detallado](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Alumno/crearSolicitudDispensa.puml) |
 
 ### clases controller (verde #b5bd68)
 
@@ -110,7 +112,7 @@ Este es el patrón **típico CRUD del proyecto**. El polimorfismo de `crearUsuar
 
 ### con actores
 
-- **`Alumno --> CrearSolicitudDispensa`** en [`Alumno.puml`](/RUP/00-requisitos/CasosDeUso/CasoDeUso/Alumno/Alumno.puml) → invocación del CU desde el actor (implícita en la colaboración `:Dispensas Abierto`)
+- **`Alumno --> CrearSolicitudDispensa`** en [`Alumno.puml`](/modelosUML/RUP/00-requisitos/CasosDeUso/CasoDeUso/Alumno/Alumno.puml) → invocación del CU desde el actor (implícita en la colaboración `:Dispensas Abierto`)
 - **Alumno como subclase de `Usuario`** (jerarquía de [[iniciarSesion]]) → habilita la resolución implícita del propietario vía Sesion
 
 ### con modelo del dominio
@@ -169,13 +171,13 @@ Este es el patrón **típico CRUD del proyecto**. El polimorfismo de `crearUsuar
 - Transaccionalidad del par `crear()` + `editarSolicitudDispensa(solicitudNueva)`
 - Promoción de `SolicitudDispensa` al modelo del dominio (deuda compartida con el bloque Administrador para `Usuario`)
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/crearSolicitudDispensa/colaboracion.puml)
 
 ## referencias
 
-- [Detallado `crearSolicitudDispensa()`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Alumno/crearSolicitudDispensa.puml)
-- [Caso de uso del Alumno](/RUP/00-requisitos/CasosDeUso/CasoDeUso/Alumno/Alumno.puml)
-- [Actores.puml](/RUP/00-requisitos/CasosDeUso/Actores/Actores.puml)
+- [Detallado `crearSolicitudDispensa()`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Alumno/crearSolicitudDispensa.puml)
+- [Caso de uso del Alumno](/modelosUML/RUP/00-requisitos/CasosDeUso/CasoDeUso/Alumno/Alumno.puml)
+- [Actores.puml](/modelosUML/RUP/00-requisitos/CasosDeUso/Actores/Actores.puml)
 - [Análisis `crearUsuario()`](/RUP/01-analisis/casos-uso/crearUsuario/README.md)
 - [Análisis `iniciarSesion()`](/RUP/01-analisis/casos-uso/iniciarSesion/README.md)
 - [conversation-log.md](/conversation-log.md)

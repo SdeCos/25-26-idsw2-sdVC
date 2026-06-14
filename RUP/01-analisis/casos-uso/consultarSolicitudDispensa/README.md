@@ -21,15 +21,17 @@ Análisis del caso de uso `consultarSolicitudDispensa()` mediante diagrama de co
 
 <div align=center>
 
-|![Análisis consultarSolicitudDispensa()](./colaboracion.svg)|
+|![Análisis consultarSolicitudDispensa()](/images/RUP/01-analisis/casos-uso/consultarSolicitudDispensa/colaboracion.svg)|
 |-|
 |**Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC|
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/consultarSolicitudDispensa/colaboracion.puml)
 ## discrepancia en el requisitado
 
-El archivo [`Alumno.puml`](/RUP/00-requisitos/CasosDeUso/CasoDeUso/Alumno/Alumno.puml) etiqueta este CU como **`consultarEstadoDispensa()`**, mientras que el detallado, los prototipos y el resto del requisitado lo nombran **`consultarSolicitudDispensa()`**. El análisis adopta el nombre del detallado (`consultarSolicitudDispensa`) como canónico, por dos razones:
+El archivo [`Alumno.puml`](/modelosUML/RUP/00-requisitos/CasosDeUso/CasoDeUso/Alumno/Alumno.puml) etiqueta este CU como **`consultarEstadoDispensa()`**, mientras que el detallado, los prototipos y el resto del requisitado lo nombran **`consultarSolicitudDispensa()`**. El análisis adopta el nombre del detallado (`consultarSolicitudDispensa`) como canónico, por dos razones:
 
 1. **Mayoría de artefactos**: detallado (`.puml`), prototipos (`consultarSolicitudDispensaAlumno1/2.png`) y el índice del repositorio lo nombran así.
 2. **Coherencia con DirectorDeGrado**: el Director tiene `ConsultarSolicitudesDispensas` (plural), que confirma que la entidad consultada es la `SolicitudDispensa` completa, no solo su atributo `estado`.
@@ -177,14 +179,14 @@ El bloque cierra con la **misma estructura que el de Administrador**: crear→ed
 - Decidir si el Alumno puede ver el `estado` de la dispensa en su ficha (pendiente/aprobada/rechazada/justificación del Director) — esto reconcilia el nombre `consultarEstadoDispensa` que el `Alumno.puml` sugería
 - Paginación / búsqueda en el listado de dispensas del alumno (si el volumen crece)
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/consultarSolicitudDispensa/colaboracion.puml)
 
 ## referencias
 
-- [Detallado `consultarSolicitudDispensa()`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Alumno/consultarSolicitudDispensa.puml)
-- [Prototipo SALT `consultarSolicitudDispensaAlumno1.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Alumno/consultarSolicitudDispensaAlumno1.png)
-- [Prototipo SALT `consultarSolicitudDispensaAlumno2.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Alumno/consultarSolicitudDispensaAlumno2.png)
-- [Caso de uso del Alumno](/RUP/00-requisitos/CasosDeUso/CasoDeUso/Alumno/Alumno.puml)
+- [Detallado `consultarSolicitudDispensa()`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Alumno/consultarSolicitudDispensa.puml)
+- [Prototipo SALT `consultarSolicitudDispensaAlumno1.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Alumno/consultarSolicitudDispensaAlumno1.png)
+- [Prototipo SALT `consultarSolicitudDispensaAlumno2.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Alumno/consultarSolicitudDispensaAlumno2.png)
+- [Caso de uso del Alumno](/modelosUML/RUP/00-requisitos/CasosDeUso/CasoDeUso/Alumno/Alumno.puml)
 - [Análisis `crearSolicitudDispensa()`](/RUP/01-analisis/casos-uso/crearSolicitudDispensa/README.md)
 - [Análisis `editarSolicitudDispensa()`](/RUP/01-analisis/casos-uso/editarSolicitudDispensa/README.md)
 - [conversation-log.md](/conversation-log.md)

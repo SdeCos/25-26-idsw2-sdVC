@@ -23,12 +23,14 @@ Es la apertura del flujo "lista → detalle" del Profesor sobre alumnos, paralel
 
 <div align=center>
 
-|![Análisis consultarListaAlumnos()](./colaboracion.svg)|
+|![Análisis consultarListaAlumnos()](/images/RUP/01-analisis/casos-uso/consultarListaAlumnos/colaboracion.svg)|
 |-|
 |**Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC|
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/consultarListaAlumnos/colaboracion.puml)
 ## clases de análisis identificadas
 
 ### clases model (naranja #F2AC4E)
@@ -42,7 +44,7 @@ Es la apertura del flujo "lista → detalle" del Profesor sobre alumnos, paralel
 
 | Clase | Responsabilidad | Derivación |
 |-|-|-|
-| **ConsultarListaAlumnosView** | Listado tabular con pestañas por asignatura: columnas Alumno, Nº Carnet, Grado, Curso, Estado | [Prototipo SALT `consultarListaAlumnos.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/consultarListaAlumnos.png) |
+| **ConsultarListaAlumnosView** | Listado tabular con pestañas por asignatura: columnas Alumno, Nº Carnet, Grado, Curso, Estado | [Prototipo SALT `consultarListaAlumnos.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/consultarListaAlumnos.png) |
 
 ### clases controller (verde #b5bd68)
 
@@ -192,13 +194,13 @@ Este CU no acepta input del actor (`asignatura` viene de la UI pero originalment
 - **Carga del selector de pestañas**: ¿al entrar a `:Listas Abierto` (eager) o on-demand?
 - **Política de "estado de matrícula"**: ¿alumnos dados de baja aparecen? (deuda de regla de negocio)
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/consultarListaAlumnos/colaboracion.puml)
 
 ## referencias
 
-- [Detallado `consultarListaAlumnos()`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Profesor/consultarListaAlumnos.puml)
-- [Prototipo SALT `consultarListaAlumnos.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/consultarListaAlumnos.png)
-- [Caso de uso del Profesor](/RUP/00-requisitos/CasosDeUso/CasoDeUso/Profesor/Profesor.puml)
+- [Detallado `consultarListaAlumnos()`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Profesor/consultarListaAlumnos.puml)
+- [Prototipo SALT `consultarListaAlumnos.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/consultarListaAlumnos.png)
+- [Caso de uso del Profesor](/modelosUML/RUP/00-requisitos/CasosDeUso/CasoDeUso/Profesor/Profesor.puml)
 - [Análisis `consultarDetalleAlumno()`](/RUP/01-analisis/casos-uso/consultarDetalleAlumno/README.md)
 - [Análisis `consultarSolicitudDispensa()` (Profesor)](/RUP/01-analisis/casos-uso/consultarSolicitudDispensaProfesor/README.md)
 - [conversation-log.md](/conversation-log.md)

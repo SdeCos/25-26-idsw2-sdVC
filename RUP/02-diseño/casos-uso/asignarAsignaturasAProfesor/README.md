@@ -17,13 +17,13 @@
 
 <div align=center>
 
-|![Secuencia asignarAsignaturasAProfesor()](./secuencia.svg)|
+|![Secuencia asignarAsignaturasAProfesor()](/images/RUP/02-diseño/casos-uso/asignarAsignaturasAProfesor/secuencia.svg)|
 |-|
 |**Disciplina**: Diseño RUP<br>**Enfoque**: Diagrama de secuencia con tecnología concreta — flujo de **asignar** (operación más representativa: idempotencia explícita 201/200)|
 
 </div>
 
-[Código PlantUML](secuencia.puml)
+[Código PlantUML](/modelosUML/RUP/02-diseño/casos-uso/asignarAsignaturasAProfesor/secuencia.puml)
 
 ## participantes
 
@@ -81,5 +81,5 @@
 - [Diseño `gestionarCatalogoAsignaturas()`](/RUP/02-diseño/casos-uso/gestionarCatalogoAsignaturas/README.md) — CU complementario
 - [Diseño `crearUsuario()`](/RUP/02-diseño/casos-uso/crearUsuario/README.md) — patrón de validación de subtipo en service
 - [Diseño `gestionarCatalogoGrados()`](/RUP/02-diseño/casos-uso/gestionarCatalogoGrados/README.md) — patrón router/service/repository
-- [Modelo del dominio (SDR)](/RUP/00-requisitos/ModeloDelDominio/DiagramasDeClase/ModeloCompleto.puml)
+- [Modelo del dominio (SDR)](/modelosUML/RUP/00-requisitos/ModeloDelDominio/DiagramasDeClase/ModeloCompleto.puml)
 - [conversation-log.md](/conversation-log.md)

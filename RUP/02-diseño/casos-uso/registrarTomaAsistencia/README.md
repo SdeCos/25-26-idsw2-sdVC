@@ -1,6 +1,6 @@
 # CGU > registrarTomaAsistencia > Diseño
 
-> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Profesor/registrarTomaAsistencia.puml) | [Análisis](/RUP/01-analisis/casos-uso/registrarTomaAsistencia/README.md) | **Diseño** | Desarrollo |
+> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Profesor/registrarTomaAsistencia.puml) | [Análisis](/RUP/01-analisis/casos-uso/registrarTomaAsistencia/README.md) | **Diseño** | Desarrollo |
 > |-|-|-|-|-|-|
 
 ## información del artefacto
@@ -17,13 +17,13 @@
 
 <div align=center>
 
-|![Secuencia registrarTomaAsistencia()](./secuencia.svg)|
+|![Secuencia registrarTomaAsistencia()](/images/RUP/02-diseño/casos-uso/registrarTomaAsistencia/secuencia.svg)|
 |-|
 |**Disciplina**: Diseño RUP<br>**Enfoque**: Diagrama de secuencia con tecnología concreta|
 
 </div>
 
-[Código PlantUML](secuencia.puml)
+[Código PlantUML](/modelosUML/RUP/02-diseño/casos-uso/registrarTomaAsistencia/secuencia.puml)
 
 El diagrama muestra la persistencia de **una sola marca**. La carga inicial del listado de alumnos matriculados se hace al montar la página activa (`GET /sesiones-clase/{id}/asistencias` retorna las ya registradas + se cruza con `consultarListaAlumnos` para mostrar los no marcados). El upsert se repite por cada cambio de estado del Profesor — modelar el loop sería ruido visual.
 

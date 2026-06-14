@@ -13,9 +13,9 @@
 
 Este diagrama define los posibles estados por los que puede transitar una Matricula en el sistema, así como las transiciones permitidas entre ellos.
 
-![Diagrama de Estado - Matricula](./Matricula.svg)
+![Diagrama de Estado - Matricula](/images/RUP/00-requisitos/ModeloDelDominio/DiagramasDeEstado/Matricula/Matricula.svg)
 
-📁 [Carpeta](.) | 📄 [SVG](./Matricula.svg) | 📋 [PUML](./Matricula.puml)
+📁 [Carpeta](.) | 📄 [SVG](/images/RUP/00-requisitos/ModeloDelDominio/DiagramasDeEstado/Matricula/Matricula.svg) | 📋 [PUML](/modelosUML/RUP/00-requisitos/ModeloDelDominio/DiagramasDeEstado/Matricula/Matricula.puml)
 
 ---
 

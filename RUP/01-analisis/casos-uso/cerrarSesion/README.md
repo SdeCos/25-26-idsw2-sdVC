@@ -29,12 +29,14 @@ Análisis del caso de uso `cerrarSesion()` mediante diagrama de colaboración MV
 
 <div align=center>
 
-|![Análisis cerrarSesion()](./colaboracion.svg)|
+|![Análisis cerrarSesion()](/images/RUP/01-analisis/casos-uso/cerrarSesion/colaboracion.svg)|
 |-|
 |**Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC|
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/cerrarSesion/colaboracion.puml)
 ## clases de análisis identificadas
 
 ### clases model (naranja #F2AC4E)
@@ -154,12 +156,12 @@ La asimetría es real: `iniciarSesion()` es complejo porque tiene que resolver _
 - Notificación a otras vistas activas (¿hay que cerrar diálogos abiertos antes de transitar?)
 - Persistencia de log de cierre (¿auditoría?)
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/cerrarSesion/colaboracion.puml)
 
 ## referencias
 
 - [Análisis `iniciarSesion()`](../iniciarSesion/README.md) — entidad `Sesion` y patrón base
-- [Detallado `cerrarSesion()`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Usuario/cerrarSesion.puml)
-- [Actores.puml](/RUP/00-requisitos/CasosDeUso/Actores/Actores.puml)
-- [Diagrama de contexto](/RUP/00-requisitos/CasosDeUso/DiagramaDeContexto/DiagramaDeContexto.puml)
+- [Detallado `cerrarSesion()`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Usuario/cerrarSesion.puml)
+- [Actores.puml](/modelosUML/RUP/00-requisitos/CasosDeUso/Actores/Actores.puml)
+- [Diagrama de contexto](/modelosUML/RUP/00-requisitos/CasosDeUso/DiagramaDeContexto/DiagramaDeContexto.puml)
 - [conversation-log.md](/conversation-log.md)

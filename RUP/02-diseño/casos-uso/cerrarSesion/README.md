@@ -17,13 +17,13 @@
 
 <div align=center>
 
-|![Secuencia cerrarSesion()](./secuencia.svg)|
+|![Secuencia cerrarSesion()](/images/RUP/02-diseño/casos-uso/cerrarSesion/secuencia.svg)|
 |-|
 |**Disciplina**: Diseño RUP<br>**Enfoque**: Diagrama de secuencia con tecnología concreta|
 
 </div>
 
-[Código PlantUML](secuencia.puml)
+[Código PlantUML](/modelosUML/RUP/02-diseño/casos-uso/cerrarSesion/secuencia.puml)
 
 ## participantes
 
@@ -56,5 +56,5 @@ No participan `AuthService` ni `UsuarioRepository`: el cierre es estrictamente d
 
 - [Análisis `cerrarSesion()`](/RUP/01-analisis/casos-uso/cerrarSesion/README.md)
 - [Diseño `iniciarSesion()`](../iniciarSesion/README.md) — donde se decide JWT stateless
-- [Detallado `cerrarSesion()`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Usuario/cerrarSesion.puml)
+- [Detallado `cerrarSesion()`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Usuario/cerrarSesion.puml)
 - [conversation-log.md](/conversation-log.md)

@@ -24,10 +24,10 @@ Diferentes tipos de usuarios y agentes que interactúan con el sistema.
 ## Diagrama de Actores
 
 <p align="center">
-  <img src="./Actores.svg">
+  <img src="/images/RUP/00-requisitos/CasosDeUso/Actores/Actores.svg">
 </p>
 
-[![](https://img.shields.io/badge/-Carpeta-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](.)\n[![](https://img.shields.io/badge/-Ver_PUML-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./Actores.puml)\n[![](https://img.shields.io/badge/-Ver_SVG-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](./Actores.svg)
+[![](https://img.shields.io/badge/-Carpeta-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](.)\n[![](https://img.shields.io/badge/-Ver_PUML-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](/modelosUML/RUP/00-requisitos/CasosDeUso/Actores/Actores.puml)\n[![](https://img.shields.io/badge/-Ver_SVG-0D47A1?style=flat&logo=openstreetmap&logoColor=white)](/images/RUP/00-requisitos/CasosDeUso/Actores/Actores.svg)
 
 ---
 

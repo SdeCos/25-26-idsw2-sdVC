@@ -1,6 +1,6 @@
 # CGU > consultarSolicitudDispensa (Alumno) > Diseño
 
-> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Alumno/consultarSolicitudDispensa.puml) | [Análisis](/RUP/01-analisis/casos-uso/consultarSolicitudDispensa/README.md) | **Diseño** | Desarrollo |
+> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Alumno/consultarSolicitudDispensa.puml) | [Análisis](/RUP/01-analisis/casos-uso/consultarSolicitudDispensa/README.md) | **Diseño** | Desarrollo |
 > |-|-|-|-|-|-|
 
 ## información del artefacto
@@ -17,13 +17,13 @@
 
 <div align=center>
 
-|![Secuencia consultarSolicitudDispensa() Alumno](./secuencia.svg)|
+|![Secuencia consultarSolicitudDispensa() Alumno](/images/RUP/02-diseño/casos-uso/consultarSolicitudDispensa/secuencia.svg)|
 |-|
 |**Disciplina**: Diseño RUP<br>**Enfoque**: Diagrama de secuencia con tecnología concreta|
 
 </div>
 
-[Código PlantUML](secuencia.puml)
+[Código PlantUML](/modelosUML/RUP/02-diseño/casos-uso/consultarSolicitudDispensa/secuencia.puml)
 
 > El diagrama muestra **solo la fase de detalle**. La fase de **listado** (`GET /dispensas` filtrado por `PoliticaAlumno`) es estructuralmente idéntica al patrón de cualquier list endpoint, igual que en [`consultarSolicitudesDispensas`](/RUP/02-diseño/casos-uso/consultarSolicitudesDispensas/README.md) del Director. No se duplica.
 

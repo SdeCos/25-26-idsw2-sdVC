@@ -29,12 +29,14 @@ Es la primera entidad del proyecto cuyo CU de creación **no termina en un lista
 
 <div align=center>
 
-|![Análisis crearSesionClase()](./colaboracion.svg)|
+|![Análisis crearSesionClase()](/images/RUP/01-analisis/casos-uso/crearSesionClase/colaboracion.svg)|
 |-|
 |**Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC|
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/crearSesionClase/colaboracion.puml)
 ## discrepancia en el requisitado — colisión de nombre `iniciarSesion()`
 
 El detallado etiqueta la transición de cierre del CU (de `SESION_NUEVA_COMP` a `SESION_ASISTENCIA_ABIERTA`) como **`iniciarSesion()`**. Este nombre **colisiona con el CU `iniciarSesion()` del actor Usuario** (login) ya analizado en [[iniciarSesion]].
@@ -60,7 +62,7 @@ El análisis adopta **`iniciarSesionClase()`** como nombre canónico para esta t
 
 | Clase | Responsabilidad | Derivación |
 |-|-|-|
-| **CrearSesionClaseView** | Formulario modal de creación: fecha, hora (inicio/fin), aula, tema | [Prototipo SALT `crearSesionClase1.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/crearSesionClase1.png), [`crearSesionClase2.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/crearSesionClase2.png) |
+| **CrearSesionClaseView** | Formulario modal de creación: fecha, hora (inicio/fin), aula, tema | [Prototipo SALT `crearSesionClase1.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/crearSesionClase1.png), [`crearSesionClase2.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/crearSesionClase2.png) |
 
 ### clases controller (verde #b5bd68)
 
@@ -253,14 +255,14 @@ El prototipo solo muestra **4 campos en el formulario** (Fecha, Hora, Aula, Tema
 - **Bloqueo del CU por subtipo de `Sesion.usuario`** (solo `Profesor` puede crear sesiones de clase)
 - **Deuda blanda — extensión retroactiva del Parameter Object**: revisar [[crearSolicitudDispensa]] (4 parámetros) tras completar todos los análisis; si se quiere uniformar el patrón, introducir `DatosSolicitudDispensa`
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/crearSesionClase/colaboracion.puml)
 
 ## referencias
 
-- [Detallado `crearSesionClase()`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Profesor/crearSesionClase.puml)
-- [Prototipo SALT `crearSesionClase1.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/crearSesionClase1.png)
-- [Prototipo SALT `crearSesionClase2.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/crearSesionClase2.png)
-- [Caso de uso del Profesor](/RUP/00-requisitos/CasosDeUso/CasoDeUso/Profesor/Profesor.puml)
+- [Detallado `crearSesionClase()`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Profesor/crearSesionClase.puml)
+- [Prototipo SALT `crearSesionClase1.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/crearSesionClase1.png)
+- [Prototipo SALT `crearSesionClase2.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/crearSesionClase2.png)
+- [Caso de uso del Profesor](/modelosUML/RUP/00-requisitos/CasosDeUso/CasoDeUso/Profesor/Profesor.puml)
 - [Análisis `iniciarSesion()`](/RUP/01-analisis/casos-uso/iniciarSesion/README.md)
 - [Análisis `crearSolicitudDispensa()`](/RUP/01-analisis/casos-uso/crearSolicitudDispensa/README.md)
 - [conversation-log.md](/conversation-log.md)

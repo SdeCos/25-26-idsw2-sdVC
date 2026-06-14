@@ -1,6 +1,6 @@
 # CGU > editarSolicitudDispensa (Alumno) > Diseño
 
-> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Alumno/editarSolicitudDispensa.puml) | [Análisis](/RUP/01-analisis/casos-uso/editarSolicitudDispensa/README.md) | **Diseño** | Desarrollo |
+> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Alumno/editarSolicitudDispensa.puml) | [Análisis](/RUP/01-analisis/casos-uso/editarSolicitudDispensa/README.md) | **Diseño** | Desarrollo |
 > |-|-|-|-|-|-|
 
 ## información del artefacto
@@ -17,13 +17,13 @@
 
 <div align=center>
 
-|![Secuencia editarSolicitudDispensa() Alumno](./secuencia.svg)|
+|![Secuencia editarSolicitudDispensa() Alumno](/images/RUP/02-diseño/casos-uso/editarSolicitudDispensa/secuencia.svg)|
 |-|
 |**Disciplina**: Diseño RUP<br>**Enfoque**: Diagrama de secuencia con tecnología concreta|
 
 </div>
 
-[Código PlantUML](secuencia.puml)
+[Código PlantUML](/modelosUML/RUP/02-diseño/casos-uso/editarSolicitudDispensa/secuencia.puml)
 
 > El diagrama muestra **solo la fase de PATCH**. La carga inicial (`GET /dispensas/{id}` al montar) es idéntica al detalle de [`consultarSolicitudDispensa`](/RUP/02-diseño/casos-uso/consultarSolicitudDispensa/README.md).
 

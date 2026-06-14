@@ -23,12 +23,14 @@ Es el primer CU `editar` del proyecto cuyo **único punto de entrada es un estad
 
 <div align=center>
 
-|![Análisis editarSesionClase()](./colaboracion.svg)|
+|![Análisis editarSesionClase()](/images/RUP/01-analisis/casos-uso/editarSesionClase/colaboracion.svg)|
 |-|
 |**Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC|
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/editarSesionClase/colaboracion.puml)
 ## clases de análisis identificadas
 
 ### clases model (naranja #F2AC4E)
@@ -42,7 +44,7 @@ Es el primer CU `editar` del proyecto cuyo **único punto de entrada es un estad
 
 | Clase | Responsabilidad | Derivación |
 |-|-|-|
-| **EditarSesionClaseView** | Edición **in-situ** de los campos informativos en la cabecera de la pantalla de asistencias (fecha, hora, aula, tema). No es modal | [Prototipo SALT `editarSesionClase1.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/editarSesionClase1.png) |
+| **EditarSesionClaseView** | Edición **in-situ** de los campos informativos en la cabecera de la pantalla de asistencias (fecha, hora, aula, tema). No es modal | [Prototipo SALT `editarSesionClase1.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/editarSesionClase1.png) |
 
 Distinta de `CrearSesionClaseView` (que sí era modal): en `editar` la edición se hace sobre la misma pantalla activa que muestra el listado de asistencia. Refleja literalmente el prototipo (botón "Guardar" en la esquina superior derecha; los campos pasan de ser display a editables in-line).
 
@@ -189,13 +191,13 @@ El prototipo lo refleja: asignatura y grupo no aparecen en la cabecera editable.
 - Concurrencia: dos pestañas del mismo Profesor editando la misma sesión
 - Si la edición debería invalidar la asistencia ya tomada (p.ej. cambiar aula no la invalida, cambiar fecha probablemente sí — regla de negocio abierta)
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/editarSesionClase/colaboracion.puml)
 
 ## referencias
 
-- [Detallado `editarSesionClase()`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Profesor/editarSesionClase.puml)
-- [Prototipo SALT `editarSesionClase1.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/editarSesionClase1.png)
-- [Caso de uso del Profesor](/RUP/00-requisitos/CasosDeUso/CasoDeUso/Profesor/Profesor.puml)
+- [Detallado `editarSesionClase()`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Profesor/editarSesionClase.puml)
+- [Prototipo SALT `editarSesionClase1.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/editarSesionClase1.png)
+- [Caso de uso del Profesor](/modelosUML/RUP/00-requisitos/CasosDeUso/CasoDeUso/Profesor/Profesor.puml)
 - [Análisis `crearSesionClase()`](/RUP/01-analisis/casos-uso/crearSesionClase/README.md)
 - [Análisis `editarSolicitudDispensa()` (Alumno)](/RUP/01-analisis/casos-uso/editarSolicitudDispensa/README.md)
 - [Análisis `editarSolicitudDispensa()` (Director)](/RUP/01-analisis/casos-uso/editarSolicitudDispensaDirector/README.md)

@@ -1,6 +1,6 @@
 # CGU > consultarSolicitudDispensa (Secretaria) > Diseño
 
-> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/consultarSolicitudDispensa.puml) | [Análisis](/RUP/01-analisis/casos-uso/consultarSolicitudDispensaSecretaria/README.md) | **Diseño** | Desarrollo |
+> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/consultarSolicitudDispensa.puml) | [Análisis](/RUP/01-analisis/casos-uso/consultarSolicitudDispensaSecretaria/README.md) | **Diseño** | Desarrollo |
 > |-|-|-|-|-|-|
 
 ## información del artefacto
@@ -17,13 +17,13 @@
 
 <div align=center>
 
-|![Secuencia consultarSolicitudDispensa() Secretaria](./secuencia.svg)|
+|![Secuencia consultarSolicitudDispensa() Secretaria](/images/RUP/02-diseño/casos-uso/consultarSolicitudDispensaSecretaria/secuencia.svg)|
 |-|
 |**Disciplina**: Diseño RUP<br>**Enfoque**: Diagrama de secuencia con tecnología concreta|
 
 </div>
 
-[Código PlantUML](secuencia.puml)
+[Código PlantUML](/modelosUML/RUP/02-diseño/casos-uso/consultarSolicitudDispensaSecretaria/secuencia.puml)
 
 > El diagrama modela solo la ficha individual (`GET /dispensas/{id}`). El listado `GET /dispensas` con la Secretaria como nuevo rol autorizado es endpoint complementario (mismo método del Repository que ya usan Alumno y Director vía sus políticas). Regla "no modelar fases estructuralmente triviales" — list endpoints genéricos viven en prosa.
 

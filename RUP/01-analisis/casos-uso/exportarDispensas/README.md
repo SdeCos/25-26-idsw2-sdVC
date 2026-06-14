@@ -23,12 +23,14 @@ Es el **segundo CU de exportación** del proyecto (tras [[exportarHistorialAsist
 
 <div align=center>
 
-|![Análisis exportarDispensas()](./colaboracion.svg)|
+|![Análisis exportarDispensas()](/images/RUP/01-analisis/casos-uso/exportarDispensas/colaboracion.svg)|
 |-|
 |**Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC|
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/exportarDispensas/colaboracion.puml)
 ## el patrón "Controller delega en servicio especializado" — segundo caso
 
 El análisis se construye sobre el patrón consolidado en [[exportarHistorialAsistencias]]: el Controller orquesta (recupera datos + delega generación), un servicio dedicado genera el archivo. Sin ExportadorController genérico — cada entidad gestiona su propia exportación con un generador análogo.
@@ -55,7 +57,7 @@ Con **cuatro CUs de I/O masiva** ya analizados, la abstracción `ImportadorMasiv
 
 | Clase | Responsabilidad | Derivación |
 |-|-|-|
-| **ExportarDispensasView** | Panel/modal con campos de filtro (curso, asignatura, nombre, identificador), selector de formato y nombre del archivo; botón de descarga | Prototipo SALT [`exportarSolicitudesDispensa.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/exportarSolicitudesDispensa.png) (a confirmar — ver discrepancia abajo) |
+| **ExportarDispensasView** | Panel/modal con campos de filtro (curso, asignatura, nombre, identificador), selector de formato y nombre del archivo; botón de descarga | Prototipo SALT [`exportarSolicitudesDispensa.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/exportarSolicitudesDispensa.png) (a confirmar — ver discrepancia abajo) |
 
 ### clases controller / servicios (verde #b5bd68)
 
@@ -167,7 +169,7 @@ Dos tipos opacos en este CU, consistentes con el manejo previo:
 
 ### con wireframe (prototipo SALT)
 
-- **[`exportarSolicitudesDispensa.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/exportarSolicitudesDispensa.png)** → panel con filtros + selector de formato + descarga → `ExportarDispensasView`
+- **[`exportarSolicitudesDispensa.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/exportarSolicitudesDispensa.png)** → panel con filtros + selector de formato + descarga → `ExportarDispensasView`
 
 ### con actores
 
@@ -247,13 +249,13 @@ Dos tipos opacos en este CU, consistentes con el manejo previo:
 - **Materialización del polimorfismo del `SolicitudDispensaController`** — decisión central ya con 8 métodos
 - **Promoción de `SolicitudDispensa` al modelo del dominio** (deuda máxima)
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/exportarDispensas/colaboracion.puml)
 
 ## referencias
 
-- [Detallado `exportarDispensas()`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/exportarDispensas.puml)
-- [Prototipo SALT `exportarSolicitudesDispensa.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/exportarSolicitudesDispensa.png)
-- [Caso de uso de Secretaria](/RUP/00-requisitos/CasosDeUso/CasoDeUso/Secretaria/DiagramaCompletoCasoDeUso.puml)
+- [Detallado `exportarDispensas()`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/exportarDispensas.puml)
+- [Prototipo SALT `exportarSolicitudesDispensa.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Secretaria/exportarSolicitudesDispensa.png)
+- [Caso de uso de Secretaria](/modelosUML/RUP/00-requisitos/CasosDeUso/CasoDeUso/Secretaria/DiagramaCompletoCasoDeUso.puml)
 - [Análisis `exportarHistorialAsistencias()` (Profesor) — patrón paralelo](/RUP/01-analisis/casos-uso/exportarHistorialAsistencias/README.md)
 - [Análisis `importarMatriculas()` (Secretaria) — operación inversa](/RUP/01-analisis/casos-uso/importarMatriculas/README.md)
 - [Análisis `crearSolicitudDispensa()` (Secretaria) — entrada al bloque dispensas Secretaria](/RUP/01-analisis/casos-uso/crearSolicitudDispensaSecretaria/README.md)

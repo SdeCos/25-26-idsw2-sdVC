@@ -13,9 +13,9 @@
 
 Este diagrama define los posibles estados por los que puede transitar una Asistencia en el sistema, así como las transiciones permitidas entre ellos.
 
-![Diagrama de Estado - Asistencia](./Asistencia.svg)
+![Diagrama de Estado - Asistencia](/images/RUP/00-requisitos/ModeloDelDominio/DiagramasDeEstado/Asistencia/Asistencia.svg)
 
-📁 [Carpeta](.) | 📄 [SVG](./Asistencia.svg) | 📋 [PUML](./Asistencia.puml)
+📁 [Carpeta](.) | 📄 [SVG](/images/RUP/00-requisitos/ModeloDelDominio/DiagramasDeEstado/Asistencia/Asistencia.svg) | 📋 [PUML](/modelosUML/RUP/00-requisitos/ModeloDelDominio/DiagramasDeEstado/Asistencia/Asistencia.puml)
 
 ---
 

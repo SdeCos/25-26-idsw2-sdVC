@@ -1,6 +1,6 @@
 # CGU > crearSolicitudDispensa (Alumno) > Diseño
 
-> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Alumno/crearSolicitudDispensa.puml) | [Análisis](/RUP/01-analisis/casos-uso/crearSolicitudDispensa/README.md) | **Diseño** | Desarrollo |
+> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Alumno/crearSolicitudDispensa.puml) | [Análisis](/RUP/01-analisis/casos-uso/crearSolicitudDispensa/README.md) | **Diseño** | Desarrollo |
 > |-|-|-|-|-|-|
 
 ## información del artefacto
@@ -17,13 +17,13 @@
 
 <div align=center>
 
-|![Secuencia crearSolicitudDispensa() Alumno](./secuencia.svg)|
+|![Secuencia crearSolicitudDispensa() Alumno](/images/RUP/02-diseño/casos-uso/crearSolicitudDispensa/secuencia.svg)|
 |-|
 |**Disciplina**: Diseño RUP<br>**Enfoque**: Diagrama de secuencia con tecnología concreta|
 
 </div>
 
-[Código PlantUML](secuencia.puml)
+[Código PlantUML](/modelosUML/RUP/02-diseño/casos-uso/crearSolicitudDispensa/secuencia.puml)
 
 ## participantes
 
@@ -59,6 +59,6 @@
 ## referencias
 
 - [Análisis `crearSolicitudDispensa()` (Alumno)](/RUP/01-analisis/casos-uso/crearSolicitudDispensa/README.md)
-- [Detallado `crearSolicitudDispensa.puml`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Alumno/crearSolicitudDispensa.puml)
+- [Detallado `crearSolicitudDispensa.puml`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Alumno/crearSolicitudDispensa.puml)
 - [Diseño `crearUsuario()`](/RUP/02-diseño/casos-uso/crearUsuario/README.md) — patrón POST consolidado
 - [conversation-log.md](/conversation-log.md)

@@ -25,20 +25,22 @@ A diferencia del CU homólogo del Alumno ([[consultarSolicitudDispensa]] — sin
 
 <div align=center>
 
-|![Análisis consultarSolicitudesDispensas()](./colaboracion.svg)|
+|![Análisis consultarSolicitudesDispensas()](/images/RUP/01-analisis/casos-uso/consultarSolicitudesDispensas/colaboracion.svg)|
 |-|
 |**Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC|
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/consultarSolicitudesDispensas/colaboracion.puml)
 ## discrepancia en el requisitado
 
 Coexisten tres formas del nombre en los artefactos del requisitado:
 
 | Fuente | Nombre usado |
 |-|-|
-| [`DirectorDeGrado.puml`](/RUP/00-requisitos/CasosDeUso/CasoDeUso/DirectorDeGrado/DirectorDeGrado.puml) (actor) | `consultarSolicitudesDispensa()` (singular `Dispensa`) |
-| [`ConsultarSolicitudesDispensas.puml`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/DirectorDeGrado/ConsultarSolicitudesDispensas.puml) (detallado, filename y estado interno) | `consultarSolicitudesDispensas` (plural `Dispensas`) |
+| [`DirectorDeGrado.puml`](/modelosUML/RUP/00-requisitos/CasosDeUso/CasoDeUso/DirectorDeGrado/DirectorDeGrado.puml) (actor) | `consultarSolicitudesDispensa()` (singular `Dispensa`) |
+| [`ConsultarSolicitudesDispensas.puml`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/DirectorDeGrado/ConsultarSolicitudesDispensas.puml) (detallado, filename y estado interno) | `consultarSolicitudesDispensas` (plural `Dispensas`) |
 | [Prototipos SALT](/RUP/00-requisitos/CasosDeUso/Prototipos/DirectorDeGrado/) | `consultarSolicitudesDispensasDirector1/2.png` (plural) |
 
 El análisis adopta **`consultarSolicitudesDispensas()`** (plural) como nombre canónico — mayoría de artefactos (detallado + prototipos + estado interno) y semántica más coherente: el CU consulta una **lista** de solicitudes (plural), no una sola. Misma lógica que [[consultarSolicitudDispensa]] aplicó al adoptar el nombre del detallado frente a `Alumno.puml`.
@@ -214,14 +216,14 @@ La diferencia de **alcance** (master-detail vs solo detalle) refleja una diferen
 - Diseño de la `ConsultarSolicitudesDispensasView` como single-page con panel master + panel detail vs dos vistas separadas
 - Reconciliar `SolicitudDispensa` con el modelo del dominio
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/consultarSolicitudesDispensas/colaboracion.puml)
 
 ## referencias
 
-- [Detallado `ConsultarSolicitudesDispensas.puml`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/DirectorDeGrado/ConsultarSolicitudesDispensas.puml)
-- [Prototipo SALT `consultarSolicitudesDispensasDirector1.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/DirectorDeGrado/consultarSolicitudesDispensasDirector1.png)
-- [Prototipo SALT `consultarSolicitudesDispensasDirector2.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/DirectorDeGrado/consultarSolicitudesDispensasDirector2.png)
-- [Caso de uso del DirectorDeGrado](/RUP/00-requisitos/CasosDeUso/CasoDeUso/DirectorDeGrado/DirectorDeGrado.puml)
+- [Detallado `ConsultarSolicitudesDispensas.puml`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/DirectorDeGrado/ConsultarSolicitudesDispensas.puml)
+- [Prototipo SALT `consultarSolicitudesDispensasDirector1.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/DirectorDeGrado/consultarSolicitudesDispensasDirector1.png)
+- [Prototipo SALT `consultarSolicitudesDispensasDirector2.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/DirectorDeGrado/consultarSolicitudesDispensasDirector2.png)
+- [Caso de uso del DirectorDeGrado](/modelosUML/RUP/00-requisitos/CasosDeUso/CasoDeUso/DirectorDeGrado/DirectorDeGrado.puml)
 - [Análisis `consultarSolicitudDispensa()` (Alumno)](/RUP/01-analisis/casos-uso/consultarSolicitudDispensa/README.md)
 - [Análisis `editarSolicitudDispensa()` (Alumno)](/RUP/01-analisis/casos-uso/editarSolicitudDispensa/README.md)
 - [conversation-log.md](/conversation-log.md)

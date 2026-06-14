@@ -21,12 +21,14 @@ Análisis del caso de uso `editarSolicitudDispensa()` mediante diagrama de colab
 
 <div align=center>
 
-|![Análisis editarSolicitudDispensa()](./colaboracion.svg)|
+|![Análisis editarSolicitudDispensa()](/images/RUP/01-analisis/casos-uso/editarSolicitudDispensa/colaboracion.svg)|
 |-|
 |**Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC|
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/editarSolicitudDispensa/colaboracion.puml)
 ## clases de análisis identificadas
 
 ### clases model (naranja #F2AC4E)
@@ -40,7 +42,7 @@ Análisis del caso de uso `editarSolicitudDispensa()` mediante diagrama de colab
 
 | Clase | Responsabilidad | Derivación |
 |-|-|-|
-| **EditarSolicitudDispensaView** | Formulario de edición: motivos, documentación adjunta | [Prototipo SALT `editarSolicitudDispensaAlumno.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Alumno/editarSolicitudDispensaAlumno.png) |
+| **EditarSolicitudDispensaView** | Formulario de edición: motivos, documentación adjunta | [Prototipo SALT `editarSolicitudDispensaAlumno.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Alumno/editarSolicitudDispensaAlumno.png) |
 
 ### clases controller (verde #b5bd68)
 
@@ -174,13 +176,13 @@ Cómo se chequea (middleware, regla en el Controller, regla a nivel BD) es decis
 - Estado de la solicitud: ¿puede editarse cualquier campo en cualquier estado? (probablemente no — una solicitud "aprobada" o "rechazada" no debería ser editable; deuda de regla de negocio)
 - Reconciliación de `SolicitudDispensa` con el modelo del dominio
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/editarSolicitudDispensa/colaboracion.puml)
 
 ## referencias
 
-- [Detallado `editarSolicitudDispensa()`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Alumno/editarSolicitudDispensa.puml)
-- [Prototipo SALT `editarSolicitudDispensaAlumno.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Alumno/editarSolicitudDispensaAlumno.png)
-- [Caso de uso del Alumno](/RUP/00-requisitos/CasosDeUso/CasoDeUso/Alumno/Alumno.puml)
+- [Detallado `editarSolicitudDispensa()`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Alumno/editarSolicitudDispensa.puml)
+- [Prototipo SALT `editarSolicitudDispensaAlumno.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Alumno/editarSolicitudDispensaAlumno.png)
+- [Caso de uso del Alumno](/modelosUML/RUP/00-requisitos/CasosDeUso/CasoDeUso/Alumno/Alumno.puml)
 - [Análisis `crearSolicitudDispensa()`](/RUP/01-analisis/casos-uso/crearSolicitudDispensa/README.md)
 - [Análisis `editarUsuario()`](/RUP/01-analisis/casos-uso/editarUsuario/README.md)
 - [conversation-log.md](/conversation-log.md)

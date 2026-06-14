@@ -13,9 +13,9 @@
 
 Este diagrama define los posibles estados por los que puede transitar una Dispensa en el sistema, así como las transiciones permitidas entre ellos.
 
-![Diagrama de Estado - Dispensas](./Dispensas.svg)
+![Diagrama de Estado - Dispensas](/images/RUP/00-requisitos/ModeloDelDominio/DiagramasDeEstado/Dispensas/Dispensas.svg)
 
-📁 [Carpeta](.) | 📄 [SVG](./Dispensas.svg) | 📋 [PUML](./Dispensas.puml)
+📁 [Carpeta](.) | 📄 [SVG](/images/RUP/00-requisitos/ModeloDelDominio/DiagramasDeEstado/Dispensas/Dispensas.svg) | 📋 [PUML](/modelosUML/RUP/00-requisitos/ModeloDelDominio/DiagramasDeEstado/Dispensas/Dispensas.puml)
 
 ---
 

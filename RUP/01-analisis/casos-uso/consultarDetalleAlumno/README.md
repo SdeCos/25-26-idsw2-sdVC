@@ -23,12 +23,14 @@ Es el CU homólogo a [[consultarSolicitudDispensa]] del Profesor sobre `Solicitu
 
 <div align=center>
 
-|![Análisis consultarDetalleAlumno()](./colaboracion.svg)|
+|![Análisis consultarDetalleAlumno()](/images/RUP/01-analisis/casos-uso/consultarDetalleAlumno/colaboracion.svg)|
 |-|
 |**Disciplina**: Análisis RUP<br>**Enfoque**: Diagramas de colaboración MVC|
 
 </div>
 
+
+[Código PlantUML](/modelosUML/RUP/01-analisis/casos-uso/consultarDetalleAlumno/colaboracion.puml)
 ## clases de análisis identificadas
 
 ### clases model (naranja #F2AC4E)
@@ -42,7 +44,7 @@ Es el CU homólogo a [[consultarSolicitudDispensa]] del Profesor sobre `Solicitu
 
 | Clase | Responsabilidad | Derivación |
 |-|-|-|
-| **ConsultarDetalleAlumnoView** | Ficha completa con secciones colapsables (datos básicos siempre visibles, "Información Adicional" y "Asistencias" expandibles) | [Prototipos SALT `consultarDetalleAlumno2.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/consultarDetalleAlumno2.png) (asistencias expandidas) y [`consultarDetalleAlumno3.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/consultarDetalleAlumno3.png) (información adicional expandida) |
+| **ConsultarDetalleAlumnoView** | Ficha completa con secciones colapsables (datos básicos siempre visibles, "Información Adicional" y "Asistencias" expandibles) | [Prototipos SALT `consultarDetalleAlumno2.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/consultarDetalleAlumno2.png) (asistencias expandidas) y [`consultarDetalleAlumno3.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/consultarDetalleAlumno3.png) (información adicional expandida) |
 
 ### clases controller (verde #b5bd68)
 
@@ -208,15 +210,15 @@ Cada CU del Profesor refuerza el patrón: **acceso filtrado por contexto docente
 - **Lazy loading de la sección Asistencias**: si el volumen lo justifica
 - **Mismo polimorfismo del Controller** que en el bloque dispensas — `AlumnoController` posiblemente con métodos específicos por rol (Profesor vs Secretaria, que también consulta alumnos)
 
-**Código fuente:** [colaboracion.puml](colaboracion.puml)
+**Código fuente:** [colaboracion.puml](/modelosUML/RUP/01-analisis/casos-uso/consultarDetalleAlumno/colaboracion.puml)
 
 ## referencias
 
-- [Detallado `consultarDetalleAlumno()`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Profesor/consultarDetalleAlumno.puml)
-- [Prototipo SALT `consultarDetalleAlumno1.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/consultarDetalleAlumno1.png)
-- [Prototipo SALT `consultarDetalleAlumno2.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/consultarDetalleAlumno2.png)
-- [Prototipo SALT `consultarDetalleAlumno3.png`](/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/consultarDetalleAlumno3.png)
-- [Caso de uso del Profesor](/RUP/00-requisitos/CasosDeUso/CasoDeUso/Profesor/Profesor.puml)
+- [Detallado `consultarDetalleAlumno()`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Profesor/consultarDetalleAlumno.puml)
+- [Prototipo SALT `consultarDetalleAlumno1.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/consultarDetalleAlumno1.png)
+- [Prototipo SALT `consultarDetalleAlumno2.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/consultarDetalleAlumno2.png)
+- [Prototipo SALT `consultarDetalleAlumno3.png`](/images/RUP/00-requisitos/CasosDeUso/Prototipos/Profesor/consultarDetalleAlumno3.png)
+- [Caso de uso del Profesor](/modelosUML/RUP/00-requisitos/CasosDeUso/CasoDeUso/Profesor/Profesor.puml)
 - [Análisis `consultarListaAlumnos()`](/RUP/01-analisis/casos-uso/consultarListaAlumnos/README.md)
 - [Análisis `consultarSolicitudDispensa()` (Profesor)](/RUP/01-analisis/casos-uso/consultarSolicitudDispensaProfesor/README.md)
 - [conversation-log.md](/conversation-log.md)

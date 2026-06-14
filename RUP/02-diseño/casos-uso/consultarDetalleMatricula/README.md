@@ -1,6 +1,6 @@
 # CGU > consultarDetalleMatricula > Diseño
 
-> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/consultarDetalleMatricula.puml) | [Análisis](/RUP/01-analisis/casos-uso/consultarDetalleMatricula/README.md) | **Diseño** | Desarrollo |
+> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/consultarDetalleMatricula.puml) | [Análisis](/RUP/01-analisis/casos-uso/consultarDetalleMatricula/README.md) | **Diseño** | Desarrollo |
 > |-|-|-|-|-|-|
 
 ## información del artefacto
@@ -17,13 +17,13 @@
 
 <div align=center>
 
-|![Secuencia consultarDetalleMatricula()](./secuencia.svg)|
+|![Secuencia consultarDetalleMatricula()](/images/RUP/02-diseño/casos-uso/consultarDetalleMatricula/secuencia.svg)|
 |-|
 |**Disciplina**: Diseño RUP<br>**Enfoque**: Diagrama de secuencia con tecnología concreta|
 
 </div>
 
-[Código PlantUML](secuencia.puml)
+[Código PlantUML](/modelosUML/RUP/02-diseño/casos-uso/consultarDetalleMatricula/secuencia.puml)
 
 ## participantes
 
@@ -90,5 +90,5 @@ MatriculaDetalleOut {
 - [Análisis `consultarDetalleMatricula()`](/RUP/01-analisis/casos-uso/consultarDetalleMatricula/README.md)
 - [Diseño `importarMatriculas()` — refactor del modelo agregado](/RUP/02-diseño/casos-uso/importarMatriculas/README.md)
 - [Diseño `consultarListaAlumnosSecretaria()` — patrón gemelo de consulta](/RUP/02-diseño/casos-uso/consultarListaAlumnosSecretaria/README.md)
-- [Detallado `consultarDetalleMatricula.puml`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/consultarDetalleMatricula.puml)
+- [Detallado `consultarDetalleMatricula.puml`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/consultarDetalleMatricula.puml)
 - [conversation-log.md](/conversation-log.md)

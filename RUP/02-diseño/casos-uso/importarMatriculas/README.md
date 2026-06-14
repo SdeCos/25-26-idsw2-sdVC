@@ -1,6 +1,6 @@
 # CGU > importarMatriculas > Diseño
 
-> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/importarMatricula.puml) | [Análisis](/RUP/01-analisis/casos-uso/importarMatriculas/README.md) | **Diseño** | Desarrollo |
+> | [🏠️](/README.md) | [Diseño](/RUP/02-diseño/README.md) | [Detalle](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/importarMatricula.puml) | [Análisis](/RUP/01-analisis/casos-uso/importarMatriculas/README.md) | **Diseño** | Desarrollo |
 > |-|-|-|-|-|-|
 
 ## información del artefacto
@@ -17,13 +17,13 @@
 
 <div align=center>
 
-|![Secuencia importarMatriculas()](./secuencia.svg)|
+|![Secuencia importarMatriculas()](/images/RUP/02-diseño/casos-uso/importarMatriculas/secuencia.svg)|
 |-|
 |**Disciplina**: Diseño RUP<br>**Enfoque**: Diagrama de secuencia con tecnología concreta|
 
 </div>
 
-[Código PlantUML](secuencia.puml)
+[Código PlantUML](/modelosUML/RUP/02-diseño/casos-uso/importarMatriculas/secuencia.puml)
 
 ## participantes
 
@@ -136,5 +136,5 @@ Distinción útil para la Secretaria: una sola `Matricula` (header) puede haber 
 - [Análisis `importarMatriculas()`](/RUP/01-analisis/casos-uso/importarMatriculas/README.md)
 - [Diseño `importarListasAlumnos()` — gemelo, debe ejecutarse antes](/RUP/02-diseño/casos-uso/importarListasAlumnos/README.md)
 - [Diseño `crearSolicitudDispensa()` (Alumno) — futuro consumidor de `Matricula`](/RUP/02-diseño/casos-uso/crearSolicitudDispensa/README.md)
-- [Detallado `importarMatricula.puml`](/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/importarMatricula.puml)
+- [Detallado `importarMatricula.puml`](/modelosUML/RUP/00-requisitos/CasosDeUso/DetalladoCasosDeUso/Secretaria/importarMatricula.puml)
 - [conversation-log.md](/conversation-log.md)
